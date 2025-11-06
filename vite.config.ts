@@ -31,10 +31,10 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, "src/index.tsx"),
       name: "react-timeline-editor",
-      formats: ["es"],
+      formats: ["es", "cjs"],
     },
     rollupOptions: {
-      external: ["react", "react-dom"]
+      external: ["react", "react-dom"],
     },
   },
 });

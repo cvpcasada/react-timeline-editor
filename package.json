@@ -1,6 +1,6 @@
 {
   "name": "@cyca/react-timeline-editor",
-  "version": "0.2.2-alpha.0",
+  "version": "0.2.2-alpha.4",
   "author": "cyca",
   "license": "MIT",
   "keywords": [
@@ -32,13 +32,16 @@
     "dist"
   ],
   "type": "module",
+  "main": "./dist/react-timeline-editor.cjs",
   "module": "./dist/react-timeline-editor.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/react-timeline-editor.js"
+      "import": "./dist/react-timeline-editor.js",
+      "require": "./dist/react-timeline-editor.cjs"
     },
+    "./react-timeline-editor.css": "./dist/react-timeline-editor.css",
     "./package.json": "./package.json"
   },
   "peerDependencies": {
@@ -54,28 +57,28 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",
-    "@storybook/addon-docs": "^10.0.4",
-    "@storybook/react-vite": "^10.0.4",
-    "@types/howler": "^2.2.4",
-    "@types/node": "^24.6.0",
-    "@types/react": "^19.1.16",
-    "@types/react-dom": "^19.1.9",
-    "@vitejs/plugin-react": "^5.0.4",
+    "@storybook/addon-docs": "^10.0.5",
+    "@storybook/react-vite": "^10.0.5",
+    "@types/howler": "^2.2.12",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
     "babel-plugin-react-compiler": "^1.0.0",
-    "eslint": "^9.36.0",
+    "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "eslint-plugin-storybook": "^10.0.4",
-    "gh-pages": "^3.0.0",
-    "globals": "^16.4.0",
+    "eslint-plugin-storybook": "^10.0.5",
+    "gh-pages": "^3.2.3",
+    "globals": "^16.5.0",
     "less": "^4.4.2",
-    "prettier": "^2.2.1",
+    "prettier": "^2.8.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "storybook": "^10.0.4",
+    "storybook": "^10.0.5",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.45.0",
-    "vite": "npm:rolldown-vite@7.1.14",
+    "typescript-eslint": "^8.46.3",
+    "vite": "^7.2.1",
     "vite-plugin-dts": "^4.5.4"
   }
 }

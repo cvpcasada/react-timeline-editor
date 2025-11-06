@@ -16,7 +16,7 @@ export type EditActionProps = CommonProp & {
   dragLineData: DragLineData;
   setEditorData: (params: TimelineRow[]) => void;
   handleTime: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => number;
-  areaRef: React.RefObject<HTMLDivElement | null>;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   /** Set scroll left */
   deltaScrollLeft?: (delta: number) => void;
 };
@@ -52,7 +52,7 @@ export const EditAction: FC<EditActionProps> = ({
   onContextMenuAction,
   getActionRender,
   handleTime,
-  areaRef,
+  scrollContainerRef,
   deltaScrollLeft,
 }) => {
   const rowRnd = useRef<RowRndApi | null>(null);
@@ -196,7 +196,7 @@ export const EditAction: FC<EditActionProps> = ({
   return (
     <RowDnd
       ref={rowRnd}
-      parentRef={areaRef}
+      parentRef={scrollContainerRef}
       start={safeStartLeft}
       left={transform.left}
       width={transform.width}

@@ -8,6 +8,7 @@ import { EditArea } from './edit_area/edit_area';
 import './timeline.less';
 import { TimeArea } from './time_area/time_area';
 import ScrollSync, { type ScrollSyncHandle } from './scroll_sync';
+import { useMeasure } from './measured';
 
 export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, ref) => {
   const checkedProps = checkProps(props);
@@ -39,7 +40,7 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, 
   const [cursorTime, setCursorTime] = useState(START_CURSOR_TIME);
 
   // Current timeline width
-  const [width, setWidth] = useState(Number.MAX_SAFE_INTEGER);
+  const { width, height } = useMeasure(areaRef);
 
   /** Dynamically set scale count */
   const handleSetScaleCount = useCallback(
@@ -112,19 +113,6 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, 
     },
   }));
 
-  // Listen to timeline area width changes
-  useEffect(() => {
-    if (areaRef.current) {
-      const resizeObserver = new ResizeObserver(() => {
-        if (!areaRef.current) return;
-        setWidth(areaRef.current.getBoundingClientRect().width);
-      });
-      resizeObserver.observe(areaRef.current!);
-      return () => {
-        resizeObserver && resizeObserver.disconnect();
-      };
-    }
-  }, []);
 
   return (
     <div ref={domRef} style={style} className={`${PREFIX} ${disableDrag ? PREFIX + '-disable' : ''}`}>
@@ -146,11 +134,8 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, 
             <EditArea
               {...checkedProps}
               timelineWidth={width}
-              ref={(ref) => {
-                if (ref?.domRef.current) {
-                  areaRef.current = ref.domRef.current;
-                }
-              }}
+              timelineHeight={height}
+              ref={areaRef}
               disableDrag={disableDrag}
               editorData={editorData}
               cursorTime={cursorTime}

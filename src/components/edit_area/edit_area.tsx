@@ -1,18 +1,21 @@
-import React, { useEffect, useImperativeHandle, useLayoutEffect, useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { type TimelineRow } from '@/interface/action';
-import { type CommonProp } from '@/interface/common_prop';
-import { type EditData } from '@/interface/timeline';
-import { type OnScrollParams } from '@/interface/timeline';
-import { prefix } from '@/utils/deal_class_prefix';
-import { parserTimeToPixel } from '@/utils/deal_data';
-import { DragLines } from './drag_lines';
-import './edit_area.less';
-import { EditRow } from './edit_row';
-import { useDragLine } from './hooks/use_drag_line';
-import { Measured } from '@/components/measured';
+import React, { useEffect, useLayoutEffect, useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { type TimelineRow } from "@/interface/action";
+import { type CommonProp } from "@/interface/common_prop";
+import { type EditData } from "@/interface/timeline";
+import { type OnScrollParams } from "@/interface/timeline";
+import { prefix } from "@/utils/deal_class_prefix";
+import { parserTimeToPixel } from "@/utils/deal_data";
+import { DragLines } from "./drag_lines";
+import "./edit_area.less";
+import { EditRow } from "./edit_row";
+import { useDragLine } from "./hooks/use_drag_line";
+import mergeRefs from "@/utils/merge_refs";
 
 export type EditAreaProps = CommonProp & {
+  /** Timeline height */
+  timelineHeight: number;
+
   /** Scroll distance from left */
   scrollLeft: number;
   /** Scroll distance from top */
@@ -25,81 +28,44 @@ export type EditAreaProps = CommonProp & {
   deltaScrollLeft?: (scrollLeft: number) => void;
 };
 
-/** Edit area ref data */
-export interface EditAreaState {
-  domRef: React.RefObject<HTMLDivElement | null>;
-}
+export const EditArea = ({
+  ref,
+  ...props
+}: EditAreaProps & { ref?: React.RefObject<HTMLDivElement | null> }) => {
+  const editAreaRef = useRef<HTMLDivElement>(null);
 
-interface EditAreaContentProps extends EditAreaProps {
-  width: number;
-  height: number;
-  editAreaRef: React.RefObject<HTMLDivElement | null>;
-}
+  const {
+    dragLineData,
+    initDragLine,
+    updateDragLine,
+    disposeDragLine,
+    defaultGetAssistPosition,
+    defaultGetMovePosition,
+  } = useDragLine();
 
-const EditAreaContent: React.FC<EditAreaContentProps> = ({
-  width,
-  height,
-  editAreaRef,
-  editorData,
-  rowHeight,
-  scaleWidth,
-  scaleCount,
-  setScaleCount,
-  startLeft,
-  scrollLeft,
-  scrollTop,
-  scale,
-  dragLine,
-  getAssistDragLineActionIds,
-  onActionMoveEnd,
-  onActionMoveStart,
-  onActionMoving,
-  onActionResizeEnd,
-  onActionResizeStart,
-  onActionResizing,
-  onScroll,
-  cursorTime,
-  hideCursor,
-  setEditorData,
-  deltaScrollLeft,
-  timelineWidth,
-  // Pass remaining CommonProp fields
-  getActionRender,
-  getScaleRender,
-  onClickRow,
-  onDoubleClickRow,
-  onContextMenuRow,
-  onClickAction,
-  onClickActionOnly,
-  onDoubleClickAction,
-  onContextMenuAction,
-  onCursorDragStart,
-  onCursorDragEnd,
-  onCursorDrag,
-  onClickTimeArea,
-  gridSnap,
-  effects,
-}) => {
-  const { dragLineData, initDragLine, updateDragLine, disposeDragLine, defaultGetAssistPosition, defaultGetMovePosition } = useDragLine();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const heightRef = useRef(-1);
 
-  const handleInitDragLine: EditData['onActionMoveStart'] = (data) => {
-    if (dragLine) {
+  const handleInitDragLine: EditData["onActionMoveStart"] = (data) => {
+    if (props.dragLine) {
       const assistActionIds =
-        getAssistDragLineActionIds &&
-        getAssistDragLineActionIds({
+        props.getAssistDragLineActionIds &&
+        props.getAssistDragLineActionIds({
           action: data.action,
           row: data.row,
-          editorData,
+          editorData: props.editorData,
         });
-      const currentScaleWidth = scaleWidth ?? 160;
-      const currentScale = scale ?? 1;
-      const currentStartLeft = startLeft ?? 20;
-      const currentHideCursor = hideCursor ?? false;
-      const cursorLeft = parserTimeToPixel(cursorTime, { scaleWidth: currentScaleWidth, scale: currentScale, startLeft: currentStartLeft });
+      const currentScaleWidth = props.scaleWidth ?? 160;
+      const currentScale = props.scale ?? 1;
+      const currentStartLeft = props.startLeft ?? 20;
+      const currentHideCursor = props.hideCursor ?? false;
+      const cursorLeft = parserTimeToPixel(props.cursorTime, {
+        scaleWidth: currentScaleWidth,
+        scale: currentScale,
+        startLeft: currentStartLeft,
+      });
       const assistPositions = defaultGetAssistPosition({
-        editorData,
+        editorData: props.editorData,
         assistActionIds,
         action: data.action,
         row: data.row,
@@ -113,11 +79,11 @@ const EditAreaContent: React.FC<EditAreaContentProps> = ({
     }
   };
 
-  const handleUpdateDragLine: EditData['onActionMoving'] = (data) => {
-    if (dragLine) {
-      const currentScaleWidth = scaleWidth ?? 160;
-      const currentScale = scale ?? 1;
-      const currentStartLeft = startLeft ?? 20;
+  const handleUpdateDragLine: EditData["onActionMoving"] = (data) => {
+    if (props.dragLine) {
+      const currentScaleWidth = props.scaleWidth ?? 160;
+      const currentScale = props.scale ?? 1;
+      const currentStartLeft = props.startLeft ?? 20;
       const movePositions = defaultGetMovePosition({
         ...data,
         startLeft: currentStartLeft,
@@ -131,27 +97,24 @@ const EditAreaContent: React.FC<EditAreaContentProps> = ({
   // Get total height
   let totalHeight = 0;
   // Height list
-  const defaultRowHeight = rowHeight ?? 32;
-  const heights = editorData.map((row) => {
+  const defaultRowHeight = props.rowHeight ?? 32;
+  const heights = props.editorData.map((row) => {
     const itemHeight = row.rowHeight || defaultRowHeight;
     totalHeight += itemHeight;
     return itemHeight;
   });
-  if (totalHeight < height) {
-    heights.push(height - totalHeight);
-    if (heightRef.current !== height && heightRef.current >= 0) {
-      // Defer re-measurement
-      setTimeout(() => {
-        rowVirtualizer.measure();
-      });
-    }
-  }
-  heightRef.current = height;
 
-  const currentScaleWidth = scaleWidth ?? 160;
-  const currentStartLeft = startLeft ?? 20;
+  if (totalHeight < props.timelineHeight) {
+    heights.push(props.timelineHeight - totalHeight);
+  }
+
+  const currentScaleWidth = props.scaleWidth ?? 160;
+  const currentStartLeft = props.startLeft ?? 20;
   // const currentRowHeight = rowHeight ?? 32;
-  const contentWidth = Math.max(scaleCount * currentScaleWidth + currentStartLeft, width);
+  const contentWidth = Math.max(
+    props.scaleCount * currentScaleWidth + currentStartLeft,
+    props.timelineWidth
+  );
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const rowVirtualizer = useVirtualizer({
@@ -161,26 +124,34 @@ const EditAreaContent: React.FC<EditAreaContentProps> = ({
     overscan: 10,
   });
 
+  useLayoutEffect(() => {
+    heightRef.current = props.timelineHeight;
+    if (heightRef.current !== props.timelineHeight && heightRef.current >= 0) {
+      // Defer re-measurement
+      rowVirtualizer.measure();
+    }
+  }, [props.timelineHeight, rowVirtualizer]);
+
   // Sync external scrollTop and scrollLeft
   useLayoutEffect(() => {
     if (scrollContainerRef.current) {
-      if (scrollTop !== undefined) {
-        scrollContainerRef.current.scrollTop = scrollTop;
+      if (props.scrollTop !== undefined) {
+        scrollContainerRef.current.scrollTop = props.scrollTop;
       }
-      if (scrollLeft !== undefined) {
-        scrollContainerRef.current.scrollLeft = scrollLeft;
+      if (props.scrollLeft !== undefined) {
+        scrollContainerRef.current.scrollLeft = props.scrollLeft;
       }
     }
-  }, [scrollTop, scrollLeft]);
+  }, [props.scrollTop, props.scrollLeft]);
 
   // Remeasure when editorData changes
   useEffect(() => {
     rowVirtualizer.measure();
-  }, [editorData, rowVirtualizer]);
+  }, [props.editorData, rowVirtualizer]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
-    onScroll({
+    props.onScroll({
       clientHeight: el.clientHeight,
       clientWidth: el.clientWidth,
       scrollHeight: el.scrollHeight,
@@ -191,121 +162,84 @@ const EditAreaContent: React.FC<EditAreaContentProps> = ({
   };
 
   return (
-    <>
+    <div ref={mergeRefs(editAreaRef, ref)} className={prefix("edit-area")}>
       <div
+        className={prefix("edit-area-virtual")}
         ref={scrollContainerRef}
-        style={{ width, height, overflow: 'auto' }}
+        style={{
+          width: props.timelineWidth,
+          height: props.timelineHeight,
+          overflow: "auto",
+        }}
         onScroll={handleScroll}
       >
         <div
           style={{
             height: `${rowVirtualizer.getTotalSize()}px`,
             width: contentWidth,
-            position: 'relative',
+            position: "relative",
           }}
         >
           {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-            const row = editorData[virtualRow.index];
+            const row = props.editorData[virtualRow.index];
             return (
               <EditRow
-                scaleCount={scaleCount}
-                setScaleCount={setScaleCount}
-                cursorTime={cursorTime}
-                editorData={editorData}
-                rowHeight={rowHeight}
-                scaleWidth={scaleWidth}
-                startLeft={startLeft}
-                scale={scale}
-                hideCursor={hideCursor}
-                timelineWidth={timelineWidth}
-                getActionRender={getActionRender}
-                getScaleRender={getScaleRender}
-                onClickRow={onClickRow}
-                onDoubleClickRow={onDoubleClickRow}
-                onContextMenuRow={onContextMenuRow}
-                onClickAction={onClickAction}
-                onClickActionOnly={onClickActionOnly}
-                onDoubleClickAction={onDoubleClickAction}
-                onContextMenuAction={onContextMenuAction}
-                onCursorDragStart={onCursorDragStart}
-                onCursorDragEnd={onCursorDragEnd}
-                onCursorDrag={onCursorDrag}
-                onClickTimeArea={onClickTimeArea}
-                gridSnap={gridSnap}
-                effects={effects}
-                setEditorData={setEditorData}
-                deltaScrollLeft={deltaScrollLeft}
+                {...props}
+                key={virtualRow.key}
+                rowData={row}
+                dragLineData={dragLineData}
+                scrollContainerRef={scrollContainerRef}
+                scrollLeft={props.scrollLeft}
                 style={{
-                  position: 'absolute',
+                  position: "absolute",
                   top: 0,
                   left: 0,
                   width: contentWidth,
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
-                  backgroundPositionX: `0, ${startLeft ?? 20}px`,
-                  backgroundSize: `${startLeft ?? 20}px, ${scaleWidth ?? 160}px`,
+                  backgroundPositionX: `0, ${props.startLeft ?? 20}px`,
+                  backgroundSize: `${props.startLeft ?? 20}px, ${
+                    props.scaleWidth ?? 160
+                  }px`,
                 }}
-                areaRef={editAreaRef}
-                key={virtualRow.key}
-                rowData={row}
-                dragLineData={dragLineData}
                 onActionMoveStart={(data) => {
                   handleInitDragLine(data);
-                  return onActionMoveStart && onActionMoveStart(data);
+                  return (
+                    props.onActionMoveStart && props.onActionMoveStart(data)
+                  );
                 }}
                 onActionResizeStart={(data) => {
                   handleInitDragLine(data);
-                  return onActionResizeStart && onActionResizeStart(data);
+                  return (
+                    props.onActionResizeStart && props.onActionResizeStart(data)
+                  );
                 }}
                 onActionMoving={(data) => {
                   handleUpdateDragLine(data);
-                  return onActionMoving && onActionMoving(data);
+                  return props.onActionMoving && props.onActionMoving(data);
                 }}
                 onActionResizing={(data) => {
                   handleUpdateDragLine(data);
-                  return onActionResizing && onActionResizing(data);
+                  return props.onActionResizing && props.onActionResizing(data);
                 }}
                 onActionResizeEnd={(data) => {
                   disposeDragLine();
-                  return onActionResizeEnd && onActionResizeEnd(data);
+                  return (
+                    props.onActionResizeEnd && props.onActionResizeEnd(data)
+                  );
                 }}
                 onActionMoveEnd={(data) => {
                   disposeDragLine();
-                  return onActionMoveEnd && onActionMoveEnd(data);
+                  return props.onActionMoveEnd && props.onActionMoveEnd(data);
                 }}
-                scrollLeft={scrollLeft}
               />
             );
           })}
         </div>
       </div>
-      {dragLine && <DragLines scrollLeft={scrollLeft} {...dragLineData} />}
-    </>
+      {props.dragLine && (
+        <DragLines scrollLeft={props.scrollLeft} {...dragLineData} />
+      )}
+    </div>
   );
 };
-
-export const EditArea = React.forwardRef<EditAreaState, EditAreaProps>((props, ref) => {
-  const editAreaRef = useRef<HTMLDivElement>(null);
-
-  // Ref data
-  useImperativeHandle(ref, () => ({
-    get domRef() {
-      return editAreaRef;
-    },
-  }));
-
-  return (
-    <Measured
-      ref={editAreaRef}
-      className={prefix('edit-area')}
-      render={({ width, height }) => (
-        <EditAreaContent
-          {...props}
-          width={width}
-          height={height}
-          editAreaRef={editAreaRef}
-        />
-      )}
-    />
-  );
-});

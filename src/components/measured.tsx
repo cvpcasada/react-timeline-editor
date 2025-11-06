@@ -1,10 +1,30 @@
-import { useState, useRef, useLayoutEffect } from 'react';
-import { resize } from 'motion';
-import mergeRefs from '@/utils/merge_refs';
+/* eslint-disable react-refresh/only-export-components */
+import { useState, useRef, useLayoutEffect } from "react";
+import { resize } from "motion";
+import mergeRefs from "@/utils/merge_refs";
 
-export function Measured({ render, ref, ...props }: { render: (size: { width: number; height: number }) => React.ReactNode; ref?: React.Ref<HTMLDivElement> } & React.HTMLAttributes<HTMLDivElement>) {
-  const [size, setSize] = useState({ width: 0, height: 0 });
+export function Measured({
+  render,
+  ref,
+  ...props
+}: {
+  render: (size: { width: number; height: number }) => React.ReactNode;
+  ref?: React.Ref<HTMLDivElement>;
+} & React.HTMLAttributes<HTMLDivElement>) {
   const elementRef = useRef<HTMLDivElement>(null);
+  const size = useMeasure(elementRef);
+
+  return (
+    <div ref={mergeRefs(elementRef, ref)} {...props}>
+      {render(size)}
+    </div>
+  );
+}
+
+export function useMeasure<T extends HTMLElement>(
+  elementRef: React.RefObject<T | null>
+) {
+  const [size, setSize] = useState({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
     if (!elementRef.current) return;
@@ -13,9 +33,5 @@ export function Measured({ render, ref, ...props }: { render: (size: { width: nu
     });
   }, []);
 
-  return (
-    <div ref={mergeRefs(elementRef, ref)} {...props}>
-      {render(size)}
-    </div>
-  );
+  return size;
 }
