@@ -1,64 +1,40 @@
-# React Timeline Editor
-[![npm version](https://img.shields.io/npm/v/@xzdarcy/react-timeline-editor.svg?style=flat-square)](https://www.npmjs.com/package/@xzdarcy/react-timeline-editor)
-[![npm downloads](https://img.shields.io/npm/dm/@xzdarcy/react-timeline-editor.svg?style=flat-square)](https://www.npmjs.com/package/@xzdarcy/react-timeline-editor)
+# react-timeline-editor
+`@cyca/react-timeline-editor` is a React-based component for quickly building timeline editing capabilities.
 
-**[React Timeline Editor](https://zdarcy.com/)** is a react component used to quickly build a timeline animation editor.
+This is a fork of the original [@xzdarcy/react-timeline-editor](https://github.com/xzdarcy/react-timeline-editor)
 
-![example](https://github.com/xzdarcy/react-timeline-editor/blob/f79d85eee8a723e5210c04232daf2c51888418c0/public/assets/timeline.gif)
-## Getting Started
+It can be mainly used to build animation editors, video editors, etc.
 
-```bash
-npm install @xzdarcy/react-timeline-editor
+## ✨ Features
+- 🛠 Supports drag and scale modes, with convenient control hooks.
+- 🔗 Provides grid snapping, auxiliary line snapping, and other interactive capabilities.
+- 🏷 Automatically recognizes action length and infinite scrolling.
+- 🎨 Easy and quick style customization.
+- ❌ Removed Runner from the original library.
+
+## Changes from the original library
+- Replaced react-virtualized with @tanstack/virtual
+- Replaced Interact.js with @use-gesture/vanilla
+- Uses React-19 as a base
+- Compiled with react-compiler enabled
+- Modern bundling via latest `vite` and docs powered by storybook
+
+## Quick Start
+
+```
+npm install @cyca/react-timeline-editor
 ```
 
-```ts
-import { Timeline, TimelineEffect, TimelineRow } from '@xzdarcy/react-timeline-editor';
+```js
 import React from 'react';
+import { Timeline } from '@cyca/react-timeline-editor';
 
-const mockData: TimelineRow[] = [{
-    id: "0",
-    actions: [
-      {
-        id: "action00",
-        start: 0,
-        end: 2,
-        effectId: "effect0",
-      },
-    ],
-  },
-  {
-    id: "1",
-    actions: [
-      {
-        id: "action10",
-        start: 1.5,
-        end: 5,
-        effectId: "effect1",
-      }
-    ],
-}]
-
-const mockEffect: Record<string, TimelineEffect> = {
-  effect0: {
-    id: "effect0",
-    name: "效果0",
-  },
-  effect1: {
-    id: "effect1",
-    name: "效果1",
-  },
-};
-
-const TimelineEditor = () => {
+export const TimelineEditor = () => {
   return (
-      <Timeline
-        editorData={mockData}
-        effects={mockEffect}
-      />
-  );
-};
+    <Timeline
+      editorData={[]}
+      effects={{}}
+    />
+  )
+}
 ```
-
-## Documention
-Checkout the [Docs](https://zdarcy.com/) for a demonstration of some basic and advanced features.
-

@@ -1,16 +1,16 @@
-import { DragEvent, ResizeEvent } from '@interactjs/types/index';
+import { type GestureEvent } from '@/components/row_rnd/gesture.types';
 import { useRef } from 'react';
 
 const DEFAULT_SPEED = 1;
 const MAX_SPEED = 3;
 const CRITICAL_SIZE = 10;
 
-export function useAutoScroll(target: React.MutableRefObject<HTMLDivElement>) {
+export function useAutoScroll(target: React.RefObject<HTMLDivElement>) {
   const leftBoundRef = useRef(Number.MIN_SAFE_INTEGER);
   const rightBoundRef = useRef(Number.MAX_SAFE_INTEGER);
 
   const speed = useRef(DEFAULT_SPEED);
-  const frame = useRef<number>();
+  const frame = useRef<number | undefined>(undefined);
 
   const initAutoScroll = () => {
     if (target?.current) {
@@ -20,10 +20,12 @@ export function useAutoScroll(target: React.MutableRefObject<HTMLDivElement>) {
     }
   };
 
-  const dealDragAutoScroll = (e: DragEvent, deltaScroll?: (delta: number) => void) => {
-    // 超出
+  const dealDragAutoScroll = (e: GestureEvent, deltaScroll?: (delta: number) => void) => {
+    // Out of bounds
     if (e.clientX >= rightBoundRef.current || e.clientX <= leftBoundRef.current) {
-      cancelAnimationFrame(frame.current);
+      if (frame.current !== undefined) {
+        cancelAnimationFrame(frame.current);
+      }
       const over = Math.abs(e.clientX >= rightBoundRef.current ? e.clientX - rightBoundRef.current : e.clientX - leftBoundRef.current);
       speed.current = Math.min(Number((over / CRITICAL_SIZE).toFixed(0)) * DEFAULT_SPEED, MAX_SPEED);
 
@@ -37,15 +39,19 @@ export function useAutoScroll(target: React.MutableRefObject<HTMLDivElement>) {
       frame.current = requestAnimationFrame(loop);
       return false;
     } else {
-      cancelAnimationFrame(frame.current);
+      if (frame.current !== undefined) {
+        cancelAnimationFrame(frame.current);
+      }
     }
 
     return true;
   };
 
-  const dealResizeAutoScroll = (e: ResizeEvent, dir: 'left' | 'right', deltaScroll?: (delta: number) => void) => {
+  const dealResizeAutoScroll = (e: GestureEvent, _dir: 'left' | 'right', deltaScroll?: (delta: number) => void) => {
     if (e.clientX >= rightBoundRef.current || e.clientX < leftBoundRef.current) {
-      cancelAnimationFrame(frame.current);
+      if (frame.current !== undefined) {
+        cancelAnimationFrame(frame.current);
+      }
       const over = Math.abs(e.clientX >= rightBoundRef.current ? e.clientX - rightBoundRef.current : e.clientX - leftBoundRef.current);
       speed.current = Math.min(Number((over / CRITICAL_SIZE).toFixed(0)) * DEFAULT_SPEED, MAX_SPEED);
 
@@ -60,7 +66,9 @@ export function useAutoScroll(target: React.MutableRefObject<HTMLDivElement>) {
 
       return false;
     } else {
-      cancelAnimationFrame(frame.current);
+      if (frame.current !== undefined) {
+        cancelAnimationFrame(frame.current);
+      }
     }
     return true;
   };
@@ -69,7 +77,9 @@ export function useAutoScroll(target: React.MutableRefObject<HTMLDivElement>) {
     leftBoundRef.current = Number.MIN_SAFE_INTEGER;
     rightBoundRef.current = Number.MAX_SAFE_INTEGER;
     speed.current = DEFAULT_SPEED;
-    cancelAnimationFrame(frame.current);
+    if (frame.current !== undefined) {
+      cancelAnimationFrame(frame.current);
+    }
   };
 
   return {

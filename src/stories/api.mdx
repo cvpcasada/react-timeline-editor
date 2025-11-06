@@ -1,0 +1,408 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="API" />
+
+## TimelineRow
+
+> Editor data: Row data structure
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+    <tr>
+      <td>id</td>
+      <td>Action row id</td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>
+        <code>(required)</code>
+      </td>
+    </tr>
+    <tr>
+      <td>actions</td>
+      <td>List of actions in the row</td>
+      <td>
+        <code><a href="#timelineaction">TimelineAction</a>[]</code>
+      </td>
+      <td>
+        <code>(required)</code>
+      </td>
+    </tr>
+    <tr>
+      <td>rowHeight</td>
+      <td>Custom row height (default determined by rowHeight in props)</td>
+      <td>
+        <code>number</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+    <tr>
+      <td>selected</td>
+      <td>Whether the row is selected</td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+    </tr>
+    <tr>
+      <td>classNames</td>
+      <td>Extended class names for the row</td>
+      <td>
+        <code>string[]</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+</table>
+
+## TimelineAction
+
+> Editor data: Action data structure
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+    <tr>
+      <td>id</td>
+      <td>Action id</td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>
+        <code>(required)</code>
+      </td>
+    </tr>
+    <tr>
+      <td>start</td>
+      <td>Action start time</td>
+      <td>
+        <code>number</code>
+      </td>
+      <td>
+        <code>(required)</code>
+      </td>
+    </tr>
+    <tr>
+      <td>end</td>
+      <td>Action end time</td>
+      <td>
+        <code>number</code>
+      </td>
+      <td>
+        <code>(required)</code>
+      </td>
+    </tr>
+    <tr>
+      <td>effectId</td>
+      <td>Effect id index corresponding to the action</td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>
+        <code>(required)</code>
+      </td>
+    </tr>
+    <tr>
+      <td>selected</td>
+      <td>Whether the action is selected</td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+    </tr>
+    <tr>
+      <td>flexible</td>
+      <td>Whether the action is resizable</td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>true</code>
+      </td>
+    </tr>
+    <tr>
+      <td>movable</td>
+      <td>Whether the action is movable</td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>true</code>
+      </td>
+    </tr>
+    <tr>
+      <td>disable</td>
+      <td>Disable action execution</td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+    </tr>
+    <tr>
+      <td>minStart</td>
+      <td>Minimum start time constraint for the action</td>
+      <td>
+        <code>number</code>
+      </td>
+      <td>
+        <code>0</code>
+      </td>
+    </tr>
+    <tr>
+      <td>maxEnd</td>
+      <td>Maximum end time constraint for the action</td>
+      <td>
+        <code>number</code>
+      </td>
+      <td>
+        <code>Number.MAX_VALUE</code>
+      </td>
+    </tr>
+</table>
+
+## TimelineEffect
+
+> Editor runtime effect data structure
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+    <tr>
+      <td>id</td>
+      <td>Effect id</td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>
+        <code>(required)</code>
+      </td>
+    </tr>
+     <tr>
+      <td>name</td>
+      <td>Effect name</td>
+      <td>
+        <code>string</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+     <tr>
+      <td>source</td>
+      <td>Effect execution code</td>
+      <td>
+        <code>TimeLineEffectSource</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+</table>
+
+### TimeLineEffectSource
+
+> Editor effect execution code data structure
+
+- start trigger condition
+  - Triggered when the runner starts playing, if the time is within the current action's time range
+- enter trigger condition
+  - Entering the current action's time range from a non-action time area
+- update trigger condition
+  - Triggered every frame when playing the current action (including reRender)
+  - Triggered during reRender
+- leave trigger condition
+  - Leaving the current action's time range
+- stop trigger condition
+  - Triggered when the runner pauses, if the time is within the current action's time range
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+    <tr>
+      <td>start</td>
+      <td>Callback when playback starts in the current action's time range</td>
+      <td>
+        <code>(param: EffectSourceParam) => void</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+     <tr>
+      <td>enter</td>
+      <td>Callback executed when time enters the action</td>
+      <td>
+        <code>(param: EffectSourceParam) => void</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+     <tr>
+      <td>update</td>
+      <td>Callback when action updates</td>
+      <td>
+        <code>(param: EffectSourceParam) => void</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+     <tr>
+      <td>leave</td>
+      <td>Callback executed when time leaves the action</td>
+      <td>
+        <code>(param: EffectSourceParam) => void</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+     <tr>
+      <td>stop</td>
+      <td>Callback when playback stops in the current action's time range</td>
+      <td>
+        <code>(param: EffectSourceParam) => void</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+</table>
+
+### EffectSourceParam
+
+> Editor effect execution code parameters
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+    <tr>
+      <td>time</td>
+      <td>Current playback time</td>
+      <td>
+        <code>number</code>
+      </td>
+    </tr>
+    <tr>
+      <td>isPlaying</td>
+      <td>Whether it is currently playing</td>
+      <td>
+        <code>boolean</code>
+      </td>
+    </tr>
+     <tr>
+      <td>action</td>
+      <td>Action</td>
+      <td>
+        <code><a href="#timelineaction">TimelineAction</a></code>
+      </td>
+    </tr>
+     <tr>
+      <td>effect</td>
+      <td>Action effect</td>
+      <td>
+        <code><a href="#timelineeffect">TimelineEffect</a></code>
+      </td>
+    </tr>
+     <tr>
+      <td>engine</td>
+      <td>Runner</td>
+      <td>
+        <code>TimelineEngine</code>
+      </td>
+    </tr>
+</table>
+
+## TimelineState
+
+> Timeline component data
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+    <tr>
+      <td>target</td>
+      <td>DOM node that the timeline belongs to</td>
+      <td>
+        <code>HTMLElement</code>
+      </td>
+    </tr>
+     <tr>
+      <td>Time</td>
+      <td>Set/Get current playback time</td>
+      <td>
+        <code>number</code>
+      </td>
+    </tr>
+     <tr>
+      <td>setScrollLeft</td>
+      <td>Set scrollLeft</td>
+      <td>
+        <code>(val: number) => void</code>
+      </td>
+    </tr>
+     <tr>
+      <td>setScrollTop</td>
+      <td>Set scrollTop</td>
+      <td>
+        <code>(val: number) => void</code>
+      </td>
+    </tr>
+</table>

@@ -1,5 +1,5 @@
-import React, { FC, useEffect, useState } from "react";
-import { prefix } from "../../utils/deal_class_prefix";
+import { type FC } from "react";
+import { prefix } from "@/utils/deal_class_prefix";
 import './drag_lines.less';
 
 export interface DragLineData {
@@ -10,7 +10,7 @@ export interface DragLineData {
 
 export type DragLineProps = DragLineData & {scrollLeft: number};
 
-/** 拖拽辅助线 */
+/** Drag auxiliary lines */
 export const DragLines: FC<DragLineProps> = ({
   isMoving,
   movePositions = [],

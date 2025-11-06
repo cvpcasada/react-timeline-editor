@@ -1,5 +1,5 @@
-import { TimelineAction, TimelineRow } from "../interface/action";
-import { ADD_SCALE_COUNT } from "../interface/const";
+import { type TimelineAction, type TimelineRow } from "@/interface/action";
+import { ADD_SCALE_COUNT } from "@/interface/const";
 
 /** 时间转像素 */
 export function parserTimeToPixel(

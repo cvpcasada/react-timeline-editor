@@ -1,13 +1,14 @@
-import React, { FC, useLayoutEffect, useRef, useState } from 'react';
-import { TimelineAction, TimelineRow } from '../../interface/action';
-import { CommonProp } from '../../interface/common_prop';
-import { DEFAULT_ADSORPTION_DISTANCE, DEFAULT_MOVE_GRID } from '../../interface/const';
-import { prefix } from '../../utils/deal_class_prefix';
-import { getScaleCountByPixel, parserTimeToPixel, parserTimeToTransform, parserTransformToTime } from '../../utils/deal_data';
-import { RowDnd } from '../row_rnd/row_rnd';
-import { RndDragCallback, RndDragEndCallback, RndDragStartCallback, RndResizeCallback, RndResizeEndCallback, RndResizeStartCallback, RowRndApi } from '../row_rnd/row_rnd_interface';
-import { DragLineData } from './drag_lines';
 import './edit_action.less';
+
+import React, { type FC, useMemo, useRef, useState } from 'react';
+import { type TimelineAction, type TimelineRow } from '@/interface/action';
+import { type CommonProp } from '@/interface/common_prop';
+import { DEFAULT_ADSORPTION_DISTANCE, DEFAULT_MOVE_GRID, DEFAULT_SCALE, DEFAULT_SCALE_SPLIT_COUNT, DEFAULT_SCALE_WIDTH, DEFAULT_START_LEFT } from '@/interface/const';
+import { prefix } from '@/utils/deal_class_prefix';
+import { getScaleCountByPixel, parserTimeToPixel, parserTimeToTransform, parserTransformToTime } from '@/utils/deal_data';
+import { RowDnd } from '@/components/row_rnd/row_rnd';
+import { type RndDragCallback, type RndDragEndCallback, type RndDragStartCallback, type RndResizeCallback, type RndResizeEndCallback, type RndResizeStartCallback, type RowRndApi } from '@/components/row_rnd/row_rnd_interface';
+import { type DragLineData } from './drag_lines';
 
 export type EditActionProps = CommonProp & {
   row: TimelineRow;
@@ -15,8 +16,8 @@ export type EditActionProps = CommonProp & {
   dragLineData: DragLineData;
   setEditorData: (params: TimelineRow[]) => void;
   handleTime: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => number;
-  areaRef: React.MutableRefObject<HTMLDivElement>;
-  /** 设置scroll left */
+  areaRef: React.RefObject<HTMLDivElement | null>;
+  /** Set scroll left */
   deltaScrollLeft?: (delta: number) => void;
 };
 
@@ -54,55 +55,64 @@ export const EditAction: FC<EditActionProps> = ({
   areaRef,
   deltaScrollLeft,
 }) => {
-  const rowRnd = useRef<RowRndApi>();
+  const rowRnd = useRef<RowRndApi | null>(null);
   const isDragWhenClick = useRef(false);
   const { id, maxEnd, minStart, end, start, selected, flexible = true, movable = true, effectId } = action;
 
-  // 获取最大/最小 像素范围
+  // Get default values for optional props
+  const safeScale = scale ?? DEFAULT_SCALE;
+  const safeScaleWidth = scaleWidth ?? DEFAULT_SCALE_WIDTH;
+  const safeStartLeft = startLeft ?? DEFAULT_START_LEFT;
+  const safeScaleSplitCount = scaleSplitCount ?? DEFAULT_SCALE_SPLIT_COUNT;
+  const safeMaxScaleCount = maxScaleCount ?? Number.MAX_SAFE_INTEGER;
+
+  // Get max/min pixel range
   const leftLimit = parserTimeToPixel(minStart || 0, {
-    startLeft,
-    scale,
-    scaleWidth,
+    startLeft: safeStartLeft,
+    scale: safeScale,
+    scaleWidth: safeScaleWidth,
   });
   const rightLimit = Math.min(
-    maxScaleCount * scaleWidth + startLeft, // 根据maxScaleCount限制移动范围
+    safeMaxScaleCount * safeScaleWidth + safeStartLeft, // Limit movement range based on maxScaleCount
     parserTimeToPixel(maxEnd || Number.MAX_VALUE, {
-      startLeft,
-      scale,
-      scaleWidth,
+      startLeft: safeStartLeft,
+      scale: safeScale,
+      scaleWidth: safeScaleWidth,
     }),
   );
 
-  // 初始化动作坐标数据
-  const [transform, setTransform] = useState(() => {
-    return parserTimeToTransform({ start, end }, { startLeft, scale, scaleWidth });
-  });
+  // Derive base transform from props
+  const baseTransform = useMemo(() => {
+    return parserTimeToTransform({ start, end }, { startLeft: safeStartLeft, scale: safeScale, scaleWidth: safeScaleWidth });
+  }, [end, start, safeStartLeft, safeScaleWidth, safeScale]);
 
-  useLayoutEffect(() => {
-    setTransform(parserTimeToTransform({ start, end }, { startLeft, scale, scaleWidth }));
-  }, [end, start, startLeft, scaleWidth, scale]);
+  // Track temporary drag/resize transform state
+  const [dragTransform, setDragTransform] = useState<{ left: number; width: number } | null>(null);
 
-  // 配置拖拽网格对其属性
-  const gridSize = scaleWidth / scaleSplitCount;
+  // Use drag transform if available, otherwise use base transform
+  const transform = dragTransform ?? baseTransform;
 
-  // 动作的名称
+  // Configure drag grid alignment properties
+  const gridSize = safeScaleWidth / safeScaleSplitCount;
+
+  // Action class names
   const classNames = ['action'];
   if (movable) classNames.push('action-movable');
   if (selected) classNames.push('action-selected');
   if (flexible) classNames.push('action-flexible');
   if (effects[effectId]) classNames.push(`action-effect-${effectId}`);
 
-  /** 计算scale count */
+  /** Calculate scale count */
   const handleScaleCount = (left: number, width: number) => {
     const curScaleCount = getScaleCountByPixel(left + width, {
-      startLeft,
+      startLeft: safeStartLeft,
       scaleCount,
-      scaleWidth,
+      scaleWidth: safeScaleWidth,
     });
     if (curScaleCount !== scaleCount) setScaleCount(curScaleCount);
   };
 
-  //#region [rgba(100,120,156,0.08)] 回调
+  //#region [rgba(100,120,156,0.08)] Callbacks
   const handleDragStart: RndDragStartCallback = () => {
     onActionMoveStart && onActionMoveStart({ action, row });
   };
@@ -110,27 +120,30 @@ export const EditAction: FC<EditActionProps> = ({
     isDragWhenClick.current = true;
 
     if (onActionMoving) {
-      const { start, end } = parserTransformToTime({ left, width }, { scaleWidth, scale, startLeft });
+      const { start, end } = parserTransformToTime({ left, width }, { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft });
       const result = onActionMoving({ action, row, start, end });
       if (result === false) return false;
     }
-    setTransform({ left, width });
+    setDragTransform({ left, width });
     handleScaleCount(left, width);
   };
 
   const handleDragEnd: RndDragEndCallback = ({ left, width }) => {
-    // 计算时间
-    const { start, end } = parserTransformToTime({ left, width }, { scaleWidth, scale, startLeft });
+    // Calculate time
+    const { start, end } = parserTransformToTime({ left, width }, { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft });
 
-    // 设置数据
+    // Set data
     const rowItem = editorData.find((item) => item.id === row.id);
-    const action = rowItem.actions.find((item) => item.id === id);
-    action.start = start;
-    action.end = end;
+    if (!rowItem) return;
+    const actionItem = rowItem.actions.find((item) => item.id === id);
+    if (!actionItem) return;
+    actionItem.start = start;
+    actionItem.end = end;
     setEditorData(editorData);
 
-    // 执行回调
-    if (onActionMoveEnd) onActionMoveEnd({ action, row, start, end });
+    // Execute callback
+    if (onActionMoveEnd) onActionMoveEnd({ action: actionItem, row, start, end });
+    setDragTransform(null);
   };
 
   const handleResizeStart: RndResizeStartCallback = (dir) => {
@@ -140,33 +153,36 @@ export const EditAction: FC<EditActionProps> = ({
   const handleResizing: RndResizeCallback = (dir, { left, width }) => {
     isDragWhenClick.current = true;
     if (onActionResizing) {
-      const { start, end } = parserTransformToTime({ left, width }, { scaleWidth, scale, startLeft });
+      const { start, end } = parserTransformToTime({ left, width }, { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft });
       const result = onActionResizing({ action, row, start, end, dir });
       if (result === false) return false;
     }
-    setTransform({ left, width });
+    setDragTransform({ left, width });
     handleScaleCount(left, width);
   };
 
   const handleResizeEnd: RndResizeEndCallback = (dir, { left, width }) => {
-    // 计算时间
-    const { start, end } = parserTransformToTime({ left, width }, { scaleWidth, scale, startLeft });
+    // Calculate time
+    const { start, end } = parserTransformToTime({ left, width }, { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft });
 
-    // 设置数据
+    // Set data
     const rowItem = editorData.find((item) => item.id === row.id);
-    const action = rowItem.actions.find((item) => item.id === id);
-    action.start = start;
-    action.end = end;
+    if (!rowItem) return;
+    const actionItem = rowItem.actions.find((item) => item.id === id);
+    if (!actionItem) return;
+    actionItem.start = start;
+    actionItem.end = end;
     setEditorData(editorData);
 
-    // 触发回调
-    if (onActionResizeEnd) onActionResizeEnd({ action, row, start, end, dir });
+    // Trigger callback
+    if (onActionResizeEnd) onActionResizeEnd({ action: actionItem, row, start, end, dir });
+    setDragTransform(null);
   };
   //#endregion
 
   const nowAction = {
     ...action,
-    ...parserTransformToTime({ left: transform.left, width: transform.width }, { startLeft, scaleWidth, scale }),
+    ...parserTransformToTime({ left: transform.left, width: transform.width }, { startLeft: safeStartLeft, scaleWidth: safeScaleWidth, scale: safeScale }),
   };
 
   const nowRow: TimelineRow = {
@@ -181,7 +197,7 @@ export const EditAction: FC<EditActionProps> = ({
     <RowDnd
       ref={rowRnd}
       parentRef={areaRef}
-      start={startLeft}
+      start={safeStartLeft}
       left={transform.left}
       width={transform.width}
       grid={(gridSnap && gridSize) || DEFAULT_MOVE_GRID}
@@ -210,13 +226,13 @@ export const EditAction: FC<EditActionProps> = ({
           isDragWhenClick.current = false;
         }}
         onClick={(e) => {
-          let time: number;
+          let time: number | undefined;
           if (onClickAction) {
             time = handleTime(e);
             onClickAction(e, { row, action, time: time });
           }
           if (!isDragWhenClick.current && onClickActionOnly) {
-            if (!time) time = handleTime(e);
+            if (time === undefined) time = handleTime(e);
             onClickActionOnly(e, { row, action, time: time });
           }
         }}
@@ -236,8 +252,8 @@ export const EditAction: FC<EditActionProps> = ({
         style={{ height: rowHeight }}
       >
         {getActionRender && getActionRender(nowAction, nowRow)}
-        {flexible && <div className={prefix('action-left-stretch')} />}
-        {flexible && <div className={prefix('action-right-stretch')} />}
+        {flexible && <div className={prefix('action-left-stretch')} style={{ touchAction: 'none' }} />}
+        {flexible && <div className={prefix('action-right-stretch')} style={{ touchAction: 'none' }} />}
       </div>
     </RowDnd>
   );

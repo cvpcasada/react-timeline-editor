@@ -1,10 +1,15 @@
-import { Interactable } from '@interactjs/core/Interactable';
-import { DragEvent, ResizeEvent } from '@interactjs/types/index';
-import React, { ReactElement, useEffect, useImperativeHandle, useRef } from 'react';
-import { DEFAULT_ADSORPTION_DISTANCE, DEFAULT_MOVE_GRID, DEFAULT_START_LEFT } from '../../interface/const';
+import { type GestureEvent } from './gesture.types';
+import React, { type ReactElement, useEffect, useImperativeHandle, useRef } from 'react';
+import { DEFAULT_ADSORPTION_DISTANCE, DEFAULT_MOVE_GRID, DEFAULT_START_LEFT } from '@/interface/const';
 import { useAutoScroll } from './hooks/useAutoScroll';
 import { InteractComp } from './interactable';
-import { Direction, RowRndApi, RowRndProps } from './row_rnd_interface';
+import { type Direction, type RowRndApi, type RowRndProps } from './row_rnd_interface';
+import { slot } from '@/components/slot';
+
+interface InteractableWrapper {
+  target?: HTMLElement;
+  unset: () => void;
+}
 
 export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
   (
@@ -35,32 +40,19 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
     },
     ref,
   ) => {
-    const interactable = useRef<Interactable>();
+    const interactable = useRef<InteractableWrapper | undefined>(undefined);
     const deltaX = useRef(0);
     const isAdsorption = useRef(false);
-    const { initAutoScroll, dealDragAutoScroll, dealResizeAutoScroll, stopAutoScroll } = useAutoScroll(parentRef);
+    const { initAutoScroll, dealDragAutoScroll, dealResizeAutoScroll, stopAutoScroll } = useAutoScroll(parentRef as React.RefObject<HTMLDivElement>);
 
     useEffect(() => {
+      let interactableRef = interactable.current;
       return () => {
-        interactable.current && interactable.current.unset();
+        interactableRef?.unset();
       };
     }, []);
 
-    //#region [rgba(100,120,156,0.08)] 赋值相关api
-    useImperativeHandle(ref, () => ({
-      updateLeft: (left) => handleUpdateLeft(left || 0, false),
-      updateWidth: (width) => handleUpdateWidth(width, false),
-      getLeft: handleGetLeft,
-      getWidth: handleGetWidth,
-    }));
-    useEffect(() => {
-      const target = interactable.current.target as HTMLElement;
-      handleUpdateWidth(typeof width === 'undefined' ? target.offsetWidth : width, false);
-    }, [width]);
-    useEffect(() => {
-      handleUpdateLeft(left || 0, false);
-    }, [left]);
-
+    //#region [rgba(100,120,156,0.08)] Assignment related APIs
     const handleUpdateLeft = (left: number, reset = true) => {
       if (!interactable.current || !interactable.current.target) return;
       reset && (deltaX.current = 0);
@@ -76,17 +68,36 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       Object.assign(target.dataset, { width });
     };
     const handleGetLeft = () => {
+      if (!interactable.current?.target) return 0;
       const target = interactable.current.target as HTMLElement;
       return parseFloat(target?.dataset?.left || '0');
     };
     const handleGetWidth = () => {
+      if (!interactable.current?.target) return 0;
       const target = interactable.current.target as HTMLElement;
       return parseFloat(target?.dataset?.width || '0');
     };
+
+    useEffect(() => {
+      if (!interactable.current?.target) return;
+      const target = interactable.current.target as HTMLElement;
+      handleUpdateWidth(typeof width === 'undefined' ? target.offsetWidth : width, false);
+    }, [width]);
+
+    useEffect(() => {
+      handleUpdateLeft(left || 0, false);
+    }, [left]);
+
+    useImperativeHandle(ref, () => ({
+      updateLeft: (left) => handleUpdateLeft(left || 0, false),
+      updateWidth: (width) => handleUpdateWidth(width, false),
+      getLeft: handleGetLeft,
+      getWidth: handleGetWidth,
+    }));
     //#endregion
 
-    //#region [rgba(188,188,120,0.05)] 回调api
-    const handleMoveStart = (e: DragEvent) => {
+    //#region [rgba(188,188,120,0.05)] Callback APIs
+    const handleMoveStart = () => {
       deltaX.current = 0;
       isAdsorption.current = false;
       initAutoScroll();
@@ -100,7 +111,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
         const count = parseInt(deltaX.current / distance + '');
         let curLeft = preLeft + count * distance;
 
-        // 控制吸附
+        // Control adsorption
         let adsorption = curLeft;
         let minDis = Number.MAX_SAFE_INTEGER;
         adsorptionPositions.forEach((item) => {
@@ -111,11 +122,11 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
         });
 
         if (adsorption !== curLeft) {
-          // 采用吸附数据
+          // Use adsorption data
           isAdsorption.current = true;
           curLeft = adsorption;
         } else {
-          // 控制网格
+          // Control grid
           if ((curLeft - start) % grid !== 0) {
             curLeft = start + grid * Math.round((curLeft - start) / grid);
           }
@@ -123,7 +134,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
         }
         deltaX.current = deltaX.current % distance;
 
-        // 控制bounds
+        // Control bounds
         if (curLeft < bounds.left) curLeft = bounds.left;
         else if (curLeft + preWidth > bounds.right) curLeft = bounds.right - preWidth;
 
@@ -144,7 +155,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       }
     };
 
-    const handleMove = (e: DragEvent) => {
+    const handleMove = (e: GestureEvent) => {
       const target = e.target;
 
       if (deltaScrollLeft && parentRef?.current) {
@@ -152,8 +163,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           deltaScrollLeft(delta);
 
           let { left, width } = target.dataset;
-          const preLeft = parseFloat(left);
-          const preWidth = parseFloat(width);
+          const preLeft = parseFloat(left || '0');
+          const preWidth = parseFloat(width || '0');
           deltaX.current += delta;
           move({ preLeft, preWidth, scrollDelta: delta });
         });
@@ -161,24 +172,24 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       }
 
       let { left, width } = target.dataset;
-      const preLeft = parseFloat(left);
-      const preWidth = parseFloat(width);
+      const preLeft = parseFloat(left || '0');
+      const preWidth = parseFloat(width || '0');
 
       deltaX.current += e.dx;
       move({ preLeft, preWidth });
     };
 
-    const handleMoveStop = (e: DragEvent) => {
+    const handleMoveStop = (e: GestureEvent) => {
       deltaX.current = 0;
       isAdsorption.current = false;
       stopAutoScroll();
 
       const target = e.target;
       let { left, width } = target.dataset;
-      onDragEnd && onDragEnd({ left: parseFloat(left), width: parseFloat(width) });
+      onDragEnd && onDragEnd({ left: parseFloat(left || '0'), width: parseFloat(width || '0') });
     };
 
-    const handleResizeStart = (e: ResizeEvent) => {
+    const handleResizeStart = (e: GestureEvent) => {
       deltaX.current = 0;
       isAdsorption.current = false;
       initAutoScroll();
@@ -192,12 +203,12 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       const distance = isAdsorption.current ? adsorptionDistance : grid;
 
       if (dir === 'left') {
-        // 拖动左侧
+        // Drag left side
         if (Math.abs(deltaX.current) >= distance) {
           const count = parseInt(deltaX.current / distance + '');
           let curLeft = preLeft + count * distance;
 
-          // 控制吸附
+          // Control adsorption
           let adsorption = curLeft;
           let minDis = Number.MAX_SAFE_INTEGER;
           adsorptionPositions.forEach((item) => {
@@ -206,11 +217,11 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           });
 
           if (adsorption !== curLeft) {
-            // 采用吸附数据
+            // Use adsorption data
             isAdsorption.current = true;
             curLeft = adsorption;
           } else {
-            // 控制grid网格
+            // Control grid
             if ((curLeft - start) % grid !== 0) {
               curLeft = start + grid * Math.round((curLeft - start) / grid);
             }
@@ -218,7 +229,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           }
           deltaX.current = deltaX.current % distance;
 
-          // 控制bounds
+          // Control bounds
           const tempRight = preLeft + preWidth;
           if (curLeft < bounds.left) curLeft = bounds.left;
           const curWidth = tempRight - curLeft;
@@ -237,12 +248,12 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           handleUpdateWidth(curWidth, false);
         }
       } else if (dir === 'right') {
-        // 拖动右侧
+        // Drag right side
         if (Math.abs(deltaX.current) >= distance) {
           const count = parseInt(deltaX.current / grid + '');
           let curWidth = preWidth + count * grid;
 
-          // 控制吸附
+          // Control adsorption
           let adsorption = preLeft + curWidth;
           let minDis = Number.MAX_SAFE_INTEGER;
           adsorptionPositions.forEach((item) => {
@@ -251,11 +262,11 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           });
 
           if (adsorption !== preLeft + curWidth) {
-            // 采用吸附数据
+            // Use adsorption data
             isAdsorption.current = true;
             curWidth = adsorption - preLeft;
           } else {
-            // 控制grid网格
+            // Control grid
             let tempRight = preLeft + curWidth;
             if ((tempRight - start) % grid !== 0) {
               tempRight = start + grid * Math.round((tempRight - start) / grid);
@@ -265,7 +276,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           }
           deltaX.current = deltaX.current % distance;
 
-          // 控制bounds
+          // Control bounds
           if (preLeft + curWidth > bounds.right) curWidth = bounds.right - preLeft;
 
           if (onResize) {
@@ -283,7 +294,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       }
     };
 
-    const handleResize = (e: ResizeEvent) => {
+    const handleResize = (e: GestureEvent) => {
       const target = e.target;
       const dir = e.edges?.left ? 'left' : 'right';
 
@@ -292,8 +303,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           deltaScrollLeft(delta);
 
           let { left, width } = target.dataset;
-          const preLeft = parseFloat(left);
-          const preWidth = parseFloat(width);
+          const preLeft = parseFloat(left || '0');
+          const preWidth = parseFloat(width || '0');
           deltaX.current += delta;
           resize({ preLeft, preWidth, dir });
         });
@@ -301,13 +312,13 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       }
 
       let { left, width } = target.dataset;
-      const preLeft = parseFloat(left);
-      const preWidth = parseFloat(width);
+      const preLeft = parseFloat(left || '0');
+      const preWidth = parseFloat(width || '0');
 
-      deltaX.current += dir === 'left' ? e.deltaRect.left : e.deltaRect.right;
+      deltaX.current += dir === 'left' ? e.deltaRect?.left || 0 : e.deltaRect?.right || 0;
       resize({ preLeft, preWidth, dir });
     };
-    const handleResizeStop = (e: ResizeEvent) => {
+    const handleResizeStop = (e: GestureEvent) => {
       deltaX.current = 0;
       isAdsorption.current = false;
       stopAutoScroll();
@@ -317,8 +328,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       let dir: Direction = e.edges?.right ? 'right' : 'left';
       onResizeEnd &&
         onResizeEnd(dir, {
-          left: parseFloat(left),
-          width: parseFloat(width),
+          left: parseFloat(left || '0'),
+          width: parseFloat(width || '0'),
         });
     };
     //#endregion
@@ -334,31 +345,19 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           onstart: handleMoveStart,
           onend: handleMoveStop,
           cursorChecker: () => {
-            return null;
+            return '';
           },
         }}
         resizableOptions={{
           axis: 'x',
           invert: 'none',
-          edges: {
-            left: true,
-            right: true,
-            top: false,
-            bottom: false,
-            ...(edges || {}),
-          },
+          edges,
           onmove: handleResize,
           onstart: handleResizeStart,
           onend: handleResizeStop,
         }}
       >
-        {React.cloneElement(children as ReactElement, {
-          style: {
-            ...((children as ReactElement).props.style || {}),
-            left,
-            width,
-          },
-        })}
+        {slot({ children: children as ReactElement, style: { left, width } })}
       </InteractComp>
     );
   },

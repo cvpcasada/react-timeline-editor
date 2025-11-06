@@ -1,4 +1,8 @@
-import { DragEvent, ResizeEvent } from "@interactjs/types/index";
+import { type GestureEvent } from './gesture.types';
+
+// Type aliases for compatibility with existing code
+export type DragEvent = GestureEvent;
+export type ResizeEvent = GestureEvent;
 
 type EventData = {
   lastLeft: number;
@@ -38,7 +42,7 @@ export interface RowRndProps {
   grid?: number;
   start?: number;
   bounds?: { left: number; right: number };
-  edges?: {left: boolean | string, right: boolean | string};
+  edges?: {left: false | string, right: false | string};
 
   onResizeStart?: RndResizeStartCallback;
   onResize?: RndResizeCallback;
@@ -46,10 +50,10 @@ export interface RowRndProps {
   onDragStart?: RndDragStartCallback;
   onDrag?: RndDragCallback;
   onDragEnd?: RndDragEndCallback;
-  // 同时传入parentRef和deltaScrollLeft时会启动自动滚动
-  parentRef?: React.MutableRefObject<HTMLDivElement>;
+  // Auto-scroll will be enabled when both parentRef and deltaScrollLeft are provided
+  parentRef?: React.RefObject<HTMLDivElement | null>;
   deltaScrollLeft?: (delta: number) => void;
-  
+
   children?: React.ReactNode;
 
   enableResizing?: boolean;

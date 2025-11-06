@@ -1,47 +1,47 @@
 /**
- * 动作的基本参数
+ * Basic parameters of action
  * @export
  * @interface TimelineAction
  */
 export interface TimelineAction {
-  /** 动作id */
+  /** Action id */
   id: string;
-  /** 动作开始时间 */
+  /** Action start time */
   start: number;
-  /** 动作结束时间 */
+  /** Action end time */
   end: number;
-  /** 动作所对应的effectId */
+  /** Effect ID corresponding to the action */
   effectId: string;
 
-  /** 动作是否被选中 */
+  /** Whether the action is selected */
   selected?: boolean;
-  /** 动作是否可伸缩 */
+  /** Whether the action is resizable */
   flexible?: boolean;
-  /** 动作是否可移动 */
+  /** Whether the action is movable */
   movable?: boolean;
-  /** 动作是否禁止运行 */
+  /** Whether the action is disabled */
   disable?: boolean;
 
-  /** 动作最小开始时间限制 */
+  /** Minimum start time limit for the action */
   minStart?: number;
-  /** 动作最大结束时间限制 */
+  /** Maximum end time limit for the action */
   maxEnd?: number;
 }
 
 /**
- * 动作行基本参数
+ * Basic parameters of action row
  * @export
  * @interface TimelineRow
  */
 export interface TimelineRow {
-  /** 动作行id */
+  /** Action row id */
   id: string;
-  /** 行的动作列表 */
+  /** List of actions in the row */
   actions: TimelineAction[];
-  /** 自定义行高 */
+  /** Custom row height */
   rowHeight?: number;
-  /** 行是否选中 */
+  /** Whether the row is selected */
   selected?: boolean;
-  /** 行的扩展类名 */
+  /** Extended class names of the row */
   classNames?: string[];
 }

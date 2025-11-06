@@ -1,159 +1,118 @@
-import React, { useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
-import { ScrollSync } from 'react-virtualized';
-import { ITimelineEngine, TimelineEngine } from '../engine/engine';
-import { MIN_SCALE_COUNT, PREFIX, START_CURSOR_TIME } from '../interface/const';
-import { TimelineEditor, TimelineRow, TimelineState } from '../interface/timeline';
-import { checkProps } from '../utils/check_props';
-import { getScaleCountByRows, parserPixelToTime, parserTimeToPixel } from '../utils/deal_data';
+import React, { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
+import { MIN_SCALE_COUNT, PREFIX, START_CURSOR_TIME } from '@/interface/const';
+import { type TimelineEditor, type TimelineRow, type TimelineState } from '@/interface/timeline';
+import { checkProps } from '@/utils/check_props';
+import { getScaleCountByRows, parserPixelToTime, parserTimeToPixel } from '@/utils/deal_data';
 import { Cursor } from './cursor/cursor';
 import { EditArea } from './edit_area/edit_area';
 import './timeline.less';
 import { TimeArea } from './time_area/time_area';
+import ScrollSync, { type ScrollSyncHandle } from './scroll_sync';
 
 export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, ref) => {
   const checkedProps = checkProps(props);
   const { style } = props;
   let {
-    effects,
     editorData: data,
     scrollTop,
     autoScroll,
     hideCursor,
     disableDrag,
-    scale,
-    scaleWidth,
-    startLeft,
-    minScaleCount,
-    maxScaleCount,
+    scale = 1,
+    scaleWidth = 160,
+    startLeft = 20,
+    minScaleCount = 20,
+    maxScaleCount = Infinity,
     onChange,
-    engine,
-    autoReRender = true,
     onScroll: onScrollVertical,
   } = checkedProps;
 
-  const engineRef = useRef<ITimelineEngine>(engine || new TimelineEngine());
-  const domRef = useRef<HTMLDivElement>();
-  const areaRef = useRef<HTMLDivElement>();
-  const scrollSync = useRef<ScrollSync>();
+  const domRef = useRef<HTMLDivElement>(null);
+  const areaRef = useRef<HTMLDivElement>(null);
+  const scrollSync = useRef<ScrollSyncHandle>(null);
 
-  // 编辑器数据
+  // Editor data
   const [editorData, setEditorData] = useState(data);
-  // scale数量
+  // Scale count
   const [scaleCount, setScaleCount] = useState(MIN_SCALE_COUNT);
-  // 光标距离
+  // Cursor time
   const [cursorTime, setCursorTime] = useState(START_CURSOR_TIME);
-  // 是否正在运行
-  const [isPlaying, setIsPlaying] = useState(false);
-  // 当前时间轴宽度
+
+  // Current timeline width
   const [width, setWidth] = useState(Number.MAX_SAFE_INTEGER);
 
-  /** 监听数据变化 */
+  /** Dynamically set scale count */
+  const handleSetScaleCount = useCallback(
+    (value: number) => {
+      const data = Math.min(maxScaleCount, Math.max(minScaleCount, value));
+      setScaleCount(data);
+    },
+    [maxScaleCount, minScaleCount],
+  );
+
+  /** Listen to data changes */
   useLayoutEffect(() => {
     handleSetScaleCount(getScaleCountByRows(data, { scale }));
     setEditorData(data);
-  }, [data, minScaleCount, maxScaleCount, scale]);
-
-  useEffect(() => {
-    engineRef.current.effects = effects;
-  }, [effects]);
-
-  useEffect(() => {
-    engineRef.current.data = editorData;
-  }, [editorData]);
-
-  useEffect(() => {
-    autoReRender && engineRef.current.reRender();
-  }, [editorData]);
+  }, [data, minScaleCount, maxScaleCount, scale, handleSetScaleCount]);
 
   // deprecated
   useEffect(() => {
-    scrollSync.current && scrollSync.current.setState({ scrollTop: scrollTop });
+    if (scrollTop !== undefined) {
+      scrollSync.current?.setScrollState((prev) => ({ ...prev, scrollTop: scrollTop }));
+    }
   }, [scrollTop]);
 
-  /** 动态设置scale count */
-  const handleSetScaleCount = (value: number) => {
-    const data = Math.min(maxScaleCount, Math.max(minScaleCount, value));
-    setScaleCount(data);
+  /** Handle editor data changes */
+  const handleEditorDataChange = (editorData: TimelineRow[]): void => {
+    onChange?.(editorData);
   };
 
-  /** 处理主动数据变化 */
-  const handleEditorDataChange = (editorData: TimelineRow[]) => {
-    const result = onChange(editorData);
-    if (result !== false) {
-      engineRef.current.data = editorData;
-      autoReRender && engineRef.current.reRender();
-    }
-  };
-
-  /** 处理光标 */
-  const handleSetCursor = (param: { left?: number; time?: number; updateTime?: boolean }) => {
-    let { left, time, updateTime = true } = param;
-    if (typeof left === 'undefined' && typeof time === 'undefined') return;
+  /** Handle cursor */
+  const handleSetCursor = (param: { left?: number; time?: number }): boolean => {
+    let { left, time } = param;
+    if (typeof left === 'undefined' && typeof time === 'undefined') return true;
 
     if (typeof time === 'undefined') {
-      if (typeof left === 'undefined') left = parserTimeToPixel(time, { startLeft, scale, scaleWidth });
+      left = parserTimeToPixel(time ?? 0, { startLeft, scale, scaleWidth });
       time = parserPixelToTime(left, { startLeft, scale, scaleWidth });
     }
 
     let result = true;
-    if (updateTime) {
-      result = engineRef.current.setTime(time);
-      autoReRender && engineRef.current.reRender();
-    }
+
     result && setCursorTime(time);
     return result;
   };
 
-  /** 设置scrollLeft */
-  const handleDeltaScrollLeft = (delta: number) => {
-    // 当超过最大距离时，禁止自动滚动
+  /** Set scrollLeft */
+  const handleDeltaScrollLeft = (delta: number): void => {
+    // Disable auto-scroll when exceeding maximum distance
+    if (!scrollSync.current?.state) return;
     const data = scrollSync.current.state.scrollLeft + delta;
     if (data > scaleCount * (scaleWidth - 1) + startLeft - width) return;
-    scrollSync.current && scrollSync.current.setState({ scrollLeft: Math.max(scrollSync.current.state.scrollLeft + delta, 0) });
+    scrollSync.current && scrollSync.current.setScrollState((prev) => ({ ...prev, scrollLeft: Math.max(prev.scrollLeft + delta, 0) }));
   };
 
-  // 处理运行器相关数据
-  useEffect(() => {
-    const handleTime = ({ time }) => {
-      handleSetCursor({ time, updateTime: false });
-    };
-    const handlePlay = () => setIsPlaying(true);
-    const handlePaused = () => setIsPlaying(false);
-    engineRef.current.on('setTimeByTick', handleTime);
-    engineRef.current.on('play', handlePlay);
-    engineRef.current.on('paused', handlePaused);
-  }, []);
-
-  // ref 数据
+  // Ref data
   useImperativeHandle(ref, () => ({
     get target() {
-      return domRef.current;
+      return domRef.current!;
     },
-    get listener() {
-      return engineRef.current;
+    set time(time: number) {
+      handleSetCursor({ time });
     },
-    get isPlaying() {
-      return engineRef.current.isPlaying;
+    get time() {
+      return cursorTime;
     },
-    get isPaused() {
-      return engineRef.current.isPaused;
-    },
-    setPlayRate: engineRef.current.setPlayRate.bind(engineRef.current),
-    getPlayRate: engineRef.current.getPlayRate.bind(engineRef.current),
-    setTime: (time: number) => handleSetCursor({ time }),
-    getTime: engineRef.current.getTime.bind(engineRef.current),
-    reRender: engineRef.current.reRender.bind(engineRef.current),
-    play: (param: Parameters<TimelineState['play']>[0]) => engineRef.current.play({ ...param }),
-    pause: engineRef.current.pause.bind(engineRef.current),
     setScrollLeft: (val) => {
-      scrollSync.current && scrollSync.current.setState({ scrollLeft: Math.max(val, 0) });
+      scrollSync.current && scrollSync.current.setScrollState((prev) => ({ ...prev, scrollLeft: Math.max(val, 0) }));
     },
     setScrollTop: (val) => {
-      scrollSync.current && scrollSync.current.setState({ scrollTop: Math.max(val, 0) });
+      scrollSync.current && scrollSync.current.setScrollState((prev) => ({ ...prev, scrollTop: Math.max(val, 0) }));
     },
   }));
 
-  // 监听timeline区域宽度变化
+  // Listen to timeline area width changes
   useEffect(() => {
     if (areaRef.current) {
       const resizeObserver = new ResizeObserver(() => {
@@ -175,7 +134,7 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, 
             <TimeArea
               {...checkedProps}
               timelineWidth={width}
-              disableDrag={disableDrag || isPlaying}
+              disableDrag={disableDrag}
               setCursor={handleSetCursor}
               cursorTime={cursorTime}
               editorData={editorData}
@@ -187,8 +146,12 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, 
             <EditArea
               {...checkedProps}
               timelineWidth={width}
-              ref={(ref) => ((areaRef.current as any) = ref?.domRef.current)}
-              disableDrag={disableDrag || isPlaying}
+              ref={(ref) => {
+                if (ref?.domRef.current) {
+                  areaRef.current = ref.domRef.current;
+                }
+              }}
+              disableDrag={disableDrag}
               editorData={editorData}
               cursorTime={cursorTime}
               scaleCount={scaleCount}
@@ -196,17 +159,16 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, 
               scrollTop={scrollTop}
               scrollLeft={scrollLeft}
               setEditorData={handleEditorDataChange}
-              deltaScrollLeft={autoScroll && handleDeltaScrollLeft}
+              deltaScrollLeft={autoScroll ? handleDeltaScrollLeft : undefined}
               onScroll={(params) => {
                 onScroll(params);
-                onScrollVertical && onScrollVertical(params);
+                onScrollVertical?.(params);
               }}
             />
             {!hideCursor && (
               <Cursor
                 {...checkedProps}
                 timelineWidth={width}
-                disableDrag={isPlaying}
                 scrollLeft={scrollLeft}
                 scaleCount={scaleCount}
                 setScaleCount={handleSetScaleCount}
@@ -215,7 +177,7 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>((props, 
                 editorData={editorData}
                 areaRef={areaRef}
                 scrollSync={scrollSync}
-                deltaScrollLeft={autoScroll && handleDeltaScrollLeft}
+                deltaScrollLeft={autoScroll ? handleDeltaScrollLeft : undefined}
               />
             )}
           </>

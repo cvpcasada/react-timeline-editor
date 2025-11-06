@@ -1,42 +1,39 @@
-import { TimelineEngine } from "../engine/engine";
-import { TimelineAction } from "./action";
+import { type TimelineAction } from './action';
 
 export interface TimelineEffect {
-  /** 效果id */
-  id: string, 
-  /** 效果名称 */
-  name?: string, 
-  /** 效果运行代码 */
-  source?: TimeLineEffectSource,
+  /** Effect id */
+  id: string;
+  /** Effect name */
+  name?: string;
+  /** Effect execution code */
+  source?: TimeLineEffectSource;
 }
 
 export interface EffectSourceParam {
-  /** 当前时间 */
-  time: number,
-  /** 是否正在运行 */
-  isPlaying: boolean,
-  /** 动作 */
-  action: TimelineAction,
-  /** 动作效果 */
-  effect: TimelineEffect,
-  /** 运行引擎 */
-  engine: TimelineEngine,
+  /** Current time */
+  time: number;
+  /** Whether it is currently playing */
+  isPlaying: boolean;
+  /** Action */
+  action: TimelineAction;
+  /** Action effect */
+  effect: TimelineEffect;
 }
 
 /**
- * 效果执行回调
+ * Effect execution callback
  * @export
  * @interface TimeLineEffectSource
  */
 export interface TimeLineEffectSource {
-  /** 在当前动作时间区域开始播放时回调 */
+  /** Callback when playback starts in the current action time region */
   start?: (param: EffectSourceParam) => void;
-  /** 时间进入动作时执行回调 */
+  /** Callback executed when time enters the action */
   enter?: (param: EffectSourceParam) => void;
-  /** 动作更新时回调 */
+  /** Callback when action updates */
   update?: (param: EffectSourceParam) => void;
-  /** 时间离开动作时执行回调 */
+  /** Callback executed when time leaves the action */
   leave?: (param: EffectSourceParam) => void;
-  /** 在当前动作时间区域停止播放时回调 */
+  /** Callback when playback stops in the current action time region */
   stop?: (param: EffectSourceParam) => void;
 }

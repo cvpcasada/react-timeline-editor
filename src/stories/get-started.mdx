@@ -1,0 +1,48 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Get Started" />
+
+# react-timeline-editor
+`@cyca/react-timeline-editor` is a React-based component for quickly building timeline editing capabilities.
+
+This is a fork of the original [@xzdarcy/react-timeline-editor](https://github.com/xzdarcy/react-timeline-editor)
+
+It can be mainly used to build animation editors, video editors, etc.
+
+## ✨ Features
+- 🛠 Supports drag and scale modes, with convenient control hooks.
+- 🔗 Provides grid snapping, auxiliary line snapping, and other interactive capabilities.
+- 🏷 Automatically recognizes action length and infinite scrolling.
+- 🎨 Easy and quick style customization.
+- ❌ Removed Runner from the original library.
+- ❌ Package is esm only for now
+
+## Changes from the original library
+- Replaced react-virtualized with @tanstack/virtual
+- Replaced Interact.js with @use-gesture/vanilla
+- Uses React-19 as a base
+- Compiled with react-compiler enabled
+
+## Future update ideas
+- use tailwind-css as a base instead of `.less` styles
+- a more headless-ui api redesign approach (see base-ui/radix-ui)
+
+## Quick Start
+
+```
+npm install @cyca/react-timeline-editor
+```
+
+```js
+import React from 'react';
+import { Timeline } from '@cyca/react-timeline-editor';
+
+export const TimelineEditor = () => {
+  return (
+    <Timeline
+      editorData={[]}
+      effects={{}}
+    />
+  )
+}
+```
