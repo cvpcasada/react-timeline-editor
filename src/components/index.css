@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@layer components {
+  .timeline-editor {
+    @apply min-h-8 relative text-xs font-sans bg-neutral-950 flex flex-col overflow-auto;
+  }
+
+  .timeline-editor-edit-area {
+    @apply flex-1 mt-2.5;
+    background-repeat: no-repeat, repeat;
+    @apply bg-[linear-gradient(transparent,transparent),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_0)];
+  }
+
+  .timeline-editor-edit-row {
+    @apply flex flex-row;
+  }
+
+  .timeline-editor-action {
+    @apply absolute left-0 top-0 bg-neutral-700;
+
+    .timeline-editor-action-left-stretch,
+    .timeline-editor-action-right-stretch {
+      @apply absolute w-2.5 rounded h-full overflow-hidden top-0;
+
+      &::after {
+        @apply absolute rounded m-auto border-y-28 border-y-transparent border-solid inset-y-0;
+      }
+    }
+
+    .timeline-editor-action-left-stretch {
+      @apply left-0;
+
+      &::after {
+        @apply content-[""] border-l-[rgba(255,255,255,0.1)] border-r-transparent border-x-[7px] border-solid left-0;
+      }
+    }
+
+    .timeline-editor-action-right-stretch {
+      @apply right-0;
+
+      &::after {
+        @apply content-[""] border-l-transparent border-r-[rgba(255,255,255,0.1)] border-x-[7px] border-solid right-0;
+      }
+    }
+  }
+
+  .time-editor-time-area {
+    @apply z-1 bg-neutral-950 sticky top-0 h-8 text-center font-bold text-lg overflow-clip;
+  }
+
+  .time-editor-time-unit {
+    @apply box-content absolute left-0 border-r border-neutral-700 bottom-0 top-auto pointer-events-none;
+  }
+
+  .time-editor-time-unit-big {
+    @apply h-2;
+  }
+
+  .time-editor-time-unit-small {
+    @apply h-1;
+  }
+
+  .time-editor-time-unit-scale {
+    @apply absolute top-0 right-0 transform translate-x-1/2 -translate-y-full pointer-events-none;
+    @apply text-neutral-500 text-xs font-light;
+  }
+
+  .timeline-editor-cursor {
+    @apply cursor-ew-resize absolute h-[calc(100%-32px)] box-border -translate-x-1/4 border-x-blue-500 border-l border-solid border-r scale-x-50 top-8;
+  }
+
+  .timeline-editor-cursor-top {
+    @apply absolute -translate-x-2/4 translate-y-0 m-auto scale-x-[2] left-2/4 top-0;
+  }
+
+  .timeline-editor-cursor-area {
+    @apply w-4 h-full cursor-ew-resize absolute -translate-x-2/4 left-2/4 top-0;
+  }
+
+  .timeline-editor-drag-line-container {
+    @apply absolute h-full left-0 top-0;
+  }
+
+  .timeline-editor-drag-line {
+    @apply w-0 absolute h-[99%] border-l-slate-500 border-l border-dashed top-0;
+  }
+}

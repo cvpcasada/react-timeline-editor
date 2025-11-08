@@ -226,11 +226,6 @@ export interface TimelineState {
  */
 export interface TimelineEditor extends EditData {
   /**
-   * @description Scroll distance from top of editing area (please use ref.setScrollTop instead)
-   * @deprecated
-   */
-  scrollTop?: number;
-  /**
    * @description Editing area scroll callback (used to control synchronization with editing row scrolling)
    */
   onScroll?: (params: OnScrollParams) => void;

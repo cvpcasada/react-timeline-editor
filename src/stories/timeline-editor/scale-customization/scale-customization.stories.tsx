@@ -17,7 +17,7 @@ type Story = StoryObj<typeof meta>;
 export const ScaleCustomizationExample: Story = {
   argTypes: {
     scale: {
-      control: { type: 'number', min: 1, max: 100 },
+      control: { type: 'range', min: 1, max: 100 },
       description: 'The scale factor for the timeline',
     },
     scaleSplitCount: {
@@ -25,7 +25,7 @@ export const ScaleCustomizationExample: Story = {
       description: 'Number of scale splits',
     },
     scaleWidth: {
-      control: { type: 'number', min: 50, max: 500 },
+      control: { type: 'range', min: 50, max: 500 },
       description: 'Width of each scale unit',
     },
     startLeft: {

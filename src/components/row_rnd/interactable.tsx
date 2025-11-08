@@ -1,6 +1,6 @@
 import { DragGesture } from '@use-gesture/vanilla';
 import React, { type FC, type ReactElement, useEffect, useEffectEvent, useRef } from 'react';
-import { type GestureEvent } from './gesture.types';
+import { type GestureEvent } from './gesture-types';
 import { slot } from '@/components/slot';
 
 interface DraggableOptions {
@@ -99,6 +99,7 @@ export const InteractComp: FC<{
         },
         {
           axis: draggableOptionsRef.current?.lockAxis === 'x' ? 'x' : undefined,
+          threshold: 0,
           pointer: { capture: true },
         },
       );
@@ -138,7 +139,7 @@ export const InteractComp: FC<{
               resizableOptionsRef.current?.onmove?.(gestureEvent);
             }
           },
-          { pointer: { capture: true } },
+          { pointer: { capture: true }, threshold: 0 },
         );
       }
 
@@ -174,7 +175,7 @@ export const InteractComp: FC<{
               resizableOptionsRef.current?.onmove?.(gestureEvent);
             }
           },
-          { pointer: { capture: true } },
+          { pointer: { capture: true }, threshold: 0 },
         );
       }
     }

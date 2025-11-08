@@ -1,25 +1,16 @@
-import "./cursor.less";
-
 import React, { type FC, useEffect, useRef } from "react";
-import { type CommonProp } from "@/interface/common_prop";
-import { prefix } from "@/utils/deal_class_prefix";
-import { parserPixelToTime, parserTimeToPixel } from "@/utils/deal_data";
-import { RowDnd } from "@/components/row_rnd/row_rnd";
-import { type RowRndApi } from "@/components/row_rnd/row_rnd_interface";
-import { type ScrollSyncHandle } from "@/components/scroll_sync";
+import { type CommonProp } from "@/interface/common-prop";
+import { prefix } from "@/utils/deal-class-prefix";
+import { parserPixelToTime, parserTimeToPixel } from "@/utils/deal-data";
+import { RowDnd } from "@/components/row_rnd/row-rnd";
+import { type RowRndApi } from "@/components/row_rnd/row-rnd-interface";
 
 /** Animation timeline component parameters */
 export type CursorProps = CommonProp & {
-  /** Scroll distance from left */
-  scrollLeft: number;
   /** Set cursor position */
   setCursor: (param: { left?: number; time?: number }) => boolean;
   /** Timeline area DOM ref */
-  areaRef: React.RefObject<HTMLDivElement | null>;
-  /** Set scroll left */
-  deltaScrollLeft?: (delta: number) => void;
-  /** Scroll sync ref (TODO: This data is used to temporarily fix scrollLeft synchronization issue when dragging) */
-  scrollSync: React.RefObject<ScrollSyncHandle | null>;
+  scrollElementRef: React.RefObject<HTMLDivElement | null>;
 };
 
 export const Cursor: FC<CursorProps> = ({
@@ -27,14 +18,12 @@ export const Cursor: FC<CursorProps> = ({
   cursorTime,
   setCursor,
   startLeft,
-  timelineWidth,
   scaleWidth,
   scale,
-  scrollLeft,
-  scrollSync,
-  areaRef,
+  scaleCount,
+  scaleSplitCount,
+  scrollElementRef,
   maxScaleCount,
-  deltaScrollLeft,
   onCursorDragStart,
   onCursorDrag,
   onCursorDragEnd,
@@ -53,44 +42,58 @@ export const Cursor: FC<CursorProps> = ({
           startLeft: left,
           scaleWidth: width,
           scale: scaleValue,
-        }) - scrollLeft
+        })
       );
     }
-  }, [cursorTime, startLeft, scaleWidth, scale, scrollLeft]);
+  }, [cursorTime, startLeft, scaleWidth, scale]);
 
   const leftStart = startLeft ?? 20;
   const width = scaleWidth ?? 160;
   const scaleValue = scale ?? 1;
   const maxCount = maxScaleCount ?? Infinity;
 
+  const showUnit = (scaleSplitCount ?? 0) > 0;
+  const splitCount = scaleSplitCount ?? 1;
+  const columnCount = showUnit
+    ? scaleCount * (scaleSplitCount ?? 1) + 1
+    : scaleCount;
+
+  const left = startLeft ?? 20;
+
+  const totalWidth =
+    (showUnit ? width / splitCount : width) * (columnCount - 1) + left;
+
   return (
     <RowDnd
       start={leftStart}
       ref={rowRnd}
-      parentRef={areaRef}
-      bounds={{
-        left: 0,
-        right: Math.min(
-          timelineWidth,
-          maxCount * width + leftStart - scrollLeft
-        ),
+      parentRef={scrollElementRef}
+      getBounds={() => {
+        return {
+          left: 0,
+          right: Math.min(
+            totalWidth,
+            maxCount * width +
+              leftStart -
+              (scrollElementRef.current?.scrollLeft ?? 0)
+          ),
+        };
       }}
-      deltaScrollLeft={deltaScrollLeft}
+      autoScroll
       enableDragging={!disableDrag}
       enableResizing={false}
       onDragStart={() => {
         onCursorDragStart && onCursorDragStart(cursorTime);
-        draggingLeft.current =
-          parserTimeToPixel(cursorTime, {
-            startLeft: leftStart,
-            scaleWidth: width,
-            scale: scaleValue,
-          }) - scrollLeft;
+        draggingLeft.current = parserTimeToPixel(cursorTime, {
+          startLeft: leftStart,
+          scaleWidth: width,
+          scale: scaleValue,
+        });
         rowRnd.current?.updateLeft(draggingLeft.current);
       }}
       onDragEnd={() => {
         if (typeof draggingLeft.current !== "undefined") {
-          const time = parserPixelToTime(draggingLeft.current + scrollLeft, {
+          const time = parserPixelToTime(draggingLeft.current, {
             startLeft: leftStart,
             scale: scaleValue,
             scaleWidth: width,
@@ -100,24 +103,69 @@ export const Cursor: FC<CursorProps> = ({
         }
         draggingLeft.current = undefined;
       }}
-      onDrag={({ left }, scroll = 0) => {
-        if (!scrollSync.current?.state) return false;
-        const currentScrollLeft = scrollSync.current.state.scrollLeft;
+      onDrag={({ left }: { left: number; lastLeft: number; lastWidth: number; width: number }, scrollDelta = 0) => {
+        let currentScrollLeft = scrollElementRef.current?.scrollLeft ?? 0;
+        const scrollElement = scrollElementRef.current;
+        const viewportWidth = scrollElement?.clientWidth ?? 0;
 
-        if (!scroll || currentScrollLeft === 0) {
+        // Handle scroll compensation when auto-scroll is active
+        if (scrollDelta !== 0) {
+          // When auto-scrolling, compensate the cursor position by adding scrollDelta
+          if (typeof draggingLeft.current !== "undefined") {
+            draggingLeft.current += scrollDelta;
+
+            // Ensure cursor stays visible within viewport
+            // draggingLeft.current is relative to the scrollable content
+            // It's visible if it's between currentScrollLeft and currentScrollLeft + viewportWidth
+            const minVisibleLeft = currentScrollLeft;
+            const maxVisibleLeft = currentScrollLeft + viewportWidth;
+
+            // Keep cursor within visible bounds with a small margin
+            const margin = 10; // pixels margin from edges
+            if (draggingLeft.current < minVisibleLeft + margin) {
+              draggingLeft.current = minVisibleLeft + margin;
+            } else if (draggingLeft.current > maxVisibleLeft - margin) {
+              draggingLeft.current = maxVisibleLeft - margin;
+            }
+
+            // Also ensure cursor stays within logical bounds
+            if (draggingLeft.current < leftStart - currentScrollLeft) {
+              draggingLeft.current = leftStart - currentScrollLeft;
+            }
+          } else {
+            // Initialize draggingLeft if not set yet
+            draggingLeft.current = left + scrollDelta;
+            // Ensure it's visible
+            const minVisibleLeft = currentScrollLeft;
+            const maxVisibleLeft = currentScrollLeft + viewportWidth;
+            const margin = 10;
+            if (draggingLeft.current < minVisibleLeft + margin) {
+              draggingLeft.current = minVisibleLeft + margin;
+            } else if (draggingLeft.current > maxVisibleLeft - margin) {
+              draggingLeft.current = maxVisibleLeft - margin;
+            }
+          }
+        } else {
+          // Normal drag (no auto-scroll)
           // When dragging, if current left < left min, set value to left min
           if (left < leftStart - currentScrollLeft)
             draggingLeft.current = leftStart - currentScrollLeft;
           else draggingLeft.current = left;
-        } else {
-          // When auto-scrolling, if current left < left min, set value to left min
-          if (
-            typeof draggingLeft.current !== "undefined" &&
-            draggingLeft.current < leftStart - currentScrollLeft - scroll
-          ) {
-            draggingLeft.current = leftStart - currentScrollLeft - scroll;
+
+          // Ensure cursor stays visible in viewport during normal drag
+          if (scrollElement && viewportWidth > 0) {
+            const minVisibleLeft = currentScrollLeft;
+            const maxVisibleLeft = currentScrollLeft + viewportWidth;
+            const margin = 10;
+
+            if (draggingLeft.current < minVisibleLeft + margin) {
+              draggingLeft.current = minVisibleLeft + margin;
+            } else if (draggingLeft.current > maxVisibleLeft - margin) {
+              draggingLeft.current = maxVisibleLeft - margin;
+            }
           }
         }
+
         if (typeof draggingLeft.current !== "undefined") {
           rowRnd.current?.updateLeft(draggingLeft.current);
           const time = parserPixelToTime(

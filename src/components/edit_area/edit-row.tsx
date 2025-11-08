@@ -2,17 +2,16 @@
 
 import React, { useLayoutEffect, type FC } from "react";
 import { type TimelineRow } from "@/interface/action";
-import { type CommonProp } from "@/interface/common_prop";
+import { type CommonProp } from "@/interface/common-prop";
 import {
   DEFAULT_SCALE,
   DEFAULT_SCALE_WIDTH,
   DEFAULT_START_LEFT,
 } from "@/interface/const";
-import { prefix } from "@/utils/deal_class_prefix";
-import { parserPixelToTime, parserTimeToTransform } from "@/utils/deal_data";
-import { type DragLineData } from "./drag_lines";
-import { EditAction } from "./edit_action";
-import "./edit_row.less";
+import { prefix } from "@/utils/deal-class-prefix";
+import { parserPixelToTime, parserTimeToTransform } from "@/utils/deal-data";
+import { type DragLineData } from "./drag-lines";
+import { EditAction } from "./edit-action";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
 export type EditRowProps = CommonProp & {
@@ -21,10 +20,6 @@ export type EditRowProps = CommonProp & {
   style?: React.CSSProperties;
   dragLineData: DragLineData;
   setEditorData: (params: TimelineRow[]) => void;
-  /** Scroll distance from left */
-  scrollLeft: number;
-  /** Set scroll left */
-  deltaScrollLeft?: (scrollLeft: number) => void;
 };
 
 export const EditRow: FC<EditRowProps> = (props) => {
@@ -35,7 +30,6 @@ export const EditRow: FC<EditRowProps> = (props) => {
     onDoubleClickRow,
     onContextMenuRow,
     scrollContainerRef,
-    scrollLeft,
     startLeft,
     scale,
     scaleWidth,
@@ -55,7 +49,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
     if (!scrollContainerRef.current) return 0;
     const rect = scrollContainerRef.current.getBoundingClientRect();
     const position = e.clientX - rect.x;
-    const left = position + scrollLeft;
+    const left = position;
     const time = parserPixelToTime(left, {
       startLeft: safeStartLeft,
       scale: safeScale,

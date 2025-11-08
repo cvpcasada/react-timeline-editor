@@ -16,7 +16,7 @@ type Story = StoryObj<typeof meta>;
 
 export const BasicExample: Story = {};
 
-export const BasicCursorDisabledExample: Story = {
+export const BasicDisableDragAction: Story = {
   render: (args) => <BasicCursorDisabled {...args} />,
   argTypes: {
     disableDrag: {
@@ -29,7 +29,7 @@ export const BasicCursorDisabledExample: Story = {
   },
 };
 
-export const BasicHideCursorExample: Story = {
+export const BasicHideTimelineCursor: Story = {
   render: (args) => <BasicHideCursor {...args} />,
   argTypes: {
     hideCursor: {

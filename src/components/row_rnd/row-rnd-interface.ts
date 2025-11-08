@@ -1,4 +1,4 @@
-import { type GestureEvent } from './gesture.types';
+import { type GestureEvent } from "./gesture-types";
 
 // Type aliases for compatibility with existing code
 export type DragEvent = GestureEvent;
@@ -14,9 +14,11 @@ type EventData = {
 export type RndDragStartCallback = () => void;
 export type RndDragCallback = (
   data: EventData,
-  scrollDelta?: number,
+  scrollDelta?: number
 ) => boolean | void;
-export type RndDragEndCallback = (data: Pick<EventData, 'left' | 'width'>) => void;
+export type RndDragEndCallback = (
+  data: Pick<EventData, "left" | "width">
+) => void;
 
 export type Direction = "left" | "right";
 export type RndResizeStartCallback = (dir: Direction) => void;
@@ -26,7 +28,7 @@ export type RndResizeCallback = (
 ) => boolean | void;
 export type RndResizeEndCallback = (
   dir: Direction,
-  data: Pick<EventData, 'left' | 'width'>
+  data: Pick<EventData, "left" | "width">
 ) => void;
 
 export interface RowRndApi {
@@ -41,8 +43,8 @@ export interface RowRndProps {
   left?: number;
   grid?: number;
   start?: number;
-  bounds?: { left: number; right: number };
-  edges?: {left: false | string, right: false | string};
+  getBounds?: () => { left: number; right: number };
+  edges?: { left: false | string; right: false | string };
 
   onResizeStart?: RndResizeStartCallback;
   onResize?: RndResizeCallback;
@@ -50,9 +52,7 @@ export interface RowRndProps {
   onDragStart?: RndDragStartCallback;
   onDrag?: RndDragCallback;
   onDragEnd?: RndDragEndCallback;
-  // Auto-scroll will be enabled when both parentRef and deltaScrollLeft are provided
   parentRef?: React.RefObject<HTMLDivElement | null>;
-  deltaScrollLeft?: (delta: number) => void;
 
   children?: React.ReactNode;
 
@@ -60,4 +60,9 @@ export interface RowRndProps {
   enableDragging?: boolean;
   adsorptionPositions?: number[];
   adsorptionDistance?: number;
+  /**
+   * @description Whether to enable auto scroll when dragging/resizing near boundaries
+   * @default true
+   */
+  autoScroll?: boolean;
 }

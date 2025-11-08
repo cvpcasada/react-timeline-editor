@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { type TimelineAction, type TimelineRow } from "@/interface/action";
-import { parserActionsToPositions, parserTimeToTransform } from "@/utils/deal_data";
-import { type DragLineData } from "@/components/edit_area/drag_lines";
+import { parserActionsToPositions, parserTimeToTransform } from "@/utils/deal-data";
+import { type DragLineData } from "@/components/edit_area/drag-lines";
 
 export function useDragLine() {
   const [dragLineData, setDragLineData] = useState<DragLineData>({ isMoving: false, movePositions: [], assistPositions: [] });

@@ -1,14 +1,33 @@
-import './edit_action.less';
-
-import React, { type FC, useMemo, useRef, useState } from 'react';
-import { type TimelineAction, type TimelineRow } from '@/interface/action';
-import { type CommonProp } from '@/interface/common_prop';
-import { DEFAULT_ADSORPTION_DISTANCE, DEFAULT_MOVE_GRID, DEFAULT_SCALE, DEFAULT_SCALE_SPLIT_COUNT, DEFAULT_SCALE_WIDTH, DEFAULT_START_LEFT } from '@/interface/const';
-import { prefix } from '@/utils/deal_class_prefix';
-import { getScaleCountByPixel, parserTimeToPixel, parserTimeToTransform, parserTransformToTime } from '@/utils/deal_data';
-import { RowDnd } from '@/components/row_rnd/row_rnd';
-import { type RndDragCallback, type RndDragEndCallback, type RndDragStartCallback, type RndResizeCallback, type RndResizeEndCallback, type RndResizeStartCallback, type RowRndApi } from '@/components/row_rnd/row_rnd_interface';
-import { type DragLineData } from './drag_lines';
+import React, { type FC, useMemo, useRef, useState } from "react";
+import { type TimelineAction, type TimelineRow } from "@/interface/action";
+import { type CommonProp } from "@/interface/common-prop";
+import {
+  DEFAULT_ADSORPTION_DISTANCE,
+  DEFAULT_MOVE_GRID,
+  DEFAULT_SCALE,
+  DEFAULT_SCALE_SPLIT_COUNT,
+  DEFAULT_SCALE_WIDTH,
+  DEFAULT_START_LEFT,
+} from "@/interface/const";
+import { prefix } from "@/utils/deal-class-prefix";
+import {
+  getScaleCountByPixel,
+  parserTimeToPixel,
+  parserTimeToTransform,
+  parserTransformToTime,
+} from "@/utils/deal-data";
+import { RowDnd } from "@/components/row_rnd/row-rnd";
+import {
+  type RndDragCallback,
+  type RndDragEndCallback,
+  type RndDragStartCallback,
+  type RndResizeCallback,
+  type RndResizeEndCallback,
+  type RndResizeStartCallback,
+  type RowRndApi,
+} from "@/components/row_rnd/row-rnd-interface";
+import { type DragLineData } from "./drag-lines";
+import clsx from "@/utils/clsx";
 
 export type EditActionProps = CommonProp & {
   row: TimelineRow;
@@ -17,8 +36,6 @@ export type EditActionProps = CommonProp & {
   setEditorData: (params: TimelineRow[]) => void;
   handleTime: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => number;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
-  /** Set scroll left */
-  deltaScrollLeft?: (delta: number) => void;
 };
 
 export const EditAction: FC<EditActionProps> = ({
@@ -53,11 +70,20 @@ export const EditAction: FC<EditActionProps> = ({
   getActionRender,
   handleTime,
   scrollContainerRef,
-  deltaScrollLeft,
 }) => {
   const rowRnd = useRef<RowRndApi | null>(null);
   const isDragWhenClick = useRef(false);
-  const { id, maxEnd, minStart, end, start, selected, flexible = true, movable = true, effectId } = action;
+  const {
+    id,
+    maxEnd,
+    minStart,
+    end,
+    start,
+    selected,
+    flexible = true,
+    movable = true,
+    effectId,
+  } = action;
 
   // Get default values for optional props
   const safeScale = scale ?? DEFAULT_SCALE;
@@ -78,16 +104,22 @@ export const EditAction: FC<EditActionProps> = ({
       startLeft: safeStartLeft,
       scale: safeScale,
       scaleWidth: safeScaleWidth,
-    }),
+    })
   );
 
   // Derive base transform from props
   const baseTransform = useMemo(() => {
-    return parserTimeToTransform({ start, end }, { startLeft: safeStartLeft, scale: safeScale, scaleWidth: safeScaleWidth });
+    return parserTimeToTransform(
+      { start, end },
+      { startLeft: safeStartLeft, scale: safeScale, scaleWidth: safeScaleWidth }
+    );
   }, [end, start, safeStartLeft, safeScaleWidth, safeScale]);
 
   // Track temporary drag/resize transform state
-  const [dragTransform, setDragTransform] = useState<{ left: number; width: number } | null>(null);
+  const [dragTransform, setDragTransform] = useState<{
+    left: number;
+    width: number;
+  } | null>(null);
 
   // Use drag transform if available, otherwise use base transform
   const transform = dragTransform ?? baseTransform;
@@ -96,11 +128,15 @@ export const EditAction: FC<EditActionProps> = ({
   const gridSize = safeScaleWidth / safeScaleSplitCount;
 
   // Action class names
-  const classNames = ['action'];
-  if (movable) classNames.push('action-movable');
-  if (selected) classNames.push('action-selected');
-  if (flexible) classNames.push('action-flexible');
-  if (effects[effectId]) classNames.push(`action-effect-${effectId}`);
+  const classNames = prefix(
+    clsx(
+      "action",
+      movable && "action-movable",
+      selected && "action-selected",
+      flexible && "action-flexible",
+      effects[effectId] && `action-effect-${effectId}`
+    )
+  );
 
   /** Calculate scale count */
   const handleScaleCount = (left: number, width: number) => {
@@ -120,7 +156,14 @@ export const EditAction: FC<EditActionProps> = ({
     isDragWhenClick.current = true;
 
     if (onActionMoving) {
-      const { start, end } = parserTransformToTime({ left, width }, { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft });
+      const { start, end } = parserTransformToTime(
+        { left, width },
+        {
+          scaleWidth: safeScaleWidth,
+          scale: safeScale,
+          startLeft: safeStartLeft,
+        }
+      );
       const result = onActionMoving({ action, row, start, end });
       if (result === false) return false;
     }
@@ -130,7 +173,10 @@ export const EditAction: FC<EditActionProps> = ({
 
   const handleDragEnd: RndDragEndCallback = ({ left, width }) => {
     // Calculate time
-    const { start, end } = parserTransformToTime({ left, width }, { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft });
+    const { start, end } = parserTransformToTime(
+      { left, width },
+      { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft }
+    );
 
     // Set data
     const rowItem = editorData.find((item) => item.id === row.id);
@@ -142,7 +188,8 @@ export const EditAction: FC<EditActionProps> = ({
     setEditorData(editorData);
 
     // Execute callback
-    if (onActionMoveEnd) onActionMoveEnd({ action: actionItem, row, start, end });
+    if (onActionMoveEnd)
+      onActionMoveEnd({ action: actionItem, row, start, end });
     setDragTransform(null);
   };
 
@@ -153,7 +200,14 @@ export const EditAction: FC<EditActionProps> = ({
   const handleResizing: RndResizeCallback = (dir, { left, width }) => {
     isDragWhenClick.current = true;
     if (onActionResizing) {
-      const { start, end } = parserTransformToTime({ left, width }, { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft });
+      const { start, end } = parserTransformToTime(
+        { left, width },
+        {
+          scaleWidth: safeScaleWidth,
+          scale: safeScale,
+          startLeft: safeStartLeft,
+        }
+      );
       const result = onActionResizing({ action, row, start, end, dir });
       if (result === false) return false;
     }
@@ -163,7 +217,10 @@ export const EditAction: FC<EditActionProps> = ({
 
   const handleResizeEnd: RndResizeEndCallback = (dir, { left, width }) => {
     // Calculate time
-    const { start, end } = parserTransformToTime({ left, width }, { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft });
+    const { start, end } = parserTransformToTime(
+      { left, width },
+      { scaleWidth: safeScaleWidth, scale: safeScale, startLeft: safeStartLeft }
+    );
 
     // Set data
     const rowItem = editorData.find((item) => item.id === row.id);
@@ -175,14 +232,18 @@ export const EditAction: FC<EditActionProps> = ({
     setEditorData(editorData);
 
     // Trigger callback
-    if (onActionResizeEnd) onActionResizeEnd({ action: actionItem, row, start, end, dir });
+    if (onActionResizeEnd)
+      onActionResizeEnd({ action: actionItem, row, start, end, dir });
     setDragTransform(null);
   };
   //#endregion
 
   const nowAction = {
     ...action,
-    ...parserTransformToTime({ left: transform.left, width: transform.width }, { startLeft: safeStartLeft, scaleWidth: safeScaleWidth, scale: safeScale }),
+    ...parserTransformToTime(
+      { left: transform.left, width: transform.width },
+      { startLeft: safeStartLeft, scaleWidth: safeScaleWidth, scale: safeScale }
+    ),
   };
 
   const nowRow: TimelineRow = {
@@ -201,15 +262,24 @@ export const EditAction: FC<EditActionProps> = ({
       left={transform.left}
       width={transform.width}
       grid={(gridSnap && gridSize) || DEFAULT_MOVE_GRID}
-      adsorptionDistance={gridSnap ? Math.max((gridSize || DEFAULT_MOVE_GRID) / 2, DEFAULT_ADSORPTION_DISTANCE) : DEFAULT_ADSORPTION_DISTANCE}
+      adsorptionDistance={
+        gridSnap
+          ? Math.max(
+              (gridSize || DEFAULT_MOVE_GRID) / 2,
+              DEFAULT_ADSORPTION_DISTANCE
+            )
+          : DEFAULT_ADSORPTION_DISTANCE
+      }
       adsorptionPositions={dragLineData.assistPositions}
-      bounds={{
-        left: leftLimit,
-        right: rightLimit,
+      getBounds={() => {
+        return {
+          left: leftLimit,
+          right: rightLimit,
+        };
       }}
       edges={{
-        left: !disableDrag && flexible && `.${prefix('action-left-stretch')}`,
-        right: !disableDrag && flexible && `.${prefix('action-right-stretch')}`,
+        left: !disableDrag && flexible && `.${prefix("action-left-stretch")}`,
+        right: !disableDrag && flexible && `.${prefix("action-right-stretch")}`,
       }}
       enableDragging={!disableDrag && movable}
       enableResizing={!disableDrag && flexible}
@@ -219,7 +289,6 @@ export const EditAction: FC<EditActionProps> = ({
       onResizeStart={handleResizeStart}
       onResize={handleResizing}
       onResizeEnd={handleResizeEnd}
-      deltaScrollLeft={deltaScrollLeft}
     >
       <div
         onMouseDown={() => {
@@ -248,12 +317,22 @@ export const EditAction: FC<EditActionProps> = ({
             onContextMenuAction(e, { row, action, time: time });
           }
         }}
-        className={prefix((classNames || []).join(' '))}
+        className={classNames}
         style={{ height: rowHeight }}
       >
         {getActionRender && getActionRender(nowAction, nowRow)}
-        {flexible && <div className={prefix('action-left-stretch')} style={{ touchAction: 'none' }} />}
-        {flexible && <div className={prefix('action-right-stretch')} style={{ touchAction: 'none' }} />}
+        {flexible && (
+          <div
+            className={prefix("action-left-stretch")}
+            style={{ touchAction: "none" }}
+          />
+        )}
+        {flexible && (
+          <div
+            className={prefix("action-right-stretch")}
+            style={{ touchAction: "none" }}
+          />
+        )}
       </div>
     </RowDnd>
   );

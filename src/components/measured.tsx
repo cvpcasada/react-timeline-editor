@@ -1,14 +1,14 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useRef, useLayoutEffect } from "react";
 import { resize } from "motion";
-import mergeRefs from "@/utils/merge_refs";
+import mergeRefs from "@/utils/merge-refs";
 
 export function Measured({
   render,
   ref,
   ...props
 }: {
-  render: (size: { width: number; height: number }) => React.ReactNode;
+  render: (size: { width: number; height: number }) => React.ReactNode | React.ReactElement;
   ref?: React.Ref<HTMLDivElement>;
 } & React.HTMLAttributes<HTMLDivElement>) {
   const elementRef = useRef<HTMLDivElement>(null);

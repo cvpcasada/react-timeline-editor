@@ -1,5 +1,5 @@
 import React from 'react';
-import { mergeRefs } from '@/utils/merge_refs';
+import { mergeRefs } from '@/utils/merge-refs';
 interface SlotProps<T = HTMLElement> {
   children: React.ReactElement;
   ref?: React.Ref<T>;
