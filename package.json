@@ -1,6 +1,6 @@
 {
   "name": "@cyca/react-timeline-editor",
-  "version": "0.2.2-alpha.4",
+  "version": "0.2.3-alpha.0",
   "author": "cyca",
   "license": "MIT",
   "keywords": [
@@ -58,7 +58,6 @@
     "@eslint/js": "^9.36.0",
     "@storybook/addon-docs": "^10.0.5",
     "@storybook/react-vite": "^10.0.5",
-    "@tailwindcss/vite": "^4.1.17",
     "@types/howler": "^2.2.12",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
@@ -76,7 +75,6 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "storybook": "^10.0.5",
-    "tailwindcss": "^4.1.17",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.3",
     "vite": "^7.2.1",

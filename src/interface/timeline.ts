@@ -5,7 +5,7 @@ export * from './action';
 export * from './effect';
 
 /** Scroll parameters from virtualized container */
-export type OnScrollParams = {
+type OnScrollParams = {
   clientHeight: number;
   clientWidth: number;
   scrollHeight: number;

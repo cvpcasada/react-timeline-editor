@@ -2,7 +2,6 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
-import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [
     react({
@@ -10,7 +9,6 @@ export default defineConfig({
         plugins: [["babel-plugin-react-compiler"]],
       },
     }),
-    tailwindcss(),
     dts({
       include: ["src/**/*"],
       exclude: ["src/**/*.test.*", "src/**/*.spec.*", "src/stories/**"],

@@ -6,7 +6,6 @@ export function checkProps(props: TimelineEditor): TimelineEditor {
   let {
     editorData = [],
     effects = {},
-    scrollTop = 0,
     scale = DEFAULT_SCALE,
     scaleSplitCount = DEFAULT_SCALE_SPLIT_COUNT,
     scaleWidth = DEFAULT_SCALE_WIDTH,
@@ -19,11 +18,6 @@ export function checkProps(props: TimelineEditor): TimelineEditor {
   if(scale <= 0) {
     log.error('Error: scale must be greater than 0!')
     scale = DEFAULT_SCALE;
-  }
-
-  if(scrollTop < 0) {
-    log.warn('Warning: scrollTop cannot be less than 0!')
-    scrollTop = 0;
   }
 
   if(scaleSplitCount <= 0) {
@@ -64,7 +58,6 @@ export function checkProps(props: TimelineEditor): TimelineEditor {
     ...temp,
     editorData,
     effects,
-    scrollTop,
     scale,
     scaleSplitCount,
     scaleWidth,

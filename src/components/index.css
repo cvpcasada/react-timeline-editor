@@ -1,87 +1,183 @@
-@import "tailwindcss";
+@layer base, components;
 
 @layer components {
   .timeline-editor {
-    @apply min-h-8 relative text-xs font-sans bg-neutral-950 flex flex-col overflow-auto;
+    min-height: 2rem;
+    position: relative;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+      "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    background-color: #0a0a0a;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
   }
 
   .timeline-editor-edit-area {
-    @apply flex-1 mt-2.5;
+    flex: 1 1 0%;
+    margin-top: 0.625rem;
     background-repeat: no-repeat, repeat;
-    @apply bg-[linear-gradient(transparent,transparent),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_0)];
+    background-image: linear-gradient(transparent, transparent),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 0);
   }
 
   .timeline-editor-edit-row {
-    @apply flex flex-row;
+    display: flex;
+    flex-direction: row;
   }
 
   .timeline-editor-action {
-    @apply absolute left-0 top-0 bg-neutral-700;
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #404040;
+  }
 
-    .timeline-editor-action-left-stretch,
-    .timeline-editor-action-right-stretch {
-      @apply absolute w-2.5 rounded h-full overflow-hidden top-0;
+  .timeline-editor-action-left-stretch,
+  .timeline-editor-action-right-stretch {
+    position: absolute;
+    width: 0.625rem;
+    border-radius: 0.25rem;
+    height: 100%;
+    overflow: hidden;
+    top: 0;
+  }
 
-      &::after {
-        @apply absolute rounded m-auto border-y-28 border-y-transparent border-solid inset-y-0;
-      }
-    }
+  .timeline-editor-action-left-stretch::after,
+  .timeline-editor-action-right-stretch::after {
+    position: absolute;
+    border-radius: 0.25rem;
+    margin: auto;
+    border-top-width: 7rem;
+    border-top-color: transparent;
+    border-bottom-width: 7rem;
+    border-bottom-color: transparent;
+    border-style: solid;
+    top: 0;
+    bottom: 0;
+  }
 
-    .timeline-editor-action-left-stretch {
-      @apply left-0;
+  .timeline-editor-action-left-stretch {
+    left: 0;
+  }
 
-      &::after {
-        @apply content-[""] border-l-[rgba(255,255,255,0.1)] border-r-transparent border-x-[7px] border-solid left-0;
-      }
-    }
+  .timeline-editor-action-left-stretch::after {
+    content: "";
+    border-left-color: rgba(255, 255, 255, 0.1);
+    border-right-color: transparent;
+    border-left-width: 7px;
+    border-right-width: 7px;
+    border-style: solid;
+    left: 0;
+  }
 
-    .timeline-editor-action-right-stretch {
-      @apply right-0;
+  .timeline-editor-action-right-stretch {
+    right: 0;
+  }
 
-      &::after {
-        @apply content-[""] border-l-transparent border-r-[rgba(255,255,255,0.1)] border-x-[7px] border-solid right-0;
-      }
-    }
+  .timeline-editor-action-right-stretch::after {
+    content: "";
+    border-left-color: transparent;
+    border-right-color: rgba(255, 255, 255, 0.1);
+    border-left-width: 7px;
+    border-right-width: 7px;
+    border-style: solid;
+    right: 0;
   }
 
   .time-editor-time-area {
-    @apply z-1 bg-neutral-950 sticky top-0 h-8 text-center font-bold text-lg overflow-clip;
+    z-index: 1;
+    background-color: #0a0a0a;
+    position: sticky;
+    top: 0;
+    height: 2rem;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    overflow: clip;
   }
 
   .time-editor-time-unit {
-    @apply box-content absolute left-0 border-r border-neutral-700 bottom-0 top-auto pointer-events-none;
+    box-sizing: content-box;
+    position: absolute;
+    left: 0;
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-right-color: #404040;
+    bottom: 0;
+    top: auto;
+    pointer-events: none;
   }
 
   .time-editor-time-unit-big {
-    @apply h-2;
+    height: 0.5rem;
   }
 
   .time-editor-time-unit-small {
-    @apply h-1;
+    height: 0.25rem;
   }
 
   .time-editor-time-unit-scale {
-    @apply absolute top-0 right-0 transform translate-x-1/2 -translate-y-full pointer-events-none;
-    @apply text-neutral-500 text-xs font-light;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateX(50%) translateY(-100%);
+    pointer-events: none;
+    color: #737373;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 300;
   }
 
   .timeline-editor-cursor {
-    @apply cursor-ew-resize absolute h-[calc(100%-32px)] box-border -translate-x-1/4 border-x-blue-500 border-l border-solid border-r scale-x-50 top-8;
+    cursor: ew-resize;
+    position: absolute;
+    height: calc(100% - 32px);
+    box-sizing: border-box;
+    transform: translateX(-25%) scaleX(0.5);
+    border-left-width: 1px;
+    border-left-style: solid;
+    border-left-color: #3b82f6;
+    border-right-width: 1px;
+    border-right-style: solid;
+    border-right-color: #3b82f6;
+    top: 2rem;
   }
 
   .timeline-editor-cursor-top {
-    @apply absolute -translate-x-2/4 translate-y-0 m-auto scale-x-[2] left-2/4 top-0;
+    position: absolute;
+    transform: translateX(-50%) translateY(0) scaleX(2);
+    margin: auto;
+    left: 50%;
+    top: 0;
   }
 
   .timeline-editor-cursor-area {
-    @apply w-4 h-full cursor-ew-resize absolute -translate-x-2/4 left-2/4 top-0;
+    width: 1rem;
+    height: 100%;
+    cursor: ew-resize;
+    position: absolute;
+    transform: translateX(-50%);
+    left: 50%;
+    top: 0;
   }
 
   .timeline-editor-drag-line-container {
-    @apply absolute h-full left-0 top-0;
+    position: absolute;
+    height: 100%;
+    left: 0;
+    top: 0;
   }
 
   .timeline-editor-drag-line {
-    @apply w-0 absolute h-[99%] border-l-slate-500 border-l border-dashed top-0;
+    width: 0;
+    position: absolute;
+    height: 99%;
+    border-left-color: #64748b;
+    border-left-width: 1px;
+    border-left-style: dashed;
+    top: 0;
   }
 }
