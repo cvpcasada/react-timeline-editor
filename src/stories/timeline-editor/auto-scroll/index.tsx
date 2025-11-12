@@ -14,7 +14,7 @@ const AutoScroll = ({ autoScroll = true }: AutoScrollProps) => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example3">
+    <div className="timeline-editor-example-auto-scroll">
       <Timeline onChange={setData} editorData={data} effects={mockEffect} autoScroll={autoScroll} />
     </div>
   );

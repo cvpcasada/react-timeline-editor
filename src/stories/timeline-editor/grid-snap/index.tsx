@@ -15,7 +15,7 @@ const GridSnap = ({ scaleSplitCount = 10, gridSnap = true }: GridSnapProps) => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example3">
+    <div className="timeline-editor-example-grid-snap">
       <Timeline
         scale={5}
         onChange={setData}

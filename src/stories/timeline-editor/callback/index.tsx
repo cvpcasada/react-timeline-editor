@@ -38,7 +38,7 @@ const MoveAndScaleCallbacks = (props: MoveAndScaleCallbacksProps) => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example5">
+    <div className="timeline-editor-example-callback">
       <Timeline
         onChange={setData}
         editorData={data}

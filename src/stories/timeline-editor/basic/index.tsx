@@ -10,7 +10,7 @@ const Basic = () => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example0">
+    <div className="timeline-editor-example-basic">
       <Timeline onChange={setData} editorData={data} effects={mockEffect} hideCursor={false} autoScroll={true} />
     </div>
   );
@@ -24,7 +24,7 @@ const BasicCursorDisabled = ({ disableDrag = false }: BasicCursorDisabledProps) 
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example0">
+    <div className="timeline-editor-example-basic">
       <Timeline onChange={setData} editorData={data} effects={mockEffect} disableDrag={disableDrag} />
     </div>
   );
@@ -38,7 +38,7 @@ const BasicHideCursor = ({ hideCursor = true }: BasicHideCursorProps) => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example0">
+    <div className="timeline-editor-example-basic">
       <Timeline onChange={setData} editorData={data} effects={mockEffect} hideCursor={hideCursor} />
     </div>
   );

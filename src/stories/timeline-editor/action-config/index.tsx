@@ -12,7 +12,7 @@ export const ActionMovableFlexible: FC = () => {
   const [data, setData] = useState(defaultEditorData1);
 
   return (
-    <div className="timeline-editor-example8">
+    <div className="timeline-editor-example-action-config">
       <Timeline
         onChange={setData}
         editorData={data}
@@ -36,7 +36,7 @@ export const ActionMinStartMaxEnd: React.FC = () => {
   const [data, setData] = useState(defaultEditorData2);
 
   return (
-    <div className="timeline-editor-example8">
+    <div className="timeline-editor-example-action-config">
       <Timeline
         onChange={setData}
         editorData={data}

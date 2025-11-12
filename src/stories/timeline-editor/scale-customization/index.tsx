@@ -22,7 +22,7 @@ const ScaleCustomization = ({
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example1">
+    <div className="timeline-editor-example-scale-customization">
       <Timeline onChange={setData} autoScroll={true} editorData={data} effects={mockEffect} scale={scale} startLeft={startLeft} scaleSplitCount={scaleSplitCount} scaleWidth={scaleWidth} />
     </div>
   );
@@ -39,7 +39,7 @@ const CustomScaleStyle = () => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example1">
+    <div className="timeline-editor-example-scale-customization">
       <Timeline onChange={setData} editorData={data} effects={mockEffect} scale={10} scaleSplitCount={10} getScaleRender={(scale) => <CustomScale scale={scale} />} />
     </div>
   );

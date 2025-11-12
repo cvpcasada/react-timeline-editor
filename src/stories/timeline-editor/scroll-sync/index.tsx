@@ -11,7 +11,7 @@ const ScrollSync = () => {
   const domRef = useRef<HTMLDivElement>(null);
   const timelineState = useRef<TimelineState>(null);
   return (
-    <div className="timeline-editor-example7">
+    <div className="timeline-editor-example-scroll-sync">
       <div
         ref={domRef}
         style={{ overflow: 'overlay' }}

@@ -11,7 +11,7 @@ const CustomStyle = () => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
-    <div className="timeline-editor-example2">
+    <div className="timeline-editor-example-custom-style">
       <Timeline
         onChange={setData}
         editorData={data}

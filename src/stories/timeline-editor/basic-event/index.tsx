@@ -11,7 +11,7 @@ const BasicEvent = () => {
   const idRef = useRef(0);
 
   return (
-    <div className="timeline-editor-example0">
+    <div className="timeline-editor-example-basic-event">
       <Timeline
         onChange={setData}
         editorData={data}
