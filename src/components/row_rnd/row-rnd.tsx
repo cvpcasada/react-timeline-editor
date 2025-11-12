@@ -286,6 +286,11 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           if (curLeft < getBounds().left) curLeft = getBounds().left;
           const curWidth = tempRight - curLeft;
 
+          // Lock component if resize exceeds the other end (right edge)
+          if (curLeft >= tempRight) {
+            return; // Don't move the component
+          }
+
           if (onResize) {
             const ret = onResize("left", {
               lastLeft: preLeft,
@@ -331,6 +336,11 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           // Control bounds
           if (preLeft + curWidth > getBounds().right)
             curWidth = getBounds().right - preLeft;
+
+          // Lock component if resize exceeds the other end (left edge)
+          if (curWidth <= 0) {
+            return; // Don't move the component
+          }
 
           if (onResize) {
             const ret = onResize("right", {

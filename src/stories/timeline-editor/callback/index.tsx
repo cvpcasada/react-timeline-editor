@@ -49,7 +49,10 @@ const MoveAndScaleCallbacks = (props: MoveAndScaleCallbacksProps) => {
             return <div className="prompt">Only drag left side to resize</div>;
           }
         }}
-        onActionResizing={props.onActionResizing}
+        onActionResizing={({ action, dir }) => {
+          if (action.id === "action10" && dir !== "left") return false;
+          props.onActionResizing({ action, dir });
+        }}
         onActionResizeStart={props.onActionResizeStart}
         onActionResizeEnd={props.onActionResizeEnd}
         onActionMoveStart={props.onActionMoveStart}

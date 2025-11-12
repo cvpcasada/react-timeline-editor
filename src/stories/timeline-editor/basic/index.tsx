@@ -1,17 +1,26 @@
-import { Timeline } from '@/index';
+import { Timeline, type TimelineState } from "@/index";
 
-import { useState } from 'react';
-import './index.less';
-import { mockData, mockEffect } from './mock';
+import { useEffect, useRef, useState } from "react";
+import "./index.less";
+import { mockData, mockEffect } from "./mock";
 
 const defaultEditorData = structuredClone(mockData);
 
 const Basic = () => {
   const [data, setData] = useState(defaultEditorData);
 
+  const ref = useRef<TimelineState>(null);
+
   return (
     <div className="timeline-editor-example-basic">
-      <Timeline onChange={setData} editorData={data} effects={mockEffect} hideCursor={false} autoScroll={true} />
+      <Timeline
+        ref={ref}
+        onChange={setData}
+        editorData={data}
+        effects={mockEffect}
+        hideCursor={false}
+        autoScroll={true}
+      />
     </div>
   );
 };
@@ -20,12 +29,19 @@ interface BasicCursorDisabledProps {
   disableDrag?: boolean;
 }
 
-const BasicCursorDisabled = ({ disableDrag = false }: BasicCursorDisabledProps) => {
+const BasicCursorDisabled = ({
+  disableDrag = false,
+}: BasicCursorDisabledProps) => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
     <div className="timeline-editor-example-basic">
-      <Timeline onChange={setData} editorData={data} effects={mockEffect} disableDrag={disableDrag} />
+      <Timeline
+        onChange={setData}
+        editorData={data}
+        effects={mockEffect}
+        disableDrag={disableDrag}
+      />
     </div>
   );
 };
@@ -39,7 +55,12 @@ const BasicHideCursor = ({ hideCursor = true }: BasicHideCursorProps) => {
 
   return (
     <div className="timeline-editor-example-basic">
-      <Timeline onChange={setData} editorData={data} effects={mockEffect} hideCursor={hideCursor} />
+      <Timeline
+        onChange={setData}
+        editorData={data}
+        effects={mockEffect}
+        hideCursor={hideCursor}
+      />
     </div>
   );
 };

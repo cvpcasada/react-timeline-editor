@@ -17,7 +17,7 @@ import { checkProps } from "@/utils/check-props";
 import { getScaleCountByRows, parserPixelToTime } from "@/utils/deal-data";
 import { EditArea } from "./edit_area/edit-area";
 import { TimeArea } from "./time_area/time-area";
-import { useMeasure } from "./measured";
+import { Measured } from "./measured";
 import { Cursor } from "./cursor/cursor";
 import { ScrollArea } from "radix-ui";
 import { ScrollBar } from "./scroll-area";
@@ -45,8 +45,11 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>(
     const [editorData, setEditorData] = useState(data);
     // Scale count
     const [scaleCount, setScaleCount] = useState(MIN_SCALE_COUNT);
+
     // Cursor time
     const [cursorTime, setCursorTime] = useState(START_CURSOR_TIME);
+
+    const cursorTimeRef = useRef(START_CURSOR_TIME);
 
     /** Dynamically set scale count */
     const handleSetScaleCount = useCallback(
@@ -77,13 +80,19 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>(
 
       if (typeof time !== "undefined") {
         setCursorTime(time);
+        cursorTimeRef.current = time;
         return true;
       }
 
       if (typeof left !== "undefined") {
         setCursorTime(
-          parserPixelToTime(left, { startLeft, scale, scaleWidth })
+          (cursorTimeRef.current = parserPixelToTime(left, {
+            startLeft,
+            scale,
+            scaleWidth,
+          }))
         );
+
         return true;
       }
 
@@ -99,7 +108,7 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>(
         handleSetCursor({ time });
       },
       get time() {
-        return cursorTime;
+        return cursorTimeRef.current;
       },
       setScrollLeft: (val) => {
         if (!domRef.current) return;
@@ -110,8 +119,6 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>(
         domRef.current.scrollTop = val;
       },
     }));
-
-    const { width, height } = useMeasure(domRef);
 
     return (
       <ScrollArea.Root
@@ -126,39 +133,45 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>(
             onScroll?.(e.currentTarget);
           }}
         >
-          <TimeArea
-            {...checkedProps}
-            setCursor={handleSetCursor}
-            scaleCount={scaleCount}
-            scrollElementRef={domRef}
-          />
+          <Measured elementRef={domRef}>
+            {({ width, height }) => (
+              <>
+                <TimeArea
+                  {...checkedProps}
+                  setCursor={handleSetCursor}
+                  scaleCount={scaleCount}
+                  scrollElementRef={domRef}
+                />
 
-          <EditArea
-            {...checkedProps}
-            scrollElementRef={domRef}
-            timelineWidth={width}
-            timelineHeight={height}
-            disableDrag={disableDrag}
-            editorData={editorData}
-            cursorTime={cursorTime}
-            scaleCount={scaleCount}
-            setScaleCount={handleSetScaleCount}
-            setEditorData={handleEditorDataChange}
-          />
+                <EditArea
+                  {...checkedProps}
+                  scrollElementRef={domRef}
+                  timelineWidth={width}
+                  timelineHeight={height}
+                  disableDrag={disableDrag}
+                  editorData={editorData}
+                  cursorTime={cursorTime}
+                  scaleCount={scaleCount}
+                  setScaleCount={handleSetScaleCount}
+                  setEditorData={handleEditorDataChange}
+                />
 
-          {!hideCursor && (
-            <Cursor
-              {...checkedProps}
-              timelineWidth={width}
-              height={height}
-              scaleCount={scaleCount}
-              setScaleCount={handleSetScaleCount}
-              setCursor={handleSetCursor}
-              cursorTime={cursorTime}
-              editorData={editorData}
-              scrollElementRef={domRef}
-            />
-          )}
+                {!hideCursor && (
+                  <Cursor
+                    {...checkedProps}
+                    timelineWidth={width}
+                    height={height}
+                    scaleCount={scaleCount}
+                    setScaleCount={handleSetScaleCount}
+                    setCursor={handleSetCursor}
+                    cursorTime={cursorTime}
+                    editorData={editorData}
+                    scrollElementRef={domRef}
+                  />
+                )}
+              </>
+            )}
+          </Measured>
         </ScrollArea.Viewport>
         <ScrollBar orientation="horizontal" />
         <ScrollBar orientation="vertical" />

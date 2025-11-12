@@ -32,7 +32,6 @@ export const EditRow: FC<EditRowProps> = (props) => {
     scrollContainerRef,
     startLeft,
     scale,
-    timelineWidth,
     scaleWidth,
   } = props;
 
@@ -69,9 +68,15 @@ export const EditRow: FC<EditRowProps> = (props) => {
     [rowData]
   );
 
+  const getItemKey = useCallback(
+    (index: number) => actions[index]?.id ?? index,
+    [actions]
+  );
+
   const virtualizer = useVirtualizer({
     horizontal: true,
     count: actions.length,
+    getItemKey,
     getScrollElement: () => scrollContainerRef.current,
     estimateSize: (index) => {
       if (!actions[index]) return 0;
@@ -97,8 +102,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
   // Remeasure when scaleWidth or startLeft change
   useLayoutEffect(() => {
     virtualizer.measure();
-    console.log("re-measure", timelineWidth);
-  }, [scaleWidth, startLeft, timelineWidth, virtualizer]);
+  }, [scaleWidth, startLeft, virtualizer]);
 
   return (
     <div

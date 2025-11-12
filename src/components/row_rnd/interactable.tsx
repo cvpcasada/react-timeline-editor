@@ -33,6 +33,42 @@ interface InteractableWrapper {
   unset: () => void;
 }
 
+/**
+ * Helper function to create a GestureEvent from gesture state
+ */
+const createGestureEvent = (
+  target: HTMLElement,
+  delta: [number, number],
+  xy: [number, number],
+  edges?: GestureEvent['edges'],
+  deltaRect?: GestureEvent['deltaRect'],
+): GestureEvent => ({
+  target,
+  dx: delta[0],
+  dy: delta[1],
+  clientX: xy[0],
+  clientY: xy[1],
+  ...(edges && { edges }),
+  ...(deltaRect && { deltaRect }),
+});
+
+/**
+ * Helper function to check if an event target is a resize handle
+ */
+const isResizeHandle = (
+  eventTarget: HTMLElement | null,
+  leftHandle: HTMLElement | null,
+  rightHandle: HTMLElement | null,
+): boolean => {
+  if (!eventTarget) return false;
+  return (
+    eventTarget === leftHandle ||
+    eventTarget === rightHandle ||
+    (leftHandle?.contains(eventTarget) ?? false) ||
+    (rightHandle?.contains(eventTarget) ?? false)
+  );
+};
+
 export const InteractComp: FC<{
   interactRef?: React.RefObject<InteractableWrapper | undefined>;
   draggable: boolean;
@@ -51,6 +87,8 @@ export const InteractComp: FC<{
 
   const leftResizeHandleRef = useRef<HTMLDivElement | null>(null);
   const rightResizeHandleRef = useRef<HTMLDivElement | null>(null);
+  const leftResizeSelectorRef = useRef<string | false | undefined>(undefined);
+  const rightResizeSelectorRef = useRef<string | false | undefined>(undefined);
 
   useEffect(() => {
     draggableOptionsRef.current = draggableOptions;
@@ -58,42 +96,56 @@ export const InteractComp: FC<{
   }, [draggableOptions, resizableOptions]);
 
   const setInteractions = useEffectEvent(() => {
-    if (!nodeRef.current) return;
+    const node = nodeRef.current;
+    if (!node) return;
+
+    // Clean up old gestures before creating new ones
+    dragGestureRef.current?.destroy();
+    leftResizeGestureRef.current?.destroy();
+    rightResizeGestureRef.current?.destroy();
+
+    // Reset gesture refs
+    dragGestureRef.current = undefined;
+    leftResizeGestureRef.current = undefined;
+    rightResizeGestureRef.current = undefined;
+
+    // Query resize handles if selectors have changed
+    const currentLeftSelector = resizableOptionsRef.current?.edges?.left;
+    const currentRightSelector = resizableOptionsRef.current?.edges?.right;
+
+    if (currentLeftSelector !== leftResizeSelectorRef.current) {
+      leftResizeSelectorRef.current = currentLeftSelector;
+      leftResizeHandleRef.current = currentLeftSelector
+        ? (node.querySelector(currentLeftSelector) as HTMLDivElement | null)
+        : null;
+    }
+
+    if (currentRightSelector !== rightResizeSelectorRef.current) {
+      rightResizeSelectorRef.current = currentRightSelector;
+      rightResizeHandleRef.current = currentRightSelector
+        ? (node.querySelector(currentRightSelector) as HTMLDivElement | null)
+        : null;
+    }
 
     // Setup drag gesture
     if (draggable && draggableOptionsRef.current) {
       dragGestureRef.current = new DragGesture(
-        nodeRef.current,
+        node,
         (state) => {
           const { active, delta, xy, event, first, last } = state;
 
           // Ignore drag events if they originate from a resize handle
-          const eventTarget = event?.target as HTMLElement;
-          if (
-            eventTarget &&
-            (eventTarget === leftResizeHandleRef.current ||
-              eventTarget === rightResizeHandleRef.current ||
-              (leftResizeHandleRef.current && leftResizeHandleRef.current.contains(eventTarget)) ||
-              (rightResizeHandleRef.current && rightResizeHandleRef.current.contains(eventTarget)))
-          ) {
+          if (isResizeHandle(event?.target as HTMLElement | null, leftResizeHandleRef.current, rightResizeHandleRef.current)) {
             return;
           }
-          const gestureEvent: GestureEvent = {
-            target: nodeRef.current!,
-            dx: delta[0],
-            dy: delta[1],
-            clientX: xy[0],
-            clientY: xy[1],
-          };
+
+          const gestureEvent = createGestureEvent(node, delta, xy);
 
           if (first) {
-            // Start event - movement is 0 at start
             draggableOptionsRef.current?.onstart?.(gestureEvent);
           } else if (last) {
-            // End event
             draggableOptionsRef.current?.onend?.(gestureEvent);
           } else if (active) {
-            // Move event - calculate delta from last position
             draggableOptionsRef.current?.onmove?.(gestureEvent);
           }
         },
@@ -106,37 +158,31 @@ export const InteractComp: FC<{
     }
 
     // Setup resize gestures
-    if (resizable && resizableOptionsRef.current?.edges) {
-      // Left resize
-      if (resizableOptionsRef.current.edges.left) {
-        if (!leftResizeHandleRef.current) {
-          leftResizeHandleRef.current = nodeRef.current!.querySelector(resizableOptionsRef.current.edges.left) as HTMLDivElement;
-        }
+    const options = resizableOptionsRef.current;
+    if (resizable && options?.edges) {
+      const edges = options.edges;
 
+      // Left resize
+      if (edges.left && leftResizeHandleRef.current) {
         leftResizeGestureRef.current = new DragGesture(
           leftResizeHandleRef.current,
           (state) => {
             const { active, delta, xy, first, last } = state;
 
-            const gestureEvent: GestureEvent = {
-              target: nodeRef.current!,
-              dx: delta[0],
-              dy: 0,
-              clientX: xy[0],
-              clientY: xy[1],
-              edges: { left: true },
-              deltaRect: { left: delta[0] },
-            };
+            const gestureEvent = createGestureEvent(
+              node,
+              delta,
+              xy,
+              { left: true },
+              { left: delta[0] },
+            );
 
-            if (last) {
-              // End event
-              resizableOptionsRef.current?.onend?.(gestureEvent);
-            } else if (first) {
-              // Start event
-              resizableOptionsRef.current?.onstart?.(gestureEvent);
+            if (first) {
+              options.onstart?.(gestureEvent);
+            } else if (last) {
+              options.onend?.(gestureEvent);
             } else if (active) {
-              // Move event
-              resizableOptionsRef.current?.onmove?.(gestureEvent);
+              options.onmove?.(gestureEvent);
             }
           },
           { pointer: { capture: true }, threshold: 0 },
@@ -144,35 +190,26 @@ export const InteractComp: FC<{
       }
 
       // Right resize
-      if (resizableOptionsRef.current.edges.right) {
-        if (!rightResizeHandleRef.current) {
-          rightResizeHandleRef.current = nodeRef.current!.querySelector(resizableOptionsRef.current.edges.right) as HTMLDivElement;
-        }
-
+      if (edges.right && rightResizeHandleRef.current) {
         rightResizeGestureRef.current = new DragGesture(
           rightResizeHandleRef.current,
           (state) => {
             const { active, delta, xy, first, last } = state;
 
-            const gestureEvent: GestureEvent = {
-              target: nodeRef.current!,
-              dx: delta[0],
-              dy: 0,
-              clientX: xy[0],
-              clientY: xy[1],
-              edges: { right: true },
-              deltaRect: { right: delta[0] },
-            };
+            const gestureEvent = createGestureEvent(
+              node,
+              delta,
+              xy,
+              { right: true },
+              { right: delta[0] },
+            );
 
-            if (last) {
-              // End event
-              resizableOptionsRef.current?.onend?.(gestureEvent);
-            } else if (first) {
-              // Start event
-              resizableOptionsRef.current?.onstart?.(gestureEvent);
+            if (first) {
+              options.onstart?.(gestureEvent);
+            } else if (last) {
+              options.onend?.(gestureEvent);
             } else if (active) {
-              // Move event
-              resizableOptionsRef.current?.onmove?.(gestureEvent);
+              options.onmove?.(gestureEvent);
             }
           },
           { pointer: { capture: true }, threshold: 0 },
@@ -183,11 +220,6 @@ export const InteractComp: FC<{
 
   useEffect(() => {
     if (!nodeRef.current) return;
-
-    // Clean up old gestures
-    dragGestureRef.current?.destroy();
-    leftResizeGestureRef.current?.destroy();
-    rightResizeGestureRef.current?.destroy();
 
     const interactableWrapper: InteractableWrapper = {
       target: nodeRef.current,
@@ -203,8 +235,8 @@ export const InteractComp: FC<{
     }
 
     setInteractions();
-  }, [draggable, resizable, interactRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draggable, resizable]);
 
-  // eslint-disable-next-line react-hooks/refs
   return slot({ children, ref: nodeRef, draggable: false, style: { ...(draggable && { touchAction: 'none' }) } });
 };

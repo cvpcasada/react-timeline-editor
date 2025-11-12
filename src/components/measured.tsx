@@ -1,33 +1,13 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 import { resize } from "motion";
-import mergeRefs from "@/utils/merge-refs";
-import { slot } from "./slot";
+import { withHooks } from "./with-hook";
 
-export function Measured({
-  render,
-  ref,
-  ...props
+export function useMeasure<T extends HTMLElement>({
+  elementRef,
 }: {
-  render: (size: {
-    width: number;
-    height: number;
-  }) => React.ReactNode | React.ReactElement;
-  ref?: React.Ref<HTMLDivElement>;
-} & React.HTMLAttributes<HTMLDivElement>) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  const size = useMeasure(elementRef);
-
-  return slot({
-    children: render(size),
-    ref: mergeRefs(elementRef, ref),
-    ...props,
-  });
-}
-
-export function useMeasure<T extends HTMLElement>(
-  elementRef: React.RefObject<T | null>
-) {
+  elementRef: React.RefObject<T | null>;
+}) {
   const [size, setSize] = useState({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
@@ -35,7 +15,9 @@ export function useMeasure<T extends HTMLElement>(
     resize(elementRef.current, (_el, size) => {
       setSize({ width: size.width, height: size.height });
     });
-  }, []);
+  }, [elementRef]);
 
   return size;
 }
+
+export const Measured = withHooks(useMeasure);

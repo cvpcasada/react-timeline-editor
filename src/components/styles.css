@@ -81,6 +81,7 @@
   }
 
   .timeline-editor-time-area {
+    cursor: crosshair;
     z-index: 3;
     background-color: oklch(15.2% 0 0);
     position: sticky;
