@@ -46,7 +46,7 @@ const MoveAndScaleCallbacks = (props: MoveAndScaleCallbacksProps) => {
         hideCursor={false}
         getActionRender={(action) => {
           if (action.id === "action10") {
-            return <div className="prompt">只能拖拽左侧缩放</div>;
+            return <div className="prompt">Only drag left side to resize</div>;
           }
         }}
         onActionResizing={props.onActionResizing}

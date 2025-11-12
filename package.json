@@ -40,7 +40,7 @@
       "import": "./dist/react-timeline-editor.js",
       "require": "./dist/react-timeline-editor.cjs"
     },
-    "./react-timeline-editor.css": "./dist/react-timeline-editor.css",
+    "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
   "peerDependencies": {
@@ -52,7 +52,8 @@
     "@tanstack/react-virtual": "^3.13.12",
     "@use-gesture/vanilla": "^10.3.1",
     "framework-utils": "^1.1.0",
-    "motion": "^12.23.24"
+    "motion": "^12.23.24",
+    "radix-ui": "^1.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.36.0",

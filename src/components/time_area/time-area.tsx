@@ -1,6 +1,7 @@
 import { parserPixelToTime } from '@/utils/deal-data';
 import { useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { prefix } from '@/utils/deal-class-prefix';
 
 interface TimeAreaProps {
   scaleSplitCount?: number;
@@ -62,7 +63,7 @@ export function TimeArea({
   return (
     <div
       style={{ width: `${totalWidth}px` }}
-      className="time-editor-time-area"
+      className={prefix("time-area")}
       onClick={(e) => {
         // if (hideCursor) return;
         const leftStart = startLeft ?? 20;
@@ -92,10 +93,10 @@ export function TimeArea({
         const isShowScale = showUnit ? columnIndex % splitCount === 0 : true;
 
         const classNames = [
-          "time-editor-time-unit",
+          prefix("time-unit"),
           isShowScale
-            ? "time-editor-time-unit-big"
-            : "time-editor-time-unit-small",
+            ? prefix("time-unit-big")
+            : prefix("time-unit-small"),
         ];
 
         const item =
@@ -112,7 +113,7 @@ export function TimeArea({
             className={classNames.join(" ")}
           >
             {isShowScale && (
-              <div className="time-editor-time-unit-scale">{item}</div>
+              <div className={prefix("time-unit-scale")}>{item}</div>
             )}
           </div>
         );

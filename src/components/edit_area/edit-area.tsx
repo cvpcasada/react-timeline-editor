@@ -18,9 +18,10 @@ export type EditAreaProps = CommonProp & {
   scrollElementRef: React.RefObject<HTMLDivElement | null>;
 };
 
-export const EditArea = (
-  props: EditAreaProps & { ref?: React.RefObject<HTMLDivElement | null> }
-) => {
+export const EditArea = ({
+  ref,
+  ...props
+}: EditAreaProps & { ref?: React.RefObject<HTMLDivElement | null> }) => {
   const {
     dragLineData,
     initDragLine,
@@ -88,10 +89,72 @@ export const EditArea = (
     props.timelineWidth
   );
 
+  const [totalHeight, rows] = (() => {
+    let result: React.ReactNode[] = [];
+
+    // Get total height
+    let currentHeight = 0;
+
+    for (let i = 0; i < props.editorData.length; i++) {
+      const row = props.editorData[i];
+      if (!row) continue;
+
+      const itemHeight = row.rowHeight || defaultRowHeight;
+
+      result.push(
+        <EditRow
+          {...props}
+          key={row.id}
+          rowData={row}
+          dragLineData={dragLineData}
+          scrollContainerRef={props.scrollElementRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: contentWidth,
+            height: `${itemHeight}px`,
+            transform: `translateY(${currentHeight}px)`,
+          }}
+          onActionMoveStart={(data) => {
+            handleInitDragLine(data);
+            return props.onActionMoveStart && props.onActionMoveStart(data);
+          }}
+          onActionResizeStart={(data) => {
+            handleInitDragLine(data);
+            return props.onActionResizeStart && props.onActionResizeStart(data);
+          }}
+          onActionMoving={(data) => {
+            handleUpdateDragLine(data);
+            return props.onActionMoving && props.onActionMoving(data);
+          }}
+          onActionResizing={(data) => {
+            handleUpdateDragLine(data);
+            return props.onActionResizing && props.onActionResizing(data);
+          }}
+          onActionResizeEnd={(data) => {
+            disposeDragLine();
+            return props.onActionResizeEnd && props.onActionResizeEnd(data);
+          }}
+          onActionMoveEnd={(data) => {
+            disposeDragLine();
+            return props.onActionMoveEnd && props.onActionMoveEnd(data);
+          }}
+        />
+      );
+
+      currentHeight += itemHeight;
+    }
+
+    return [currentHeight, result] as const;
+  })();
+
   return (
     <div
+      ref={ref}
       style={{
         width: contentWidth,
+        height: totalHeight,
         position: "relative",
         backgroundPositionX: `0, ${props.startLeft ?? 20}px`,
         backgroundSize: `${props.startLeft ?? 20}px, ${
@@ -100,71 +163,8 @@ export const EditArea = (
       }}
       className="timeline-editor-edit-area"
     >
-      {(() => {
-        let result: React.ReactNode[] = [];
-
-        // Get total height
-        let currentHeight = 0;
-
-        for (let i = 0; i < props.editorData.length; i++) {
-          const row = props.editorData[i];
-          if (!row) continue;
-
-          const itemHeight = row.rowHeight || defaultRowHeight;
-
-          result.push(
-            <EditRow
-              {...props}
-              key={row.id}
-              rowData={row}
-              dragLineData={dragLineData}
-              scrollContainerRef={props.scrollElementRef}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: contentWidth,
-                height: `${itemHeight}px`,
-                transform: `translateY(${currentHeight}px)`,
-              }}
-              onActionMoveStart={(data) => {
-                handleInitDragLine(data);
-                return props.onActionMoveStart && props.onActionMoveStart(data);
-              }}
-              onActionResizeStart={(data) => {
-                handleInitDragLine(data);
-                return (
-                  props.onActionResizeStart && props.onActionResizeStart(data)
-                );
-              }}
-              onActionMoving={(data) => {
-                handleUpdateDragLine(data);
-                return props.onActionMoving && props.onActionMoving(data);
-              }}
-              onActionResizing={(data) => {
-                handleUpdateDragLine(data);
-                return props.onActionResizing && props.onActionResizing(data);
-              }}
-              onActionResizeEnd={(data) => {
-                disposeDragLine();
-                return props.onActionResizeEnd && props.onActionResizeEnd(data);
-              }}
-              onActionMoveEnd={(data) => {
-                disposeDragLine();
-                return props.onActionMoveEnd && props.onActionMoveEnd(data);
-              }}
-            />
-          );
-
-          currentHeight += itemHeight;
-        }
-
-        return result;
-      })()}
-
-      {props.dragLine && (
-        <DragLines {...dragLineData} />
-      )}
+      {rows}
+      {props.dragLine && <DragLines {...dragLineData} />}
     </div>
   );
 };

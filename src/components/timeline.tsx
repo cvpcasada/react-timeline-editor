@@ -1,4 +1,4 @@
-import "./index.css";
+import "./styles.css";
 
 import React, {
   useCallback,
@@ -17,8 +17,10 @@ import { checkProps } from "@/utils/check-props";
 import { getScaleCountByRows, parserPixelToTime } from "@/utils/deal-data";
 import { EditArea } from "./edit_area/edit-area";
 import { TimeArea } from "./time_area/time-area";
-import { Measured, useMeasure } from "./measured";
+import { useMeasure } from "./measured";
 import { Cursor } from "./cursor/cursor";
+import { ScrollArea } from "radix-ui";
+import { ScrollBar } from "./scroll-area";
 
 export const Timeline = React.forwardRef<TimelineState, TimelineEditor>(
   (props, ref) => {
@@ -109,51 +111,59 @@ export const Timeline = React.forwardRef<TimelineState, TimelineEditor>(
       },
     }));
 
+    const { width, height } = useMeasure(domRef);
+
     return (
-      <Measured
-        ref={domRef}
+      <ScrollArea.Root
         style={style}
         className={`${PREFIX} ${disableDrag ? PREFIX + "-disable" : ""}`}
-        onScroll={(e) => {
-          onScroll?.(e.currentTarget);
-        }}
-        render={({ width, height }) => (
-          <>
-            <TimeArea
-              {...checkedProps}
-              setCursor={handleSetCursor}
-              scaleCount={scaleCount}
-              scrollElementRef={domRef}
-            />
+        data-slot="scroll-area"
+      >
+        <ScrollArea.Viewport
+          data-slot="scroll-area-viewport"
+          ref={domRef}
+          onScroll={(e) => {
+            onScroll?.(e.currentTarget);
+          }}
+        >
+          <TimeArea
+            {...checkedProps}
+            setCursor={handleSetCursor}
+            scaleCount={scaleCount}
+            scrollElementRef={domRef}
+          />
 
-            <EditArea
+          <EditArea
+            {...checkedProps}
+            scrollElementRef={domRef}
+            timelineWidth={width}
+            timelineHeight={height}
+            disableDrag={disableDrag}
+            editorData={editorData}
+            cursorTime={cursorTime}
+            scaleCount={scaleCount}
+            setScaleCount={handleSetScaleCount}
+            setEditorData={handleEditorDataChange}
+          />
+
+          {!hideCursor && (
+            <Cursor
               {...checkedProps}
-              scrollElementRef={domRef}
               timelineWidth={width}
-              timelineHeight={height}
-              disableDrag={disableDrag}
-              editorData={editorData}
-              cursorTime={cursorTime}
+              height={height}
               scaleCount={scaleCount}
               setScaleCount={handleSetScaleCount}
-              setEditorData={handleEditorDataChange}
+              setCursor={handleSetCursor}
+              cursorTime={cursorTime}
+              editorData={editorData}
+              scrollElementRef={domRef}
             />
-
-            {!hideCursor && (
-              <Cursor
-                {...checkedProps}
-                timelineWidth={width}
-                scaleCount={scaleCount}
-                setScaleCount={handleSetScaleCount}
-                setCursor={handleSetCursor}
-                cursorTime={cursorTime}
-                editorData={editorData}
-                scrollElementRef={domRef}
-              />
-            )}
-          </>
-        )}
-      />
+          )}
+        </ScrollArea.Viewport>
+        <ScrollBar orientation="horizontal" />
+        <ScrollBar orientation="vertical" />
+        <ScrollArea.Corner />
+      </ScrollArea.Root>
     );
   }
 );

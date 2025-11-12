@@ -7,6 +7,7 @@ import { type RowRndApi } from "@/components/row_rnd/row-rnd-interface";
 
 /** Animation timeline component parameters */
 export type CursorProps = CommonProp & {
+  height: number;
   /** Set cursor position */
   setCursor: (param: { left?: number; time?: number }) => boolean;
   /** Timeline area DOM ref */
@@ -14,6 +15,7 @@ export type CursorProps = CommonProp & {
 };
 
 export const Cursor: FC<CursorProps> = ({
+  height,
   disableDrag,
   cursorTime,
   setCursor,
@@ -103,7 +105,12 @@ export const Cursor: FC<CursorProps> = ({
         }
         draggingLeft.current = undefined;
       }}
-      onDrag={({ left }: { left: number; lastLeft: number; lastWidth: number; width: number }, scrollDelta = 0) => {
+      onDrag={(
+        {
+          left,
+        }: { left: number; lastLeft: number; lastWidth: number; width: number },
+        scrollDelta = 0
+      ) => {
         let currentScrollLeft = scrollElementRef.current?.scrollLeft ?? 0;
         const scrollElement = scrollElementRef.current;
         const viewportWidth = scrollElement?.clientWidth ?? 0;
@@ -188,7 +195,7 @@ export const Cursor: FC<CursorProps> = ({
         >
           <path
             d="M0 1C0 0.447715 0.447715 0 1 0H7C7.55228 0 8 0.447715 8 1V9.38197C8 9.76074 7.786 10.107 7.44721 10.2764L4.44721 11.7764C4.16569 11.9172 3.83431 11.9172 3.55279 11.7764L0.552786 10.2764C0.214002 10.107 0 9.76074 0 9.38197V1Z"
-            fill="#5297FF"
+            fill="currentColor"
           />
         </svg>
         <div className={prefix("cursor-area")} />
