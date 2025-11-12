@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/incompatible-library */
 
-import React, { useLayoutEffect, type FC } from "react";
+import React, { useCallback, useLayoutEffect, useMemo, type FC } from "react";
 import { type TimelineRow } from "@/interface/action";
 import { type CommonProp } from "@/interface/common-prop";
 import {
@@ -47,7 +47,9 @@ export const EditRow: FC<EditRowProps> = (props) => {
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
   ): number => {
     if (!scrollContainerRef.current) return 0;
-    const rect = scrollContainerRef.current.getBoundingClientRect();
+    const elContainer = e.currentTarget! as HTMLElement;
+    const rect = elContainer.getBoundingClientRect();
+
     const position = e.clientX - rect.x;
     const left = position;
     const time = parserPixelToTime(left, {
@@ -58,11 +60,23 @@ export const EditRow: FC<EditRowProps> = (props) => {
     return time;
   };
 
-  const actions = rowData?.actions ?? [];
+  const actions = useMemo(
+    () =>
+      (rowData?.actions ? [...rowData.actions] : []).sort(
+        (a, b) => a.start - b.start
+      ),
+    [rowData]
+  );
+
+  const getItemKey = useCallback(
+    (index: number) => actions[index]?.id ?? index,
+    [actions]
+  );
 
   const virtualizer = useVirtualizer({
     horizontal: true,
     count: actions.length,
+    getItemKey,
     getScrollElement: () => scrollContainerRef.current,
     estimateSize: (index) => {
       if (!actions[index]) return 0;
