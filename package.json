@@ -25,7 +25,9 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "lint:package": "npx --yes @arethetypeswrong/cli -P",
     "typecheck": "tsc --noEmit",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "publish": "npm run build && npm publish --access public",
+    "publish:alpha": "npm run publish --access public --tag alpha"
   },
   "files": [
     "dist"
