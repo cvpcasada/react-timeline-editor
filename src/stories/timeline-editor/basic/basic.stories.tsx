@@ -1,27 +1,41 @@
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Basic, BasicCursorDisabled, BasicHideCursor } from '.';
+import { Basic, BasicCursorDisabled, BasicHideCursor } from ".";
+import { action } from "storybook/actions";
 
 const meta = {
-  title: 'Basic Features/Basic',
+  title: "Basic Features/Basic",
   component: Basic,
   parameters: {
-    layout: 'padded',
+    layout: "padded",
   },
-  tags: ['autodocs'],
+  tags: ["autodocs"],
 } satisfies Meta<typeof Basic>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const BasicExample: Story = {};
+export const BasicExample: Story = {
+  args: {
+    onCursorDrag: (...args) => {
+      action("onCursorDrag")(...args);
+      console.log("onCursorDrag", args);
+    },
+    onClickTimeArea: (...args) => {
+      action("onClickTimeArea")(...args);
+      console.log("onClickTimeArea", args);
+    },
+    onCursorDragStart: action("onCursorDragStart"),
+    onCursorDragEnd: action("onCursorDragEnd"),
+  },
+};
 
-export const BasicDisableDragAction: Story = {
+export const BasicDisableDragAction: StoryObj<typeof BasicCursorDisabled> = {
   render: (args) => <BasicCursorDisabled {...args} />,
   argTypes: {
     disableDrag: {
-      control: { type: 'boolean' },
-      description: 'Disable dragging of timeline actions',
+      control: { type: "boolean" },
+      description: "Disable dragging of timeline actions",
     },
   },
   args: {
@@ -29,12 +43,12 @@ export const BasicDisableDragAction: Story = {
   },
 };
 
-export const BasicHideTimelineCursor: Story = {
+export const BasicHideTimelineCursor: StoryObj<typeof BasicHideCursor> = {
   render: (args) => <BasicHideCursor {...args} />,
   argTypes: {
     hideCursor: {
-      control: { type: 'boolean' },
-      description: 'Hide the cursor in the timeline',
+      control: { type: "boolean" },
+      description: "Hide the cursor in the timeline",
     },
   },
   args: {

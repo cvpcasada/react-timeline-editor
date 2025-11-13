@@ -15,7 +15,6 @@ export type CursorProps = CommonProp & {
 };
 
 export const Cursor: FC<CursorProps> = ({
-  height,
   disableDrag,
   cursorTime,
   setCursor,
@@ -85,16 +84,32 @@ export const Cursor: FC<CursorProps> = ({
       enableDragging={!disableDrag}
       enableResizing={false}
       onDragStart={() => {
-        onCursorDragStart && onCursorDragStart(cursorTime);
-        draggingLeft.current = parserTimeToPixel(cursorTime, {
+        // Get initial position from the cursor element
+        // getLeft() returns absolute position (same coordinate system as parserTimeToPixel)
+        const initialLeft =
+          rowRnd.current?.getLeft() ??
+          parserTimeToPixel(cursorTime, {
+            startLeft: leftStart,
+            scaleWidth: width,
+            scale: scaleValue,
+          });
+
+        draggingLeft.current = initialLeft;
+
+        // Calculate time the same way as click event: use absolute position directly
+        // The click event uses e.clientX - rect.x which gives absolute position within timeline
+        const time = parserPixelToTime(initialLeft, {
           startLeft: leftStart,
-          scaleWidth: width,
           scale: scaleValue,
+          scaleWidth: width,
         });
-        rowRnd.current?.updateLeft(draggingLeft.current);
+        onCursorDragStart && onCursorDragStart(time);
+        rowRnd.current?.updateLeft(initialLeft);
       }}
       onDragEnd={() => {
         if (typeof draggingLeft.current !== "undefined") {
+          // Calculate time the same way as click event: use absolute position directly
+          // draggingLeft.current is absolute position (same coordinate system as click event)
           const time = parserPixelToTime(draggingLeft.current, {
             startLeft: leftStart,
             scale: scaleValue,
@@ -105,12 +120,7 @@ export const Cursor: FC<CursorProps> = ({
         }
         draggingLeft.current = undefined;
       }}
-      onDrag={(
-        {
-          left,
-        }: { left: number; lastLeft: number; lastWidth: number; width: number },
-        scrollDelta = 0
-      ) => {
+      onDrag={({ left }, scrollDelta = 0) => {
         let currentScrollLeft = scrollElementRef.current?.scrollLeft ?? 0;
         const scrollElement = scrollElementRef.current;
         const viewportWidth = scrollElement?.clientWidth ?? 0;
@@ -175,10 +185,14 @@ export const Cursor: FC<CursorProps> = ({
 
         if (typeof draggingLeft.current !== "undefined") {
           rowRnd.current?.updateLeft(draggingLeft.current);
-          const time = parserPixelToTime(
-            draggingLeft.current + currentScrollLeft,
-            { startLeft: leftStart, scale: scaleValue, scaleWidth: width }
-          );
+          // Calculate time the same way as click event: use absolute position directly
+          // The click event uses e.clientX - rect.x which gives absolute position within timeline
+          // draggingLeft.current is absolute position (same coordinate system as click event)
+          const time = parserPixelToTime(draggingLeft.current, {
+            startLeft: leftStart,
+            scale: scaleValue,
+            scaleWidth: width,
+          });
           setCursor({ time });
           onCursorDrag && onCursorDrag(time);
         }

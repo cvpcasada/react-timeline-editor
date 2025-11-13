@@ -1,12 +1,12 @@
-import { Timeline, type TimelineState } from "@/index";
+import { Timeline, type TimelineEditor, type TimelineState } from "@/index";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import "./index.less";
 import { mockData, mockEffect } from "./mock";
 
 const defaultEditorData = structuredClone(mockData);
 
-const Basic = () => {
+const Basic = (args: Pick<TimelineEditor, 'onCursorDrag' | 'onCursorDragStart' | 'onCursorDragEnd' | 'onClickTimeArea'>) => {
   const [data, setData] = useState(defaultEditorData);
 
   const ref = useRef<TimelineState>(null);
@@ -15,6 +15,7 @@ const Basic = () => {
     <div className="timeline-editor-example-basic">
       <Timeline
         ref={ref}
+        {...args}
         onChange={setData}
         editorData={data}
         effects={mockEffect}

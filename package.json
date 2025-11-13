@@ -27,7 +27,7 @@
     "typecheck": "tsc --noEmit",
     "build-storybook": "storybook build",
     "publish": "npm run build && npm publish --access public",
-    "publish:alpha": "npm run publish --access public --tag alpha"
+    "publish:alpha": "npm run build && npm publish --access public --tag alpha"
   },
   "files": [
     "dist"

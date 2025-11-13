@@ -25,6 +25,32 @@ interface InteractableWrapper {
   unset: () => void;
 }
 
+// Helper function to parse dataset values
+const parseDatasetValue = (value: string | undefined, defaultValue = 0): number => {
+  return value ? parseFloat(value) : defaultValue;
+};
+
+// Helper function to calculate adsorption position
+const calculateAdsorption = (
+  position: number,
+  adsorptionPositions: number[],
+  adsorptionDistance: number,
+  minDis: number = Number.MAX_SAFE_INTEGER
+): { adsorption: number; minDis: number } => {
+  let adsorption = position;
+  let currentMinDis = minDis;
+
+  for (const item of adsorptionPositions) {
+    const dis = Math.abs(item - position);
+    if (dis < adsorptionDistance && dis < currentMinDis) {
+      adsorption = item;
+      currentMinDis = dis;
+    }
+  }
+
+  return { adsorption, minDis: currentMinDis };
+};
+
 export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
   (
     {
@@ -73,33 +99,34 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
 
     //#region [rgba(100,120,156,0.08)] Assignment related APIs
     const handleUpdateLeft = (left: number, reset = true) => {
-      if (!interactable.current || !interactable.current.target) return;
-      reset && (deltaX.current = 0);
-      const target = interactable.current.target as HTMLElement;
+      if (!interactable.current?.target) return;
+      if (reset) deltaX.current = 0;
+      const target = interactable.current.target;
       target.style.left = `${left}px`;
-      Object.assign(target.dataset, { left });
+      target.dataset.left = String(left);
     };
+
     const handleUpdateWidth = (width: number, reset = true) => {
-      if (!interactable.current || !interactable.current.target) return;
-      reset && (deltaX.current = 0);
-      const target = interactable.current.target as HTMLElement;
+      if (!interactable.current?.target) return;
+      if (reset) deltaX.current = 0;
+      const target = interactable.current.target;
       target.style.width = `${width}px`;
-      Object.assign(target.dataset, { width });
+      target.dataset.width = String(width);
     };
+
     const handleGetLeft = () => {
       if (!interactable.current?.target) return 0;
-      const target = interactable.current.target as HTMLElement;
-      return parseFloat(target?.dataset?.left || "0");
+      return parseDatasetValue(interactable.current.target.dataset.left);
     };
+
     const handleGetWidth = () => {
       if (!interactable.current?.target) return 0;
-      const target = interactable.current.target as HTMLElement;
-      return parseFloat(target?.dataset?.width || "0");
+      return parseDatasetValue(interactable.current.target.dataset.width);
     };
 
     useEffect(() => {
       if (!interactable.current?.target) return;
-      const target = interactable.current.target as HTMLElement;
+      const target = interactable.current.target;
       handleUpdateWidth(
         typeof width === "undefined" ? target.offsetWidth : width,
         false
@@ -123,7 +150,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       deltaX.current = 0;
       isAdsorption.current = false;
       initAutoScroll();
-      onDragStart && onDragStart();
+      onDragStart?.();
     };
 
     const move = (param: {
@@ -137,62 +164,69 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
         deltaX.current += scrollDelta;
       }
       const distance = isAdsorption.current ? adsorptionDistance : grid;
-      if (Math.abs(deltaX.current) >= distance) {
-        const count = parseInt(deltaX.current / distance + "");
-        let curLeft = preLeft + count * distance;
+      if (Math.abs(deltaX.current) < distance) return;
 
-        // Control adsorption
-        let adsorption = curLeft;
-        let minDis = Number.MAX_SAFE_INTEGER;
-        adsorptionPositions.forEach((item) => {
-          const dis = Math.abs(item - curLeft);
-          if (dis < adsorptionDistance && dis < minDis) adsorption = item;
-          const dis2 = Math.abs(item - (curLeft + preWidth));
-          if (dis2 < adsorptionDistance && dis2 < minDis)
-            adsorption = item - preWidth;
-        });
+      const count = Math.trunc(deltaX.current / distance);
+      let curLeft = preLeft + count * distance;
 
-        if (adsorption !== curLeft) {
-          // Use adsorption data
-          isAdsorption.current = true;
-          curLeft = adsorption;
-        } else {
-          // Control grid
-          if ((curLeft - start) % grid !== 0) {
-            curLeft = start + grid * Math.round((curLeft - start) / grid);
-          }
-          isAdsorption.current = false;
+      // Control adsorption - check both left edge and right edge
+      const { adsorption: leftAdsorption } = calculateAdsorption(
+        curLeft,
+        adsorptionPositions,
+        adsorptionDistance
+      );
+      const { adsorption: rightAdsorption } = calculateAdsorption(
+        curLeft + preWidth,
+        adsorptionPositions,
+        adsorptionDistance
+      );
+
+      // Use the closer adsorption point
+      const leftDis = Math.abs(leftAdsorption - curLeft);
+      const rightDis = Math.abs(rightAdsorption - (curLeft + preWidth));
+      const adsorption = leftDis < rightDis ? leftAdsorption : rightAdsorption - preWidth;
+
+      if (adsorption !== curLeft) {
+        isAdsorption.current = true;
+        curLeft = adsorption;
+      } else {
+        // Control grid
+        const offset = curLeft - start;
+        if (offset % grid !== 0) {
+          curLeft = start + grid * Math.round(offset / grid);
         }
-        deltaX.current = deltaX.current % distance;
-
-        // Control bounds
-        if (curLeft < getBounds().left) curLeft = getBounds().left;
-        else if (curLeft + preWidth > getBounds().right)
-          curLeft = getBounds().right - preWidth;
-
-        if (onDrag) {
-          const ret = onDrag(
-            {
-              lastLeft: preLeft,
-              left: curLeft,
-              lastWidth: preWidth,
-              width: preWidth,
-            },
-            scrollDelta
-          );
-          if (ret === false) return;
-        }
-
-        handleUpdateLeft(curLeft, false);
+        isAdsorption.current = false;
       }
+      deltaX.current = deltaX.current % distance;
+
+      // Control bounds - cache getBounds result
+      const bounds = getBounds();
+      if (curLeft < bounds.left) {
+        curLeft = bounds.left;
+      } else if (curLeft + preWidth > bounds.right) {
+        curLeft = bounds.right - preWidth;
+      }
+
+      if (onDrag) {
+        const ret = onDrag(
+          {
+            lastLeft: preLeft,
+            left: curLeft,
+            lastWidth: preWidth,
+            width: preWidth,
+          },
+          scrollDelta
+        );
+        if (ret === false) return;
+      }
+
+      handleUpdateLeft(curLeft, false);
     };
 
     const handleMove = (e: GestureEvent) => {
       const target = e.target;
-
-      let { left, width } = target.dataset;
-      const preLeft = parseFloat(left || "0");
-      const preWidth = parseFloat(width || "0");
+      const preLeft = parseDatasetValue(target.dataset.left);
+      const preWidth = parseDatasetValue(target.dataset.width);
 
       deltaX.current += e.dx;
 
@@ -202,9 +236,9 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           if (!parentRef?.current || !interactable.current?.target) return;
           parentRef.current.scrollLeft += delta;
           // Read current position from dataset to compensate element position
-          const currentTarget = interactable.current.target as HTMLElement;
-          const currentLeft = parseFloat(currentTarget.dataset.left || "0");
-          const currentWidth = parseFloat(currentTarget.dataset.width || "0");
+          const currentTarget = interactable.current.target;
+          const currentLeft = parseDatasetValue(currentTarget.dataset.left);
+          const currentWidth = parseDatasetValue(currentTarget.dataset.width);
           // Compensate element position to follow scroll
           move({ preLeft: currentLeft, preWidth: currentWidth, scrollDelta: delta });
         };
@@ -224,12 +258,10 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       stopAutoScroll();
 
       const target = e.target;
-      let { left, width } = target.dataset;
-      onDragEnd &&
-        onDragEnd({
-          left: parseFloat(left || "0"),
-          width: parseFloat(width || "0"),
-        });
+      onDragEnd?.({
+        left: parseDatasetValue(target.dataset.left),
+        width: parseDatasetValue(target.dataset.width),
+      });
     };
 
     const handleResizeStart = (e: GestureEvent) => {
@@ -237,8 +269,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       isAdsorption.current = false;
       initAutoScroll();
 
-      let dir: Direction = e.edges?.right ? "right" : "left";
-      onResizeStart && onResizeStart(dir);
+      const dir: Direction = e.edges?.right ? "right" : "left";
+      onResizeStart?.(dir);
     };
 
     const resize = (param: {
@@ -254,106 +286,106 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       }
       const distance = isAdsorption.current ? adsorptionDistance : grid;
 
+      if (Math.abs(deltaX.current) < distance) return;
+
+      const bounds = getBounds();
+
       if (dir === "left") {
         // Drag left side
-        if (Math.abs(deltaX.current) >= distance) {
-          const count = parseInt(deltaX.current / distance + "");
-          let curLeft = preLeft + count * distance;
+        const count = Math.trunc(deltaX.current / distance);
+        let curLeft = preLeft + count * distance;
 
-          // Control adsorption
-          let adsorption = curLeft;
-          let minDis = Number.MAX_SAFE_INTEGER;
-          adsorptionPositions.forEach((item) => {
-            const dis = Math.abs(item - curLeft);
-            if (dis < adsorptionDistance && dis < minDis) adsorption = item;
-          });
+        // Control adsorption
+        const { adsorption } = calculateAdsorption(
+          curLeft,
+          adsorptionPositions,
+          adsorptionDistance
+        );
 
-          if (adsorption !== curLeft) {
-            // Use adsorption data
-            isAdsorption.current = true;
-            curLeft = adsorption;
-          } else {
-            // Control grid
-            if ((curLeft - start) % grid !== 0) {
-              curLeft = start + grid * Math.round((curLeft - start) / grid);
-            }
-            isAdsorption.current = false;
+        if (adsorption !== curLeft) {
+          isAdsorption.current = true;
+          curLeft = adsorption;
+        } else {
+          // Control grid
+          const offset = curLeft - start;
+          if (offset % grid !== 0) {
+            curLeft = start + grid * Math.round(offset / grid);
           }
-          deltaX.current = deltaX.current % distance;
-
-          // Control bounds
-          const tempRight = preLeft + preWidth;
-          if (curLeft < getBounds().left) curLeft = getBounds().left;
-          const curWidth = tempRight - curLeft;
-
-          // Lock component if resize exceeds the other end (right edge)
-          if (curLeft >= tempRight) {
-            return; // Don't move the component
-          }
-
-          if (onResize) {
-            const ret = onResize("left", {
-              lastLeft: preLeft,
-              lastWidth: preWidth,
-              left: curLeft,
-              width: curWidth,
-            });
-            if (ret === false) return;
-          }
-
-          handleUpdateLeft(curLeft, false);
-          handleUpdateWidth(curWidth, false);
+          isAdsorption.current = false;
         }
-      } else if (dir === "right") {
+        deltaX.current = deltaX.current % distance;
+
+        // Control bounds
+        if (curLeft < bounds.left) curLeft = bounds.left;
+        const tempRight = preLeft + preWidth;
+        const curWidth = tempRight - curLeft;
+
+        // Lock component if resize exceeds the other end (right edge)
+        if (curLeft >= tempRight) {
+          return; // Don't move the component
+        }
+
+        if (onResize) {
+          const ret = onResize("left", {
+            lastLeft: preLeft,
+            lastWidth: preWidth,
+            left: curLeft,
+            width: curWidth,
+          });
+          if (ret === false) return;
+        }
+
+        handleUpdateLeft(curLeft, false);
+        handleUpdateWidth(curWidth, false);
+      } else {
         // Drag right side
-        if (Math.abs(deltaX.current) >= distance) {
-          const count = parseInt(deltaX.current / grid + "");
-          let curWidth = preWidth + count * grid;
+        const count = Math.trunc(deltaX.current / grid);
+        let curWidth = preWidth + count * grid;
+        const rightEdge = preLeft + curWidth;
 
-          // Control adsorption
-          let adsorption = preLeft + curWidth;
-          let minDis = Number.MAX_SAFE_INTEGER;
-          adsorptionPositions.forEach((item) => {
-            const dis = Math.abs(item - (preLeft + curWidth));
-            if (dis < adsorptionDistance && dis < minDis) adsorption = item;
-          });
+        // Control adsorption
+        const { adsorption } = calculateAdsorption(
+          rightEdge,
+          adsorptionPositions,
+          adsorptionDistance
+        );
 
-          if (adsorption !== preLeft + curWidth) {
-            // Use adsorption data
-            isAdsorption.current = true;
-            curWidth = adsorption - preLeft;
-          } else {
-            // Control grid
-            let tempRight = preLeft + curWidth;
-            if ((tempRight - start) % grid !== 0) {
-              tempRight = start + grid * Math.round((tempRight - start) / grid);
-              curWidth = tempRight - preLeft;
-            }
-            isAdsorption.current = false;
+        if (adsorption !== rightEdge) {
+          isAdsorption.current = true;
+          curWidth = adsorption - preLeft;
+        } else {
+          // Control grid
+          let tempRight = preLeft + curWidth;
+          const offset = tempRight - start;
+          if (offset % grid !== 0) {
+            tempRight = start + grid * Math.round(offset / grid);
+            curWidth = tempRight - preLeft;
           }
-          deltaX.current = deltaX.current % distance;
-
-          // Control bounds
-          if (preLeft + curWidth > getBounds().right)
-            curWidth = getBounds().right - preLeft;
-
-          // Lock component if resize exceeds the other end (left edge)
-          if (curWidth <= 0) {
-            return; // Don't move the component
-          }
-
-          if (onResize) {
-            const ret = onResize("right", {
-              lastLeft: preLeft,
-              lastWidth: preWidth,
-              left: preLeft,
-              width: curWidth,
-            });
-            if (ret === false) return;
-          }
-
-          handleUpdateWidth(curWidth, false);
+          isAdsorption.current = false;
         }
+        deltaX.current = deltaX.current % distance;
+
+        // Control bounds
+        if (preLeft + curWidth > bounds.right) {
+          curWidth = bounds.right - preLeft;
+        }
+
+        // Lock component if resize exceeds the other end (left edge)
+        if (curWidth <= 0) {
+          return; // Don't move the component
+        }
+
+        if (onResize) {
+          const ret = onResize("right", {
+            lastLeft: preLeft,
+            lastWidth: preWidth,
+            left: preLeft,
+            width: curWidth,
+          });
+          if (ret === false) return;
+        }
+
+        handleUpdateWidth(curWidth, false);
       }
     };
 
@@ -361,9 +393,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       const target = e.target;
       const dir = e.edges?.left ? "left" : "right";
 
-      let { left, width } = target.dataset;
-      const preLeft = parseFloat(left || "0");
-      const preWidth = parseFloat(width || "0");
+      const preLeft = parseDatasetValue(target.dataset.left);
+      const preWidth = parseDatasetValue(target.dataset.width);
 
       deltaX.current +=
         dir === "left" ? e.deltaRect?.left || 0 : e.deltaRect?.right || 0;
@@ -374,9 +405,9 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           if (!parentRef?.current || !interactable.current?.target) return;
           parentRef.current.scrollLeft += delta;
           // Read current position from dataset to compensate element position
-          const currentTarget = interactable.current.target as HTMLElement;
-          const currentLeft = parseFloat(currentTarget.dataset.left || "0");
-          const currentWidth = parseFloat(currentTarget.dataset.width || "0");
+          const currentTarget = interactable.current.target;
+          const currentLeft = parseDatasetValue(currentTarget.dataset.left);
+          const currentWidth = parseDatasetValue(currentTarget.dataset.width);
           // Compensate element position to follow scroll
           resize({ preLeft: currentLeft, preWidth: currentWidth, dir, scrollDelta: delta });
         };
@@ -389,19 +420,18 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
 
       resize({ preLeft, preWidth, dir });
     };
+
     const handleResizeStop = (e: GestureEvent) => {
       deltaX.current = 0;
       isAdsorption.current = false;
       stopAutoScroll();
 
       const target = e.target;
-      let { left, width } = target.dataset;
-      let dir: Direction = e.edges?.right ? "right" : "left";
-      onResizeEnd &&
-        onResizeEnd(dir, {
-          left: parseFloat(left || "0"),
-          width: parseFloat(width || "0"),
-        });
+      const dir: Direction = e.edges?.right ? "right" : "left";
+      onResizeEnd?.(dir, {
+        left: parseDatasetValue(target.dataset.left),
+        width: parseDatasetValue(target.dataset.width),
+      });
     };
     //#endregion
 
@@ -415,9 +445,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           onmove: handleMove,
           onstart: handleMoveStart,
           onend: handleMoveStop,
-          cursorChecker: () => {
-            return "";
-          },
+          cursorChecker: () => "",
         }}
         resizableOptions={{
           axis: "x",
