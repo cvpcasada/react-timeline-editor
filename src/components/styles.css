@@ -230,14 +230,14 @@
     transform: translateX(200%);
   }
 
-  .timeline-editor-drag-line-container {
+  .timeline-editor-snap-line-container {
     position: absolute;
     height: 100%;
     left: 0;
     top: 0;
   }
 
-  .timeline-editor-drag-line {
+  .timeline-editor-snap-line {
     width: 0;
     position: absolute;
     height: 99%;

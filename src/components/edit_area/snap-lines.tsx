@@ -1,22 +1,22 @@
 import { type FC } from "react";
 import { prefix } from "@/utils/deal-class-prefix";
 
-export interface DragLineData {
+export interface SnapGuideLineData {
   isMoving: boolean;
   movePositions: number[];
   assistPositions: number[];
 }
 
-export type DragLineProps = DragLineData;
+export type SnapGuideLineProps = SnapGuideLineData;
 
 /** Drag auxiliary lines */
-export const DragLines: FC<DragLineProps> = ({
+export const SnapGuideLines: FC<SnapGuideLineProps> = ({
   isMoving,
   movePositions = [],
   assistPositions = [],
 }) => {
   return (
-    <div className={prefix("drag-line-container")}>
+    <div className={prefix("snap-line-container")}>
       {isMoving &&
         movePositions
           .filter((item) => assistPositions.includes(item))
@@ -24,7 +24,7 @@ export const DragLines: FC<DragLineProps> = ({
             return (
               <div
                 key={index}
-                className={prefix("drag-line")}
+                className={prefix("snap-line")}
                 style={{ left: linePos }}
               />
             );

@@ -54,10 +54,10 @@ export interface EditData {
    */
   gridSnap?: boolean;
   /**
-   * @description Enable drag line snap
+   * @description Enable snap
    * @default false
    */
-  dragLine?: boolean;
+  snap?: boolean;
   /**
    * @description Whether to hide cursor
    * @default false

@@ -11,7 +11,7 @@ import { withDefaults } from "@/utils/with-defaults";
 import { getScaleCountByRows, parserPixelToTime } from "@/utils/deal-data";
 import { EditArea } from "./edit_area/edit-area";
 import { TimeArea } from "./time_area/time-area";
-import { Measured, useMeasure } from "../utils/measured";
+import { useMeasure } from "../utils/measured";
 import { Cursor } from "./cursor/cursor";
 import { ScrollArea } from "radix-ui";
 import { ScrollBar } from "./scroll-area";
@@ -20,7 +20,7 @@ export function Timeline({
   ref,
   ...props
 }: TimelineEditor & {
-  ref: React.RefObject<TimelineState>;
+  ref?: React.RefObject<TimelineState>;
 }) {
   const timelineProps = withDefaults(props);
   const domRef = useRef<HTMLDivElement>(null);

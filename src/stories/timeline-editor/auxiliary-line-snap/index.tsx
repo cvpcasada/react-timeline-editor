@@ -7,15 +7,15 @@ import { mockData, mockEffect } from './mock';
 const defaultEditorData = structuredClone(mockData);
 
 interface AuxiliaryLineSnapProps {
-  dragLine?: boolean;
+  snap?: boolean;
 }
 
-const AuxiliaryLineSnap = ({ dragLine = true }: AuxiliaryLineSnapProps) => {
+const AuxiliaryLineSnap = ({ snap = true }: AuxiliaryLineSnapProps) => {
   const [data, setData] = useState(defaultEditorData);
 
   return (
     <div className="timeline-editor-example-auxiliary-line-snap">
-      <Timeline scale={5} onChange={setData} editorData={data} effects={mockEffect} dragLine={dragLine} />
+      <Timeline scale={5} onChange={setData} editorData={data} effects={mockEffect} snap={snap} />
     </div>
   );
 };

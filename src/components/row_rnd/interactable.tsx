@@ -117,7 +117,7 @@ export const Interactable: FC<InteractableProps> = ({
         currentRightSelector
       ) as HTMLDivElement | null;
     }
-  }, [draggableOptions, resizableOptions]);
+  }, [draggableOptions, ref, resizableOptions]);
 
   // Setup drag gesture using @use-gesture/react
   useDrag(

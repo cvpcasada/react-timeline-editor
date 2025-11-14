@@ -5,7 +5,7 @@ import React, {
   useRef
 } from "react";
 import {
-  DEFAULT_ADSORPTION_DISTANCE,
+  DEFAULT_SNAP_DISTANCE,
   DEFAULT_MOVE_GRID,
   DEFAULT_START_LEFT,
 } from "@/interface/const";
@@ -25,25 +25,25 @@ const parseDatasetValue = (
   return value ? parseFloat(value) : defaultValue;
 };
 
-// Helper function to calculate adsorption position
-const calculateAdsorption = (
+// Helper function to calculate snap position
+const calculateSnap = (
   position: number,
-  adsorptionPositions: number[],
-  adsorptionDistance: number,
+  snapPositions: number[],
+  snapDistance: number,
   minDis: number = Number.MAX_SAFE_INTEGER
-): { adsorption: number; minDis: number } => {
-  let adsorption = position;
+): { snap: number; minDis: number } => {
+  let snap = position;
   let currentMinDis = minDis;
 
-  for (const item of adsorptionPositions) {
+  for (const item of snapPositions) {
     const dis = Math.abs(item - position);
-    if (dis < adsorptionDistance && dis < currentMinDis) {
-      adsorption = item;
+    if (dis < snapDistance && dis < currentMinDis) {
+      snap = item;
       currentMinDis = dis;
     }
   }
 
-  return { adsorption, minDis: currentMinDis };
+  return { snap, minDis: currentMinDis };
 };
 
 export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
@@ -62,8 +62,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       }),
       enableResizing = true,
       enableDragging = true,
-      adsorptionDistance = DEFAULT_ADSORPTION_DISTANCE,
-      adsorptionPositions = [],
+      snapDistance = DEFAULT_SNAP_DISTANCE,
+      snapPositions = [],
       onResizeStart,
       onResize,
       onResizeEnd,
@@ -77,7 +77,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
   ) => {
     const interactableRef = useRef<HTMLElement>(null);
     const deltaX = useRef(0);
-    const isAdsorption = useRef(false);
+    const isSnap = useRef(false);
     const {
       initAutoScroll,
       stopAutoScroll,
@@ -136,7 +136,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
     //#region [rgba(188,188,120,0.05)] Callback APIs
     const handleMoveStart = () => {
       deltaX.current = 0;
-      isAdsorption.current = false;
+      isSnap.current = false;
       initAutoScroll();
       onDragStart?.();
     };
@@ -151,40 +151,32 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       if (scrollDelta) {
         deltaX.current += scrollDelta;
       }
-      const distance = isAdsorption.current ? adsorptionDistance : grid;
+      const distance = isSnap.current ? snapDistance : grid;
       if (Math.abs(deltaX.current) < distance) return;
 
       const count = Math.trunc(deltaX.current / distance);
       let curLeft = preLeft + count * distance;
 
-      // Control adsorption - check both left edge and right edge
-      const { adsorption: leftAdsorption } = calculateAdsorption(
-        curLeft,
-        adsorptionPositions,
-        adsorptionDistance
-      );
-      const { adsorption: rightAdsorption } = calculateAdsorption(
-        curLeft + preWidth,
-        adsorptionPositions,
-        adsorptionDistance
+      // Control snap - check the leading edge based on movement direction
+      const movingRight = deltaX.current > 0;
+      const checkPosition = movingRight ? curLeft + preWidth : curLeft;
+      const { snap: snapPosition } = calculateSnap(
+        checkPosition,
+        snapPositions,
+        snapDistance
       );
 
-      // Use the closer adsorption point
-      const leftDis = Math.abs(leftAdsorption - curLeft);
-      const rightDis = Math.abs(rightAdsorption - (curLeft + preWidth));
-      const adsorption =
-        leftDis < rightDis ? leftAdsorption : rightAdsorption - preWidth;
-
-      if (adsorption !== curLeft) {
-        isAdsorption.current = true;
-        curLeft = adsorption;
+      if (snapPosition !== checkPosition) {
+        isSnap.current = true;
+        // Adjust curLeft based on which edge snapped
+        curLeft = movingRight ? snapPosition - preWidth : snapPosition;
       } else {
         // Control grid
         const offset = curLeft - start;
         if (offset % grid !== 0) {
           curLeft = start + grid * Math.round(offset / grid);
         }
-        isAdsorption.current = false;
+        isSnap.current = false;
       }
       deltaX.current = deltaX.current % distance;
 
@@ -247,7 +239,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
 
     const handleMoveStop = (e: GestureEvent) => {
       deltaX.current = 0;
-      isAdsorption.current = false;
+      isSnap.current = false;
       stopAutoScroll();
 
       const target = e.target;
@@ -259,7 +251,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
 
     const handleResizeStart = (e: GestureEvent) => {
       deltaX.current = 0;
-      isAdsorption.current = false;
+      isSnap.current = false;
       initAutoScroll();
 
       const dir: Direction = e.edges?.right ? "right" : "left";
@@ -277,7 +269,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       if (scrollDelta) {
         deltaX.current += scrollDelta;
       }
-      const distance = isAdsorption.current ? adsorptionDistance : grid;
+      const distance = isSnap.current ? snapDistance : grid;
 
       if (Math.abs(deltaX.current) < distance) return;
 
@@ -288,23 +280,23 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
         const count = Math.trunc(deltaX.current / distance);
         let curLeft = preLeft + count * distance;
 
-        // Control adsorption
-        const { adsorption } = calculateAdsorption(
+        // Control snap
+        const { snap } = calculateSnap(
           curLeft,
-          adsorptionPositions,
-          adsorptionDistance
+          snapPositions,
+          snapDistance
         );
 
-        if (adsorption !== curLeft) {
-          isAdsorption.current = true;
-          curLeft = adsorption;
+        if (snap !== curLeft) {
+          isSnap.current = true;
+          curLeft = snap;
         } else {
           // Control grid
           const offset = curLeft - start;
           if (offset % grid !== 0) {
             curLeft = start + grid * Math.round(offset / grid);
           }
-          isAdsorption.current = false;
+          isSnap.current = false;
         }
         deltaX.current = deltaX.current % distance;
 
@@ -332,20 +324,20 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
         handleUpdateWidth(curWidth, false);
       } else {
         // Drag right side
-        const count = Math.trunc(deltaX.current / grid);
-        let curWidth = preWidth + count * grid;
+        const count = Math.trunc(deltaX.current / distance);
+        let curWidth = preWidth + count * distance;
         const rightEdge = preLeft + curWidth;
 
-        // Control adsorption
-        const { adsorption } = calculateAdsorption(
+        // Control snap
+        const { snap } = calculateSnap(
           rightEdge,
-          adsorptionPositions,
-          adsorptionDistance
+          snapPositions,
+          snapDistance
         );
 
-        if (adsorption !== rightEdge) {
-          isAdsorption.current = true;
-          curWidth = adsorption - preLeft;
+        if (snap !== rightEdge) {
+          isSnap.current = true;
+          curWidth = snap - preLeft;
         } else {
           // Control grid
           let tempRight = preLeft + curWidth;
@@ -354,7 +346,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
             tempRight = start + grid * Math.round(offset / grid);
             curWidth = tempRight - preLeft;
           }
-          isAdsorption.current = false;
+          isSnap.current = false;
         }
         deltaX.current = deltaX.current % distance;
 
@@ -421,7 +413,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
 
     const handleResizeStop = (e: GestureEvent) => {
       deltaX.current = 0;
-      isAdsorption.current = false;
+      isSnap.current = false;
       stopAutoScroll();
 
       const target = e.target;

@@ -58,8 +58,8 @@ export interface RowRndProps {
 
   enableResizing?: boolean;
   enableDragging?: boolean;
-  adsorptionPositions?: number[];
-  adsorptionDistance?: number;
+  snapPositions?: number[];
+  snapDistance?: number;
   /**
    * @description Whether to enable auto scroll when dragging/resizing near boundaries
    * @default true

@@ -14,7 +14,7 @@ export const DEFAULT_START_LEFT = 20;
 /** Default minimum move pixel */
 export const DEFAULT_MOVE_GRID = 1;
 /** Default snap pixel distance */
-export const DEFAULT_ADSORPTION_DISTANCE = 8;
+export const DEFAULT_SNAP_DISTANCE = 8;
 /** Default action row height */
 export const DEFAULT_ROW_HEIGHT = 32;
 

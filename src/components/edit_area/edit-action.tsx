@@ -2,7 +2,7 @@ import React, { type FC, useMemo, useRef, useState } from "react";
 import { type TimelineAction, type TimelineRow } from "@/interface/action";
 import { type CommonProp } from "@/interface/common-prop";
 import {
-  DEFAULT_ADSORPTION_DISTANCE,
+  DEFAULT_SNAP_DISTANCE,
   DEFAULT_MOVE_GRID,
   DEFAULT_SCALE,
   DEFAULT_SCALE_SPLIT_COUNT,
@@ -26,13 +26,13 @@ import {
   type RndResizeStartCallback,
   type RowRndApi,
 } from "@/components/row_rnd/row-rnd-interface";
-import { type DragLineData } from "./drag-lines";
+import { type SnapGuideLineData } from "./snap-lines";
 import clsx from "@/utils/clsx";
 
 export type EditActionProps = CommonProp & {
   row: TimelineRow;
   action: TimelineAction;
-  dragLineData: DragLineData;
+  snapData: SnapGuideLineData;
   setEditorData: (params: TimelineRow[]) => void;
   handleTime: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => number;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -61,7 +61,7 @@ export const EditAction: FC<EditActionProps> = ({
   onActionResizeEnd,
   onActionResizing,
 
-  dragLineData,
+  snapData,
   setEditorData,
   onClickAction,
   onClickActionOnly,
@@ -262,15 +262,15 @@ export const EditAction: FC<EditActionProps> = ({
       left={transform.left}
       width={transform.width}
       grid={(gridSnap && gridSize) || DEFAULT_MOVE_GRID}
-      adsorptionDistance={
+      snapDistance={
         gridSnap
           ? Math.max(
               (gridSize || DEFAULT_MOVE_GRID) / 2,
-              DEFAULT_ADSORPTION_DISTANCE
+              DEFAULT_SNAP_DISTANCE
             )
-          : DEFAULT_ADSORPTION_DISTANCE
+          : DEFAULT_SNAP_DISTANCE
       }
-      adsorptionPositions={dragLineData.assistPositions}
+      snapPositions={snapData.assistPositions}
       getBounds={() => {
         return {
           left: leftLimit,

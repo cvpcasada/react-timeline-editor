@@ -1,10 +1,18 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { type TimelineAction, type TimelineRow } from "@/interface/action";
 import { parserActionsToPositions, parserTimeToTransform } from "@/utils/deal-data";
-import { type DragLineData } from "@/components/edit_area/drag-lines";
+import { type SnapGuideLineData } from "@/components/edit_area/snap-lines";
 
-export function useDragLine() {
-  const [dragLineData, setDragLineData] = useState<DragLineData>({ isMoving: false, movePositions: [], assistPositions: [] });
+type ActiveDragState = {
+  action: TimelineAction;
+  row: TimelineRow;
+  assistActionIds?: string[];
+} | null;
+
+export function useSnap() {
+  const [snapData, setSnapData] = useState<SnapGuideLineData>({ isMoving: false, movePositions: [], assistPositions: [] });
+  // Track active drag state to enable reactive snap position updates
+  const activeDragStateRef = useRef<ActiveDragState>(null);
 
   /** Get auxiliary lines */
   const defaultGetAssistPosition = (data: {
@@ -56,37 +64,47 @@ export function useDragLine() {
     return dir === "right" ? [left + width] : [left];
   };
 
-  /** Initialize drag lines */
-  const initDragLine = (data: { movePositions?: number[]; assistPositions?: number[] }) => {
-    const { movePositions, assistPositions } = data;
+  /** Initialize snap */
+  const initSnap = (data: { movePositions?: number[]; assistPositions?: number[]; action: TimelineAction; row: TimelineRow; assistActionIds?: string[] }) => {
+    const { movePositions, assistPositions, action, row, assistActionIds } = data;
 
-    setDragLineData({
+    // Store active drag state for reactive updates
+    activeDragStateRef.current = { action, row, assistActionIds };
+
+    setSnapData({
       isMoving: true,
       movePositions: movePositions || [],
       assistPositions: assistPositions || [],
     });
   };
 
-  /** Update drag line */
-  const updateDragLine = (data: { movePositions?: number[]; assistPositions?: number[] }) => {
+  /** Update snap */
+  const updateSnap = (data: { movePositions?: number[]; assistPositions?: number[] }) => {
     const { movePositions, assistPositions } = data;
-    setDragLineData((pre) => ({
+    setSnapData((pre) => ({
       ...pre,
       movePositions: movePositions || pre.movePositions,
       assistPositions: assistPositions || pre.assistPositions,
     }));
   };
 
-  /** Dispose drag lines */
-  const disposeDragLine = () => {
-    setDragLineData({ isMoving: false, movePositions: [], assistPositions: [] });
+  /** Dispose snap */
+  const disposeSnap = () => {
+    activeDragStateRef.current = null;
+    setSnapData({ isMoving: false, movePositions: [], assistPositions: [] });
+  };
+
+  /** Get active drag state */
+  const getActiveDragState = () => {
+    return activeDragStateRef.current;
   };
 
   return {
-    initDragLine,
-    updateDragLine,
-    disposeDragLine,
-    dragLineData,
+    initSnap,
+    updateSnap,
+    disposeSnap,
+    snapData,
+    getActiveDragState,
     defaultGetAssistPosition,
     defaultGetMovePosition,
   };
