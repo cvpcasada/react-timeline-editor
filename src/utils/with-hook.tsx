@@ -2,7 +2,7 @@
 
 import React, { type ReactNode } from "react";
 
-interface BaseProps<R> {
+export interface BaseProps<R> {
   children: (value: R) => ReactNode;
 }
 

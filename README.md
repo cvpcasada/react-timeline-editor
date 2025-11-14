@@ -14,7 +14,7 @@ It can be mainly used to build animation editors, video editors, etc.
 
 ## Changes from the original library
 - Replaced react-virtualized with @tanstack/virtual
-- Replaced Interact.js with @use-gesture/vanilla
+- Replaced Interact.js with @use-gesture/react
 - Uses React-19 as a base
 - Compiled with react-compiler enabled
 - Modern bundling via latest `vite` and docs powered by storybook

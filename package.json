@@ -52,7 +52,7 @@
   "dependencies": {
     "@cyca/log": "^0.1.1",
     "@tanstack/react-virtual": "^3.13.12",
-    "@use-gesture/vanilla": "^10.3.1",
+    "@use-gesture/react": "^10.3.1",
     "framework-utils": "^1.1.0",
     "motion": "^12.23.24",
     "radix-ui": "^1.4.3"

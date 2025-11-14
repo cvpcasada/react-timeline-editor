@@ -4,16 +4,6 @@ import { type TimelineEffect } from './effect';
 export * from './action';
 export * from './effect';
 
-/** Scroll parameters from virtualized container */
-type OnScrollParams = {
-  clientHeight: number;
-  clientWidth: number;
-  scrollHeight: number;
-  scrollLeft: number;
-  scrollTop: number;
-  scrollWidth: number;
-};
-
 export interface EditData {
   /**
    * @description Timeline editing data
@@ -228,7 +218,7 @@ export interface TimelineEditor extends EditData {
   /**
    * @description Editing area scroll callback (used to control synchronization with editing row scrolling)
    */
-  onScroll?: (params: OnScrollParams) => void;
+  onScroll?: (params: EventTarget & HTMLDivElement) => void;
   /**
    * @description Whether to enable auto scroll when dragging
    * @default false

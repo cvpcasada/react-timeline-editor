@@ -1,9 +1,8 @@
 import { type GestureEvent } from "./gesture-types";
 import React, {
-  type ReactElement,
   useEffect,
   useImperativeHandle,
-  useRef,
+  useRef
 } from "react";
 import {
   DEFAULT_ADSORPTION_DISTANCE,
@@ -11,22 +10,18 @@ import {
   DEFAULT_START_LEFT,
 } from "@/interface/const";
 import { useAutoScroll } from "./hooks/use-auto-scroll";
-import { InteractComp } from "./interactable";
+import { Interactable } from "./interactable";
 import {
   type Direction,
   type RowRndApi,
   type RowRndProps,
 } from "./row-rnd-interface";
-import { slot } from "@/components/slot";
-
-interface InteractableWrapper {
-  target?: HTMLElement;
-  autoScroll?: boolean;
-  unset: () => void;
-}
 
 // Helper function to parse dataset values
-const parseDatasetValue = (value: string | undefined, defaultValue = 0): number => {
+const parseDatasetValue = (
+  value: string | undefined,
+  defaultValue = 0
+): number => {
   return value ? parseFloat(value) : defaultValue;
 };
 
@@ -80,7 +75,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
     },
     ref
   ) => {
-    const interactable = useRef<InteractableWrapper | undefined>(undefined);
+    const interactableRef = useRef<HTMLElement>(null);
     const deltaX = useRef(0);
     const isAdsorption = useRef(false);
     const {
@@ -90,43 +85,36 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       dealResizeAutoScroll,
     } = useAutoScroll(parentRef as React.RefObject<HTMLDivElement>);
 
-    useEffect(() => {
-      let interactableRef = interactable.current;
-      return () => {
-        interactableRef?.unset();
-      };
-    }, []);
-
     //#region [rgba(100,120,156,0.08)] Assignment related APIs
     const handleUpdateLeft = (left: number, reset = true) => {
-      if (!interactable.current?.target) return;
+      if (!interactableRef.current) return;
       if (reset) deltaX.current = 0;
-      const target = interactable.current.target;
+      const target = interactableRef.current;
       target.style.left = `${left}px`;
       target.dataset.left = String(left);
     };
 
     const handleUpdateWidth = (width: number, reset = true) => {
-      if (!interactable.current?.target) return;
+      if (!interactableRef.current) return;
       if (reset) deltaX.current = 0;
-      const target = interactable.current.target;
+      const target = interactableRef.current;
       target.style.width = `${width}px`;
       target.dataset.width = String(width);
     };
 
     const handleGetLeft = () => {
-      if (!interactable.current?.target) return 0;
-      return parseDatasetValue(interactable.current.target.dataset.left);
+      if (!interactableRef.current) return 0;
+      return parseDatasetValue(interactableRef.current.dataset.left);
     };
 
     const handleGetWidth = () => {
-      if (!interactable.current?.target) return 0;
-      return parseDatasetValue(interactable.current.target.dataset.width);
+      if (!interactableRef.current) return 0;
+      return parseDatasetValue(interactableRef.current.dataset.width);
     };
 
     useEffect(() => {
-      if (!interactable.current?.target) return;
-      const target = interactable.current.target;
+      if (!interactableRef.current) return;
+      const target = interactableRef.current;
       handleUpdateWidth(
         typeof width === "undefined" ? target.offsetWidth : width,
         false
@@ -184,7 +172,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       // Use the closer adsorption point
       const leftDis = Math.abs(leftAdsorption - curLeft);
       const rightDis = Math.abs(rightAdsorption - (curLeft + preWidth));
-      const adsorption = leftDis < rightDis ? leftAdsorption : rightAdsorption - preWidth;
+      const adsorption =
+        leftDis < rightDis ? leftAdsorption : rightAdsorption - preWidth;
 
       if (adsorption !== curLeft) {
         isAdsorption.current = true;
@@ -233,14 +222,18 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       // Handle auto-scroll if enabled
       if (autoScroll && parentRef?.current) {
         const deltaScroll = (delta: number) => {
-          if (!parentRef?.current || !interactable.current?.target) return;
+          if (!parentRef?.current || !interactableRef.current) return;
           parentRef.current.scrollLeft += delta;
           // Read current position from dataset to compensate element position
-          const currentTarget = interactable.current.target;
+          const currentTarget = interactableRef.current;
           const currentLeft = parseDatasetValue(currentTarget.dataset.left);
           const currentWidth = parseDatasetValue(currentTarget.dataset.width);
           // Compensate element position to follow scroll
-          move({ preLeft: currentLeft, preWidth: currentWidth, scrollDelta: delta });
+          move({
+            preLeft: currentLeft,
+            preWidth: currentWidth,
+            scrollDelta: delta,
+          });
         };
 
         const shouldContinue = dealDragAutoScroll(e, deltaScroll);
@@ -402,14 +395,19 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       // Handle auto-scroll if enabled
       if (autoScroll && parentRef?.current) {
         const deltaScroll = (delta: number) => {
-          if (!parentRef?.current || !interactable.current?.target) return;
+          if (!parentRef?.current || !interactableRef.current) return;
           parentRef.current.scrollLeft += delta;
           // Read current position from dataset to compensate element position
-          const currentTarget = interactable.current.target;
+          const currentTarget = interactableRef.current;
           const currentLeft = parseDatasetValue(currentTarget.dataset.left);
           const currentWidth = parseDatasetValue(currentTarget.dataset.width);
           // Compensate element position to follow scroll
-          resize({ preLeft: currentLeft, preWidth: currentWidth, dir, scrollDelta: delta });
+          resize({
+            preLeft: currentLeft,
+            preWidth: currentWidth,
+            dir,
+            scrollDelta: delta,
+          });
         };
 
         const shouldContinue = dealResizeAutoScroll(e, dir, deltaScroll);
@@ -436,8 +434,9 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
     //#endregion
 
     return (
-      <InteractComp
-        interactRef={interactable}
+      <Interactable
+        style={{ left, width }}
+        ref={interactableRef}
         draggable={enableDragging}
         resizable={enableResizing}
         draggableOptions={{
@@ -456,8 +455,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
           onend: handleResizeStop,
         }}
       >
-        {slot({ children: children as ReactElement, style: { left, width } })}
-      </InteractComp>
+        {children}
+      </Interactable>
     );
   }
 );

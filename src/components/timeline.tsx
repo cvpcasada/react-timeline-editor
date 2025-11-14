@@ -1,182 +1,169 @@
 import "./styles.css";
 
-import React, {
-  useCallback,
-  useImperativeHandle,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
-import { MIN_SCALE_COUNT, PREFIX, START_CURSOR_TIME } from "@/interface/const";
+import React, { useImperativeHandle, useRef, useState } from "react";
+import { PREFIX, START_CURSOR_TIME } from "@/interface/const";
 import {
   type TimelineEditor,
   type TimelineRow,
   type TimelineState,
 } from "@/interface/timeline";
-import { checkProps } from "@/utils/check-props";
+import { withDefaults } from "@/utils/with-defaults";
 import { getScaleCountByRows, parserPixelToTime } from "@/utils/deal-data";
 import { EditArea } from "./edit_area/edit-area";
 import { TimeArea } from "./time_area/time-area";
-import { Measured } from "./measured";
+import { Measured, useMeasure } from "../utils/measured";
 import { Cursor } from "./cursor/cursor";
 import { ScrollArea } from "radix-ui";
 import { ScrollBar } from "./scroll-area";
 
-export const Timeline = React.forwardRef<TimelineState, TimelineEditor>(
-  (props, ref) => {
-    const checkedProps = checkProps(props);
-    const { style } = props;
-    let {
-      editorData: data,
-      hideCursor,
-      disableDrag,
-      scale = 1,
-      scaleWidth = 160,
-      startLeft = 20,
-      minScaleCount = 20,
-      maxScaleCount = Infinity,
-      onChange,
-      onScroll,
-    } = checkedProps;
+export function Timeline({
+  ref,
+  ...props
+}: TimelineEditor & {
+  ref: React.RefObject<TimelineState>;
+}) {
+  const timelineProps = withDefaults(props);
+  const domRef = useRef<HTMLDivElement>(null);
 
-    const domRef = useRef<HTMLDivElement>(null);
+  // Scale count - derived from props by default, but can be overridden
+  const derivedScaleCount = Math.min(
+    timelineProps.maxScaleCount,
+    Math.max(
+      timelineProps.minScaleCount,
+      getScaleCountByRows(timelineProps.editorData, {
+        scale: timelineProps.scale,
+      })
+    )
+  );
 
-    // Editor data
-    const [editorData, setEditorData] = useState(data);
-    // Scale count
-    const [scaleCount, setScaleCount] = useState(MIN_SCALE_COUNT);
+  const [estimatedScaleCount, setScaleCount] =
+    useState<number>(derivedScaleCount);
 
-    // Cursor time
-    const [cursorTime, setCursorTime] = useState(START_CURSOR_TIME);
+  const scaleCount = Math.max(derivedScaleCount, estimatedScaleCount);
 
-    const cursorTimeRef = useRef(START_CURSOR_TIME);
+  // Cursor time
+  const [cursorTime, setCursorTime] = useState(START_CURSOR_TIME);
 
-    /** Dynamically set scale count */
-    const handleSetScaleCount = useCallback(
-      (value: number) => {
-        const data = Math.min(maxScaleCount, Math.max(minScaleCount, value));
-        setScaleCount(data);
-      },
-      [maxScaleCount, minScaleCount]
+  const cursorTimeRef = useRef(START_CURSOR_TIME);
+
+  const { width, height } = useMeasure({ elementRef: domRef });
+
+  /** Dynamically set scale count - overrides the derived value */
+  const handleSetScaleCount = (value: number) => {
+    setScaleCount(
+      Math.min(
+        timelineProps.maxScaleCount,
+        Math.max(timelineProps.minScaleCount, value)
+      )
     );
+  };
 
-    /** Listen to data changes */
-    useLayoutEffect(() => {
-      handleSetScaleCount(getScaleCountByRows(data, { scale }));
-      setEditorData(data);
-    }, [data, minScaleCount, maxScaleCount, scale, handleSetScaleCount]);
+  /** Handle editor data changes */
+  const handleEditorDataChange = (editorData: TimelineRow[]): void => {
+    timelineProps.onChange?.(editorData);
+  };
 
-    /** Handle editor data changes */
-    const handleEditorDataChange = (editorData: TimelineRow[]): void => {
-      onChange?.(editorData);
-    };
+  /** Handle cursor */
+  const handleSetCursor = (param: {
+    left?: number;
+    time?: number;
+  }): boolean => {
+    let { left, time } = param;
 
-    /** Handle cursor */
-    const handleSetCursor = (param: {
-      left?: number;
-      time?: number;
-    }): boolean => {
-      let { left, time } = param;
+    if (typeof time !== "undefined") {
+      setCursorTime(time);
+      cursorTimeRef.current = time;
+      return true;
+    }
 
-      if (typeof time !== "undefined") {
-        setCursorTime(time);
-        cursorTimeRef.current = time;
-        return true;
-      }
+    if (typeof left !== "undefined") {
+      setCursorTime(
+        (cursorTimeRef.current = parserPixelToTime(left, {
+          startLeft: timelineProps.startLeft,
+          scale: timelineProps.scale,
+          scaleWidth: timelineProps.scaleWidth,
+        }))
+      );
 
-      if (typeof left !== "undefined") {
-        setCursorTime(
-          (cursorTimeRef.current = parserPixelToTime(left, {
-            startLeft,
-            scale,
-            scaleWidth,
-          }))
-        );
+      return true;
+    }
 
-        return true;
-      }
+    return false;
+  };
 
-      return false;
-    };
+  // Ref data
+  useImperativeHandle(ref, () => ({
+    get target() {
+      return domRef.current!;
+    },
+    set time(time: number) {
+      handleSetCursor({ time });
+    },
+    get time() {
+      return cursorTimeRef.current;
+    },
+    setScrollLeft: (val) => {
+      if (!domRef.current) return;
+      domRef.current.scrollLeft = val;
+    },
+    setScrollTop: (val) => {
+      if (!domRef.current) return;
+      domRef.current.scrollTop = val;
+    },
+  }));
 
-    // Ref data
-    useImperativeHandle(ref, () => ({
-      get target() {
-        return domRef.current!;
-      },
-      set time(time: number) {
-        handleSetCursor({ time });
-      },
-      get time() {
-        return cursorTimeRef.current;
-      },
-      setScrollLeft: (val) => {
-        if (!domRef.current) return;
-        domRef.current.scrollLeft = val;
-      },
-      setScrollTop: (val) => {
-        if (!domRef.current) return;
-        domRef.current.scrollTop = val;
-      },
-    }));
-
-    return (
-      <ScrollArea.Root
-        style={style}
-        className={`${PREFIX} ${disableDrag ? PREFIX + "-disable" : ""}`}
-        data-slot="scroll-area"
+  return (
+    <ScrollArea.Root
+      style={timelineProps.style}
+      className={`${PREFIX} ${
+        timelineProps.disableDrag ? PREFIX + "-disable" : ""
+      }`}
+      data-slot="scroll-area"
+    >
+      <ScrollArea.Viewport
+        data-slot="scroll-area-viewport"
+        ref={domRef}
+        onScroll={(e) => {
+          timelineProps.onScroll?.(e.currentTarget);
+        }}
       >
-        <ScrollArea.Viewport
-          data-slot="scroll-area-viewport"
-          ref={domRef}
-          onScroll={(e) => {
-            onScroll?.(e.currentTarget);
-          }}
-        >
-          <Measured elementRef={domRef}>
-            {({ width, height }) => (
-              <>
-                <TimeArea
-                  {...checkedProps}
-                  setCursor={handleSetCursor}
-                  scaleCount={scaleCount}
-                  scrollElementRef={domRef}
-                />
+        <TimeArea
+          {...timelineProps}
+          setCursor={handleSetCursor}
+          scaleCount={scaleCount}
+          scrollElementRef={domRef}
+        />
 
-                <EditArea
-                  {...checkedProps}
-                  scrollElementRef={domRef}
-                  timelineWidth={width}
-                  timelineHeight={height}
-                  disableDrag={disableDrag}
-                  editorData={editorData}
-                  cursorTime={cursorTime}
-                  scaleCount={scaleCount}
-                  setScaleCount={handleSetScaleCount}
-                  setEditorData={handleEditorDataChange}
-                />
+        <EditArea
+          {...timelineProps}
+          scrollElementRef={domRef}
+          timelineWidth={width}
+          timelineHeight={height}
+          disableDrag={timelineProps.disableDrag}
+          editorData={timelineProps.editorData}
+          cursorTime={cursorTime}
+          scaleCount={scaleCount}
+          setScaleCount={handleSetScaleCount}
+          setEditorData={handleEditorDataChange}
+        />
 
-                {!hideCursor && (
-                  <Cursor
-                    {...checkedProps}
-                    timelineWidth={width}
-                    height={height}
-                    scaleCount={scaleCount}
-                    setScaleCount={handleSetScaleCount}
-                    setCursor={handleSetCursor}
-                    cursorTime={cursorTime}
-                    editorData={editorData}
-                    scrollElementRef={domRef}
-                  />
-                )}
-              </>
-            )}
-          </Measured>
-        </ScrollArea.Viewport>
-        <ScrollBar orientation="horizontal" />
-        <ScrollBar orientation="vertical" />
-        <ScrollArea.Corner />
-      </ScrollArea.Root>
-    );
-  }
-);
+        {!timelineProps.hideCursor && (
+          <Cursor
+            {...timelineProps}
+            timelineWidth={width}
+            height={height}
+            scaleCount={scaleCount}
+            setScaleCount={handleSetScaleCount}
+            setCursor={handleSetCursor}
+            cursorTime={cursorTime}
+            editorData={timelineProps.editorData}
+            scrollElementRef={domRef}
+          />
+        )}
+      </ScrollArea.Viewport>
+      <ScrollBar orientation="horizontal" />
+      <ScrollBar orientation="vertical" />
+      <ScrollArea.Corner />
+    </ScrollArea.Root>
+  );
+}

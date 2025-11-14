@@ -17,14 +17,7 @@ type Story = StoryObj<typeof meta>;
 
 export const BasicExample: Story = {
   args: {
-    onCursorDrag: (...args) => {
-      action("onCursorDrag")(...args);
-      console.log("onCursorDrag", args);
-    },
-    onClickTimeArea: (...args) => {
-      action("onClickTimeArea")(...args);
-      console.log("onClickTimeArea", args);
-    },
+    onCursorDrag: action("onCursorDrag"),
     onCursorDragStart: action("onCursorDragStart"),
     onCursorDragEnd: action("onCursorDragEnd"),
   },

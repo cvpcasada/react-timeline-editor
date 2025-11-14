@@ -2,7 +2,7 @@ import { DEFAULT_ROW_HEIGHT, DEFAULT_SCALE, DEFAULT_SCALE_SPLIT_COUNT, DEFAULT_S
 import { type TimelineEditor } from "@/interface/timeline";
 import { log } from '@cyca/log';
 
-export function checkProps(props: TimelineEditor): TimelineEditor {
+export function withDefaults(props: TimelineEditor) {
   let {
     editorData = [],
     effects = {},
