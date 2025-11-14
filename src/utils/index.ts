@@ -1,0 +1,2 @@
+export * from "./deal-data";
+

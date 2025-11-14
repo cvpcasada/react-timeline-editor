@@ -28,14 +28,22 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/index.tsx"),
-      name: "react-timeline-editor",
+      entry: {
+        index: path.resolve(__dirname, "src/index.tsx"),
+        utils: path.resolve(__dirname, "src/utils/index.ts"),
+      },
       formats: ["es", "cjs"],
+      fileName: (format, entryName) => {
+        if (entryName === 'index') {
+          return `react-timeline-editor.${format === 'es' ? 'js' : 'cjs'}`;
+        }
+        return `${entryName}.${format === 'es' ? 'js' : 'cjs'}`;
+      },
     },
     rollupOptions: {
       external: ["react", "react-dom"],
       output: {
-        assetFileNames: 'styles.css'
+        assetFileNames: 'styles.css',
       }
     },
   },

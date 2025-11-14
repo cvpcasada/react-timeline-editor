@@ -13,6 +13,7 @@ interface TimeAreaProps {
   scrollElementRef: React.RefObject<HTMLDivElement | null>;
   onClickTimeArea?: (time: number, e: React.MouseEvent<HTMLDivElement>) => void;
   setCursor: (param: { left?: number; time: number }) => void;
+  getScaleRender?: (scale: number) => React.ReactNode;
 }
 
 export function TimeArea({
@@ -25,6 +26,7 @@ export function TimeArea({
   scrollElementRef,
   onClickTimeArea,
   setCursor,
+  getScaleRender,
 }: TimeAreaProps) {
   const splitCount = scaleSplitCount ?? 1;
   const width = scaleWidth ?? 160;
@@ -113,7 +115,7 @@ export function TimeArea({
             className={classNames.join(" ")}
           >
             {isShowScale && (
-              <div className={prefix("time-unit-scale")}>{item}</div>
+              <div className={prefix("time-unit-scale")}>{getScaleRender?.(item) ?? item}</div>
             )}
           </div>
         );

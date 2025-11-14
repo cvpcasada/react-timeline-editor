@@ -1,7 +1,7 @@
 import { type TimelineAction, type TimelineRow } from "@/interface/action";
 import { ADD_SCALE_COUNT } from "@/interface/const";
 
-/** 时间转像素 */
+/** Convert time to pixels */
 export function parserTimeToPixel(
   data: number,
   param: {
@@ -14,7 +14,7 @@ export function parserTimeToPixel(
   return startLeft + (data / scale) * scaleWidth;
 }
 
-/** 像素转时间 */
+/** Convert pixels to time */
 export function parserPixelToTime(
   data: number,
   param: {
@@ -27,7 +27,7 @@ export function parserPixelToTime(
   return ((data - startLeft) / scaleWidth) * scale;
 }
 
-/** 位置 + 宽度 转 start + end */
+/** Convert position + width to start + end */
 export function parserTransformToTime(
   data: {
     left: number;
@@ -48,7 +48,7 @@ export function parserTransformToTime(
   };
 }
 
-/** start + end 转 位置 + 宽度 */
+/** Convert start + end to position + width */
 export function parserTimeToTransform(
   data: {
     start: number;
@@ -69,8 +69,8 @@ export function parserTimeToTransform(
   };
 }
 
-/** 根据数据获取刻度个数 */
-export function getScaleCountByRows(data: TimelineRow[], param: { scale: number }) {
+/** Get scale count based on data */
+export function getScaleCountByRows(data: TimelineRow[], param: { scale: number, pad?: number }) {
   let max = 0;
   data.forEach((row) => {
     row.actions.forEach((action) => {
@@ -78,10 +78,10 @@ export function getScaleCountByRows(data: TimelineRow[], param: { scale: number 
     });
   });
   const count = Math.ceil(max / param.scale);
-  return count + ADD_SCALE_COUNT;
+  return count + (param.pad ?? ADD_SCALE_COUNT);
 }
 
-/** 根据时间获取目前刻度数 */
+/** Get current scale count based on time */
 export function getScaleCountByPixel(
   data: number,
   param: {
@@ -95,7 +95,7 @@ export function getScaleCountByPixel(
   return Math.max(count + ADD_SCALE_COUNT, param.scaleCount);
 }
 
-/** 获取动作全部时间的位置集合 */
+/** Get position set of all times for actions */
 export function parserActionsToPositions(
   actions: TimelineAction[],
   param: {

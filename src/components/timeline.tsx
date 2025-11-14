@@ -24,16 +24,19 @@ export function Timeline({
 }) {
   const timelineProps = withDefaults(props);
   const domRef = useRef<HTMLDivElement>(null);
+  const { width, height } = useMeasure({ elementRef: domRef });
 
   // Scale count - derived from props by default, but can be overridden
   const derivedScaleCount = Math.min(
     timelineProps.maxScaleCount,
-    Math.max(
-      timelineProps.minScaleCount,
-      getScaleCountByRows(timelineProps.editorData, {
-        scale: timelineProps.scale,
-      })
-    )
+    timelineProps.minScaleCount ??
+      Math.max(
+        getScaleCountByRows(timelineProps.editorData, {
+          scale: timelineProps.scale,
+          pad: 0.2,
+        }),
+        Math.ceil((width - timelineProps.startLeft) / timelineProps.scaleWidth)
+      )
   );
 
   const [estimatedScaleCount, setScaleCount] =
@@ -46,15 +49,10 @@ export function Timeline({
 
   const cursorTimeRef = useRef(START_CURSOR_TIME);
 
-  const { width, height } = useMeasure({ elementRef: domRef });
-
   /** Dynamically set scale count - overrides the derived value */
   const handleSetScaleCount = (value: number) => {
     setScaleCount(
-      Math.min(
-        timelineProps.maxScaleCount,
-        Math.max(timelineProps.minScaleCount, value)
-      )
+      Math.min(timelineProps.maxScaleCount, Math.max(derivedScaleCount, value))
     );
   };
 

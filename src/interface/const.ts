@@ -21,7 +21,7 @@ export const DEFAULT_ROW_HEIGHT = 32;
 /** Minimum scale count */
 export const MIN_SCALE_COUNT = 20;
 /** Number of scales added each time */
-export const ADD_SCALE_COUNT = 5;
+export const ADD_SCALE_COUNT = 2;
 
 /** Error messages */
 export const ERROR = {

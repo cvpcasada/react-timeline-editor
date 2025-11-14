@@ -140,6 +140,7 @@ export const EditAction: FC<EditActionProps> = ({
 
   /** Calculate scale count */
   const handleScaleCount = (left: number, width: number) => {
+    console.log('handleScaleCount', left, width);
     const curScaleCount = getScaleCountByPixel(left + width, {
       startLeft: safeStartLeft,
       scaleCount,
