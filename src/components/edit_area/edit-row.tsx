@@ -10,7 +10,7 @@ import {
 } from "@/interface/const";
 import { prefix } from "@/utils/deal-class-prefix";
 import { parserPixelToTime, parserTimeToTransform } from "@/utils/deal-data";
-import { type DragLineData } from "./snap-lines";
+import { type SnapGuideLineData } from "./snap-lines";
 import { EditAction } from "./edit-action";
 import { useVirtualizer } from "@tanstack/react-virtual";
 
@@ -18,7 +18,7 @@ export type EditRowProps = CommonProp & {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   rowData?: TimelineRow;
   style?: React.CSSProperties;
-  snapData: DragLineData;
+  snapData: SnapGuideLineData;
   setEditorData: (params: TimelineRow[]) => void;
 };
 
