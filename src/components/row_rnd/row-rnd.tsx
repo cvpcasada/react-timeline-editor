@@ -90,7 +90,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       if (!interactableRef.current) return;
       if (reset) deltaX.current = 0;
       const target = interactableRef.current;
-      target.style.left = `${left}px`;
+      target.style.setProperty('--translate-x', `${left}px`);
       target.dataset.left = String(left);
     };
 
@@ -427,7 +427,11 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
 
     return (
       <Interactable
-        style={{ left, width }}
+        style={{
+          '--translate-x': `${left || 0}px`,
+          transform: `translateX(var(--translate-x)) scaleX(var(--scale-x,1))`,
+          width,
+        } as React.CSSProperties}
         ref={interactableRef}
         draggable={enableDragging}
         resizable={enableResizing}

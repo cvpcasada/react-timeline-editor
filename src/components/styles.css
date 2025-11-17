@@ -197,10 +197,12 @@
   }
 
   .timeline-editor-cursor {
+    --scale-x: 0.5;
+
     cursor: ew-resize;
     position: absolute;
+    left: -4px;
     box-sizing: border-box;
-    transform: translateX(-50%) scaleX(0.5);
     top: 2rem;
     min-height: calc(100% - 32px);
     z-index: 2;

@@ -60,7 +60,10 @@ export function TimeArea({
     overscan: 10,
   });
 
-  useEffect(() => virtualizer.measure(), [scaleWidth, startLeft, virtualizer]);
+  useEffect(
+    () => virtualizer.measure(),
+    [scale, scaleWidth, startLeft, virtualizer]
+  );
 
   return (
     <div

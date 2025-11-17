@@ -1,11 +1,10 @@
 import "./styles.css";
 
 import React, {
-  useEffect,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
-  useState,
+  useState
 } from "react";
 import { PREFIX, START_CURSOR_TIME } from "@/interface/const";
 import {
@@ -159,7 +158,7 @@ export function Timeline({
       if (!domRef.current) return;
       domRef.current.scrollTop = val;
     },
-  }));
+  } satisfies TimelineState));
 
   return (
     <ScrollArea.Root

@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/incompatible-library */
 
-import React, { useCallback, useLayoutEffect, useMemo, type FC } from "react";
+import React, { useCallback, useEffect, useMemo, type FC } from "react";
 import { type TimelineRow } from "@/interface/action";
 import { type CommonProp } from "@/interface/common-prop";
 import {
@@ -96,13 +96,14 @@ export const EditRow: FC<EditRowProps> = (props) => {
       );
       return width;
     },
-    overscan: 5,
+    overscan: 10,
   });
 
-  // Remeasure when scaleWidth or startLeft change
-  useLayoutEffect(() => {
-    virtualizer.measure();
-  }, [scaleWidth, startLeft, virtualizer]);
+  // Remeasure when scale, scaleWidth or startLeft change
+  useEffect(
+    () => virtualizer.measure(),
+    [safeScale, safeScaleWidth, safeStartLeft, virtualizer]
+  );
 
   return (
     <div
