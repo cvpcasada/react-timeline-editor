@@ -27,3 +27,4 @@ docs-dist
 
 *storybook.log
 storybook-static
+.vercel

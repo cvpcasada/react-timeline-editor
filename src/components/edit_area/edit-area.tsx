@@ -67,6 +67,7 @@ export const EditArea = ({
     else if (!props.snap && snapData.isMoving) {
       updateSnap({ assistPositions: [] });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.snap, snapData.isMoving]);
 
   const handleInitSnap: EditData["onActionMoveStart"] = (data) => {

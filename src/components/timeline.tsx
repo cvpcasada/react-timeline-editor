@@ -1,6 +1,12 @@
 import "./styles.css";
 
-import React, { useImperativeHandle, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { PREFIX, START_CURSOR_TIME } from "@/interface/const";
 import {
   type TimelineEditor,
@@ -15,46 +21,63 @@ import { useMeasure } from "../utils/measured";
 import { Cursor } from "./cursor/cursor";
 import { ScrollArea } from "radix-ui";
 import { ScrollBar } from "./scroll-area";
+import { useStableScroll } from "./hooks/use-stable-scroll";
 
 export function Timeline({
   ref,
   ...props
 }: TimelineEditor & {
-  ref?: React.RefObject<TimelineState>;
+  ref?: React.RefObject<TimelineState | null>;
 }) {
   const timelineProps = withDefaults(props);
   const domRef = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasure({ elementRef: domRef });
 
   // Scale count - derived from props by default, but can be overridden
+  const minScaleCount =
+    timelineProps.minScaleCount ??
+    Math.max(
+      getScaleCountByRows(timelineProps.editorData, {
+        scale: timelineProps.scale,
+        pad: 0.1,
+      }),
+      Math.ceil((width - timelineProps.startLeft) / timelineProps.scaleWidth)
+    );
+
   const derivedScaleCount = Math.min(
     timelineProps.maxScaleCount,
-    timelineProps.minScaleCount ??
-      Math.max(
-        getScaleCountByRows(timelineProps.editorData, {
-          scale: timelineProps.scale,
-          pad: 0.2,
-        }),
-        Math.ceil((width - timelineProps.startLeft) / timelineProps.scaleWidth)
-      )
+    minScaleCount
   );
 
-  const [estimatedScaleCount, setScaleCount] =
-    useState<number>(derivedScaleCount);
+  // Track manual overrides only
+  const [overrideScaleCount, setOverrideScaleCount] = useState<number | null>(
+    null
+  );
 
-  const scaleCount = Math.max(derivedScaleCount, estimatedScaleCount);
+  useLayoutEffect(() => {
+    setOverrideScaleCount(null);
+  }, [derivedScaleCount]);
 
-  // Cursor time
-  const [cursorTime, setCursorTime] = useState(START_CURSOR_TIME);
-
-  const cursorTimeRef = useRef(START_CURSOR_TIME);
+  const scaleCount = overrideScaleCount ?? derivedScaleCount;
 
   /** Dynamically set scale count - overrides the derived value */
   const handleSetScaleCount = (value: number) => {
-    setScaleCount(
-      Math.min(timelineProps.maxScaleCount, Math.max(derivedScaleCount, value))
-    );
+    const data = Math.min(timelineProps.maxScaleCount, value);
+    setOverrideScaleCount(data);
   };
+
+  // Cursor time
+  const [cursorTime, setCursorTime] = useState(START_CURSOR_TIME);
+  const cursorTimeRef = useRef(START_CURSOR_TIME);
+
+  // Maintain cursor position visually stable when scale or scaleWidth changes
+  useStableScroll({
+    scrollElementRef: domRef,
+    scale: timelineProps.scale,
+    scaleWidth: timelineProps.scaleWidth,
+    startLeft: timelineProps.startLeft,
+    cursorTimeRef,
+  });
 
   /** Handle editor data changes */
   const handleEditorDataChange = (editorData: TimelineRow[]): void => {
@@ -100,11 +123,39 @@ export function Timeline({
     get time() {
       return cursorTimeRef.current;
     },
+
+    getTime() {
+      return cursorTimeRef.current;
+    },
+
+    setTime(time: number) {
+      handleSetCursor({ time });
+    },
+
     setScrollLeft: (val) => {
       if (!domRef.current) return;
       domRef.current.scrollLeft = val;
     },
     setScrollTop: (val) => {
+      if (!domRef.current) return;
+      domRef.current.scrollTop = val;
+    },
+
+    get scrollLeft() {
+      if (!domRef.current) return 0;
+      return domRef.current.scrollLeft;
+    },
+
+    get scrollTop() {
+      if (!domRef.current) return 0;
+      return domRef.current.scrollTop;
+    },
+
+    set scrollLeft(val: number) {
+      if (!domRef.current) return;
+      domRef.current.scrollLeft = val;
+    },
+    set scrollTop(val: number) {
       if (!domRef.current) return;
       domRef.current.scrollTop = val;
     },

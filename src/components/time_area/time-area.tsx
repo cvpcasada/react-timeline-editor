@@ -1,7 +1,7 @@
-import { parserPixelToTime } from '@/utils/deal-data';
-import { useEffect } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
-import { prefix } from '@/utils/deal-class-prefix';
+import { parserPixelToTime } from "@/utils/deal-data";
+import { Activity, useEffect } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { prefix } from "@/utils/deal-class-prefix";
 
 interface TimeAreaProps {
   scaleSplitCount?: number;
@@ -96,9 +96,7 @@ export function TimeArea({
 
         const classNames = [
           prefix("time-unit"),
-          isShowScale
-            ? prefix("time-unit-big")
-            : prefix("time-unit-small"),
+          isShowScale ? prefix("time-unit-big") : prefix("time-unit-small"),
         ];
 
         const item =
@@ -114,9 +112,11 @@ export function TimeArea({
             }}
             className={classNames.join(" ")}
           >
-            {isShowScale && (
-              <div className={prefix("time-unit-scale")}>{getScaleRender?.(item) ?? item}</div>
-            )}
+            <Activity mode={isShowScale ? "visible" : "hidden"}>
+              <div className={prefix("time-unit-scale")}>
+                {getScaleRender?.(item) ?? item}
+              </div>
+            </Activity>
           </div>
         );
       })}
