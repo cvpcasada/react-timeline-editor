@@ -1,8 +1,8 @@
-import * as React from 'react';
-import { type TimelineAction, type TimelineRow } from './action';
-import { type TimelineEffect } from './effect';
-export * from './action';
-export * from './effect';
+import * as React from "react";
+import { type TimelineAction, type TimelineRow } from "./action";
+import { type TimelineEffect } from "./effect";
+export * from "./action";
+export * from "./effect";
 
 export interface EditData {
   /**
@@ -59,6 +59,11 @@ export interface EditData {
    */
   snap?: boolean;
   /**
+   * @description Enable cursor snap to action endpoints when dragging
+   * @default false
+   */
+  cursorSnap?: boolean;
+  /**
    * @description Whether to hide cursor
    * @default false
    */
@@ -71,7 +76,10 @@ export interface EditData {
   /**
    * @description Custom action area rendering
    */
-  getActionRender?: (action: TimelineAction, row: TimelineRow) => React.ReactNode;
+  getActionRender?: (
+    action: TimelineAction,
+    row: TimelineRow
+  ) => React.ReactNode;
   /**
    * @description Custom scale rendering
    */
@@ -79,27 +87,56 @@ export interface EditData {
   /**
    * @description Start move callback
    */
-  onActionMoveStart?: (params: { action: TimelineAction; row: TimelineRow }) => void;
+  onActionMoveStart?: (params: {
+    action: TimelineAction;
+    row: TimelineRow;
+  }) => void;
   /**
    * @description Move callback (return false to prevent movement)
    */
-  onActionMoving?: (params: { action: TimelineAction; row: TimelineRow; start: number; end: number }) => void | boolean;
+  onActionMoving?: (params: {
+    action: TimelineAction;
+    row: TimelineRow;
+    start: number;
+    end: number;
+  }) => void | boolean;
   /**
    * @description Move end callback (return false to prevent onChange trigger)
    */
-  onActionMoveEnd?: (params: { action: TimelineAction; row: TimelineRow; start: number; end: number }) => void;
+  onActionMoveEnd?: (params: {
+    action: TimelineAction;
+    row: TimelineRow;
+    start: number;
+    end: number;
+  }) => void;
   /**
    * @description Start resize callback
    */
-  onActionResizeStart?: (params: { action: TimelineAction; row: TimelineRow; dir: 'right' | 'left' }) => void;
+  onActionResizeStart?: (params: {
+    action: TimelineAction;
+    row: TimelineRow;
+    dir: "right" | "left";
+  }) => void;
   /**
    * @description Resize callback (return false to prevent resize)
    */
-  onActionResizing?: (params: { action: TimelineAction; row: TimelineRow; start: number; end: number; dir: 'right' | 'left' }) => void | boolean;
+  onActionResizing?: (params: {
+    action: TimelineAction;
+    row: TimelineRow;
+    start: number;
+    end: number;
+    dir: "right" | "left";
+  }) => void | boolean;
   /**
    * @description Resize end callback (return false to prevent onChange trigger)
    */
-  onActionResizeEnd?: (params: { action: TimelineAction; row: TimelineRow; start: number; end: number; dir: 'right' | 'left' }) => void;
+  onActionResizeEnd?: (params: {
+    action: TimelineAction;
+    row: TimelineRow;
+    start: number;
+    end: number;
+    dir: "right" | "left";
+  }) => void;
   /**
    * @description Click row callback
    */
@@ -108,7 +145,7 @@ export interface EditData {
     param: {
       row: TimelineRow;
       time: number;
-    },
+    }
   ) => void;
   /**
    * @description Click action callback
@@ -119,7 +156,7 @@ export interface EditData {
       action: TimelineAction;
       row: TimelineRow;
       time: number;
-    },
+    }
   ) => void;
   /**
    * @description Click action callback (not executed when drag is triggered)
@@ -130,7 +167,7 @@ export interface EditData {
       action: TimelineAction;
       row: TimelineRow;
       time: number;
-    },
+    }
   ) => void;
   /**
    * @description Double click row callback
@@ -140,7 +177,7 @@ export interface EditData {
     param: {
       row: TimelineRow;
       time: number;
-    },
+    }
   ) => void;
   /**
    * @description Double click action callback
@@ -151,7 +188,7 @@ export interface EditData {
       action: TimelineAction;
       row: TimelineRow;
       time: number;
-    },
+    }
   ) => void;
   /**
    * @description Right click row callback
@@ -161,7 +198,7 @@ export interface EditData {
     param: {
       row: TimelineRow;
       time: number;
-    },
+    }
   ) => void;
   /**
    * @description Right click action callback
@@ -172,12 +209,16 @@ export interface EditData {
       action: TimelineAction;
       row: TimelineRow;
       time: number;
-    },
+    }
   ) => void;
   /**
    * @description Get the list of action ids to show assist drag lines, calculated at move/resize start, defaults to all actions except the currently moving action
    */
-  getAssistDragLineActionIds?: (params: { action: TimelineAction; editorData: TimelineRow[]; row: TimelineRow }) => string[];
+  getAssistDragLineActionIds?: (params: {
+    action: TimelineAction;
+    editorData: TimelineRow[];
+    row: TimelineRow;
+  }) => string[];
   /**
    * @description Cursor drag start event
    */
@@ -193,20 +234,21 @@ export interface EditData {
   /**
    * @description Click time area event, return false to prevent setting time
    */
-  onClickTimeArea?: (time: number, e: React.MouseEvent<HTMLDivElement, MouseEvent>) => boolean | undefined;
+  onClickTimeArea?: (
+    time: number,
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => boolean | undefined;
 }
 
 export interface TimelineState {
-  /** DOM node */
-  target: HTMLElement;
-  /** Set current playback time */
-  set time(time: number);
-  /** Get current playback time */
-  get time(): number;
-  /** Set scroll left */
+  readonly target: HTMLDivElement;
+  time: number;
+  getTime(): number;
+  setTime(time: number): void;
   setScrollLeft: (val: number) => void;
-  /** Set scroll top */
   setScrollTop: (val: number) => void;
+  scrollLeft: number;
+  scrollTop: number;
 }
 
 /**

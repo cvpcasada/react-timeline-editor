@@ -56,6 +56,7 @@ const ShiftKeySnap = () => {
         editorData={data}
         effects={mockEffect}
         snap={snapEnabled}
+        cursorSnap={snapEnabled}
       />
     </div>
   );

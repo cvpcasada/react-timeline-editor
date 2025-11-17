@@ -1,9 +1,10 @@
 import React, { type FC, useEffect, useRef } from "react";
 import { type CommonProp } from "@/interface/common-prop";
 import { prefix } from "@/utils/deal-class-prefix";
-import { parserPixelToTime, parserTimeToPixel } from "@/utils/deal-data";
+import { parserActionsToPositions, parserPixelToTime, parserTimeToPixel } from "@/utils/deal-data";
 import { RowDnd } from "@/components/row_rnd/row-rnd";
 import { type RowRndApi } from "@/components/row_rnd/row-rnd-interface";
+import { DEFAULT_SNAP_DISTANCE } from "@/interface/const";
 
 /** Animation timeline component parameters */
 export type CursorProps = CommonProp & {
@@ -12,6 +13,8 @@ export type CursorProps = CommonProp & {
   setCursor: (param: { left?: number; time?: number }) => boolean;
   /** Timeline area DOM ref */
   scrollElementRef: React.RefObject<HTMLDivElement | null>;
+  /** Enable cursor snap to action endpoints when dragging */
+  cursorSnap?: boolean;
 };
 
 export const Cursor: FC<CursorProps> = ({
@@ -28,9 +31,57 @@ export const Cursor: FC<CursorProps> = ({
   onCursorDragStart,
   onCursorDrag,
   onCursorDragEnd,
+  cursorSnap,
+  editorData,
 }) => {
   const rowRnd = useRef<RowRndApi>(null);
   const draggingLeft = useRef<number | undefined>(undefined);
+
+  // Define constants early for use in calculations
+  const leftStart = startLeft ?? 20;
+  const width = scaleWidth ?? 160;
+  const scaleValue = scale ?? 1;
+
+  // Calculate snap positions from all action endpoints when cursorSnap is enabled
+  // This function will be called with the latest editorData to ensure sync during drag
+  const getSnapPositions = (
+    currentEditorData: typeof editorData,
+    currentStartLeft: number,
+    currentScaleWidth: number,
+    currentScale: number
+  ): number[] => {
+    if (!cursorSnap || !currentEditorData) return [];
+
+    // Collect all actions from all rows
+    const allActions = currentEditorData.flatMap((row) => row.actions);
+
+    // Get positions for all action start and end points
+    return parserActionsToPositions(allActions, {
+      startLeft: currentStartLeft,
+      scale: currentScale,
+      scaleWidth: currentScaleWidth,
+    });
+  };
+
+  // Helper function to calculate snap position (similar to row-rnd.tsx)
+  const calculateSnap = (
+    position: number,
+    snapPositions: number[],
+    snapDistance: number
+  ): number => {
+    let snap = position;
+    let minDis = Number.MAX_SAFE_INTEGER;
+
+    for (const item of snapPositions) {
+      const dis = Math.abs(item - position);
+      if (dis < snapDistance && dis < minDis) {
+        snap = item;
+        minDis = dis;
+      }
+    }
+
+    return snap;
+  };
 
   useEffect(() => {
     if (typeof draggingLeft.current === "undefined" && rowRnd.current) {
@@ -48,9 +99,6 @@ export const Cursor: FC<CursorProps> = ({
     }
   }, [cursorTime, startLeft, scaleWidth, scale]);
 
-  const leftStart = startLeft ?? 20;
-  const width = scaleWidth ?? 160;
-  const scaleValue = scale ?? 1;
   const maxCount = maxScaleCount ?? Infinity;
 
   const showUnit = (scaleSplitCount ?? 0) > 0;
@@ -184,11 +232,34 @@ export const Cursor: FC<CursorProps> = ({
         }
 
         if (typeof draggingLeft.current !== "undefined") {
-          rowRnd.current?.updateLeft(draggingLeft.current);
+          let finalLeft = draggingLeft.current;
+
+          // Apply cursor snap if enabled
+          // Recalculate snap positions from latest editorData to ensure sync during drag
+          if (cursorSnap) {
+            const currentSnapPositions = getSnapPositions(
+              editorData,
+              leftStart,
+              width,
+              scaleValue
+            );
+            if (currentSnapPositions.length > 0) {
+              const snappedLeft = calculateSnap(
+                draggingLeft.current,
+                currentSnapPositions,
+                DEFAULT_SNAP_DISTANCE
+              );
+              finalLeft = snappedLeft;
+              // Update draggingLeft to snapped value for consistency
+              draggingLeft.current = finalLeft;
+            }
+          }
+
+          rowRnd.current?.updateLeft(finalLeft);
           // Calculate time the same way as click event: use absolute position directly
           // The click event uses e.clientX - rect.x which gives absolute position within timeline
-          // draggingLeft.current is absolute position (same coordinate system as click event)
-          const time = parserPixelToTime(draggingLeft.current, {
+          // finalLeft is absolute position (same coordinate system as click event)
+          const time = parserPixelToTime(finalLeft, {
             startLeft: leftStart,
             scale: scaleValue,
             scaleWidth: width,
