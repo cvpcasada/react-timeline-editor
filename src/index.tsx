@@ -8,6 +8,4 @@ export type {
 export type { TimelineAction, TimelineRow } from "./interface/action";
 export type {
   TimelineEffect,
-  TimeLineEffectSource,
-  EffectSourceParam,
 } from "./interface/effect";

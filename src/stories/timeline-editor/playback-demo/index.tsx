@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Timeline, type TimelineState } from "@/index";
 
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, useCallback, startTransition, type RefObject } from "react";
 import "./index.less";
 import { mockData, mockEffect } from "./mock";
 import { parserTimeToPixel } from "@/utils/deal-data";
@@ -9,6 +9,7 @@ import { useMeasure } from "@/utils/measured";
 import { MotionProp } from "./motion-prop";
 import type { MotionValue } from "motion";
 import { useMotionValueEvent } from "motion/react";
+import { useHasChanged } from "@/utils/use-has-changed";
 
 const defaultEditorData = structuredClone(mockData);
 
@@ -25,10 +26,14 @@ const PlaybackDemo = (args: {
 
   const startLeft = 20;
 
+  const [visibleTimeSecs, setVisibleTimeSecs] = useSyncedState(
+    args.visibleTimeSecs
+  );
+
   return (
     <div className="timeline-editor-example-playback-demo">
       <MotionProp
-        value={args.visibleTimeSecs}
+        value={visibleTimeSecs}
         maxValue={600}
         render={(i, motionVal) => {
           const value = calculateScale(i, (width || 800) - startLeft * 2);
@@ -38,6 +43,14 @@ const PlaybackDemo = (args: {
               <SetTimelineAnimatingClassState
                 timelineStateRef={ref}
                 motionValue={motionVal}
+              />
+              <input
+                type="range"
+                min={2}
+                max={600}
+                onChange={(e) => {
+                  setVisibleTimeSecs(Number(e.target.value));
+                }}
               />
               <PlaybackControls
                 timelineStateRef={ref}
@@ -351,4 +364,28 @@ function SetTimelineAnimatingClassState(props: {
   });
 
   return null;
+}
+
+function useSyncedState<T>(value: T) {
+  const [state, setState] = useState(value);
+  const isUncontrolledRef = useRef(false);
+  const hasInputChanged = useHasChanged(value);
+
+  // If input value changed, sync state to input and switch to controlled mode
+  useEffect(() => {
+    if (hasInputChanged) {
+      isUncontrolledRef.current = false;
+      startTransition(() => {
+        setState(value);
+      });
+    }
+  }, [value, hasInputChanged]);
+
+  // Wrapped setState that marks as uncontrolled when called
+  const setStateUncontrolled = useCallback((newValue: T | ((prev: T) => T)) => {
+    isUncontrolledRef.current = true;
+    setState(newValue);
+  }, []);
+
+  return [state, setStateUncontrolled] as const;
 }

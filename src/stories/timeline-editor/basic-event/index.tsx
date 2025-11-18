@@ -13,7 +13,7 @@ const BasicEvent = () => {
   return (
     <div className="timeline-editor-example-basic-event">
       <Timeline
-        onChange={setData}
+        // onChange={setData}
         editorData={data}
         effects={mockEffect}
         hideCursor={false}

@@ -8,12 +8,17 @@ import React, {
 } from "react";
 import { PREFIX, START_CURSOR_TIME } from "@/interface/const";
 import {
+  type ScrollToTimeOptions,
   type TimelineEditor,
   type TimelineRow,
   type TimelineState,
 } from "@/interface/timeline";
 import { withDefaults } from "@/utils/with-defaults";
-import { getScaleCountByRows, parserPixelToTime } from "@/utils/deal-data";
+import {
+  getScaleCountByRows,
+  parserPixelToTime,
+  parserTimeToPixel,
+} from "@/utils/deal-data";
 import { EditArea } from "./edit_area/edit-area";
 import { TimeArea } from "./time_area/time-area";
 import { useMeasure } from "../utils/measured";
@@ -111,6 +116,38 @@ export function Timeline({
     return false;
   };
 
+  const handleScrollToTime = (
+    time: number,
+    options: ScrollToTimeOptions = {}
+  ) => {
+    const element = domRef.current;
+    if (!element) return;
+
+    const { block = "start", offset = 0 } = options;
+    const target = parserTimeToPixel(time, {
+      startLeft: timelineProps.startLeft,
+      scale: timelineProps.scale,
+      scaleWidth: timelineProps.scaleWidth,
+    });
+
+    const viewportWidth = element.clientWidth;
+    let targetScrollLeft: number;
+
+    if (block === "end") {
+      targetScrollLeft = target - viewportWidth + offset;
+    } else if (block === "center") {
+      targetScrollLeft = target - viewportWidth / 2;
+    } else {
+      targetScrollLeft = target - offset;
+    }
+
+    const maxScrollLeft = Math.max(0, element.scrollWidth - viewportWidth);
+    element.scrollLeft = Math.min(
+      Math.max(targetScrollLeft, 0),
+      maxScrollLeft
+    );
+  };
+
   // Ref data
   useImperativeHandle(ref, () => ({
     get target() {
@@ -158,6 +195,7 @@ export function Timeline({
       if (!domRef.current) return;
       domRef.current.scrollTop = val;
     },
+    scrollToTime: handleScrollToTime,
   } satisfies TimelineState));
 
   return (

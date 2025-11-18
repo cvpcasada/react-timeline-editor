@@ -22,7 +22,7 @@ export const PlaybackDemoExample: Story = {
 
   argTypes: {
     visibleTimeSecs: {
-      control: { type: "range", min: 2, max: 600 },
+      control: { type: "range", min: 2, max: 600,},
       description: "The visible time in seconds (zoom",
     },
     playbackSpeed: {

@@ -238,6 +238,18 @@ export interface EditData {
     time: number,
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => boolean | undefined;
+  /**
+   * @description Virtualization overscan count (unstable API, may change or be removed)
+   * @default 5
+   */
+  unstable_rowActionsOverscan?: number;
+}
+
+export type ScrollToTimeBlock = "start" | "center" | "end";
+
+export interface ScrollToTimeOptions {
+  block?: ScrollToTimeBlock;
+  offset?: number;
 }
 
 export interface TimelineState {
@@ -249,6 +261,7 @@ export interface TimelineState {
   setScrollTop: (val: number) => void;
   scrollLeft: number;
   scrollTop: number;
+  scrollToTime(time: number, options?: ScrollToTimeOptions): void;
 }
 
 /**
@@ -270,11 +283,6 @@ export interface TimelineEditor extends EditData {
    * @description Custom timeline style
    */
   style?: React.CSSProperties;
-  /**
-   * @description Whether to auto re-render (update tick when data changes or cursor time changes)
-   * @default true
-   */
-  autoReRender?: boolean;
   /**
    * @description Data change callback, triggered after action end changes data (return false to prevent automatic engine synchronization, used to reduce performance overhead)
    */

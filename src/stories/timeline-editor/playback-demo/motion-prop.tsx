@@ -4,7 +4,6 @@ import { useLayoutEffect, useState } from "react";
 
 export function MotionProp(prop: {
   value: number;
-  maxValue: number;
   render: (value: number, motionValue: MotionValue<number>) => React.ReactNode;
 }) {
   const [easedValue, setEasedValue] = useState(prop.value);
@@ -14,9 +13,8 @@ export function MotionProp(prop: {
   useLayoutEffect(() => {
     let animation = animate(springVal, prop.value, {
       type: "spring",
-      mass: 5,
-      stiffness: 200,
-      damping: 60,
+      visualDuration: 0.15,
+      bounce: 0,
     });
 
     return () => animation.stop();

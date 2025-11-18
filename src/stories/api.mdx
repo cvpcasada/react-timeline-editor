@@ -1,4 +1,4 @@
-import { Meta } from '@storybook/addon-docs/blocks';
+import { Meta } from "@storybook/addon-docs/blocks";
 
 <Meta title="API" />
 
@@ -16,7 +16,6 @@ import { Meta } from '@storybook/addon-docs/blocks';
     </tr>
   </thead>
   <tbody>
-  </tbody>
     <tr>
       <td>id</td>
       <td>Action row id</td>
@@ -31,7 +30,9 @@ import { Meta } from '@storybook/addon-docs/blocks';
       <td>actions</td>
       <td>List of actions in the row</td>
       <td>
-        <code><a href="#timelineaction">TimelineAction</a>[]</code>
+        <code>
+          <a href="#timelineaction">TimelineAction</a>[]
+        </code>
       </td>
       <td>
         <code>(required)</code>
@@ -67,6 +68,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
         <code>--</code>
       </td>
     </tr>
+  </tbody>
 </table>
 
 ## TimelineAction
@@ -83,7 +85,6 @@ import { Meta } from '@storybook/addon-docs/blocks';
     </tr>
   </thead>
   <tbody>
-  </tbody>
     <tr>
       <td>id</td>
       <td>Action id</td>
@@ -184,6 +185,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
         <code>Number.MAX_VALUE</code>
       </td>
     </tr>
+  </tbody>
 </table>
 
 ## TimelineEffect
@@ -200,7 +202,6 @@ import { Meta } from '@storybook/addon-docs/blocks';
     </tr>
   </thead>
   <tbody>
-  </tbody>
     <tr>
       <td>id</td>
       <td>Effect id</td>
@@ -211,7 +212,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
         <code>(required)</code>
       </td>
     </tr>
-     <tr>
+    <tr>
       <td>name</td>
       <td>Effect name</td>
       <td>
@@ -221,95 +222,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
         <code>--</code>
       </td>
     </tr>
-     <tr>
-      <td>source</td>
-      <td>Effect execution code</td>
-      <td>
-        <code>TimeLineEffectSource</code>
-      </td>
-      <td>
-        <code>--</code>
-      </td>
-    </tr>
-</table>
-
-### TimeLineEffectSource
-
-> Editor effect execution code data structure
-
-- start trigger condition
-  - Triggered when the runner starts playing, if the time is within the current action's time range
-- enter trigger condition
-  - Entering the current action's time range from a non-action time area
-- update trigger condition
-  - Triggered every frame when playing the current action (including reRender)
-  - Triggered during reRender
-- leave trigger condition
-  - Leaving the current action's time range
-- stop trigger condition
-  - Triggered when the runner pauses, if the time is within the current action's time range
-
-<table>
-  <thead>
-    <tr>
-      <th>Property</th>
-      <th>Description</th>
-      <th>Type</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
   </tbody>
-    <tr>
-      <td>start</td>
-      <td>Callback when playback starts in the current action's time range</td>
-      <td>
-        <code>(param: EffectSourceParam) => void</code>
-      </td>
-      <td>
-        <code>--</code>
-      </td>
-    </tr>
-     <tr>
-      <td>enter</td>
-      <td>Callback executed when time enters the action</td>
-      <td>
-        <code>(param: EffectSourceParam) => void</code>
-      </td>
-      <td>
-        <code>--</code>
-      </td>
-    </tr>
-     <tr>
-      <td>update</td>
-      <td>Callback when action updates</td>
-      <td>
-        <code>(param: EffectSourceParam) => void</code>
-      </td>
-      <td>
-        <code>--</code>
-      </td>
-    </tr>
-     <tr>
-      <td>leave</td>
-      <td>Callback executed when time leaves the action</td>
-      <td>
-        <code>(param: EffectSourceParam) => void</code>
-      </td>
-      <td>
-        <code>--</code>
-      </td>
-    </tr>
-     <tr>
-      <td>stop</td>
-      <td>Callback when playback stops in the current action's time range</td>
-      <td>
-        <code>(param: EffectSourceParam) => void</code>
-      </td>
-      <td>
-        <code>--</code>
-      </td>
-    </tr>
 </table>
 
 ### EffectSourceParam
@@ -325,7 +238,6 @@ import { Meta } from '@storybook/addon-docs/blocks';
     </tr>
   </thead>
   <tbody>
-  </tbody>
     <tr>
       <td>time</td>
       <td>Current playback time</td>
@@ -340,32 +252,37 @@ import { Meta } from '@storybook/addon-docs/blocks';
         <code>boolean</code>
       </td>
     </tr>
-     <tr>
+    <tr>
       <td>action</td>
       <td>Action</td>
       <td>
-        <code><a href="#timelineaction">TimelineAction</a></code>
+        <code>
+          <a href="#timelineaction">TimelineAction</a>
+        </code>
       </td>
     </tr>
-     <tr>
+    <tr>
       <td>effect</td>
       <td>Action effect</td>
       <td>
-        <code><a href="#timelineeffect">TimelineEffect</a></code>
+        <code>
+          <a href="#timelineeffect">TimelineEffect</a>
+        </code>
       </td>
     </tr>
-     <tr>
+    <tr>
       <td>engine</td>
       <td>Runner</td>
       <td>
         <code>TimelineEngine</code>
       </td>
     </tr>
+  </tbody>
 </table>
 
 ## TimelineState
 
-> Timeline component data
+> Timeline component ref state
 
 <table>
   <thead>
@@ -376,33 +293,402 @@ import { Meta } from '@storybook/addon-docs/blocks';
     </tr>
   </thead>
   <tbody>
-  </tbody>
     <tr>
       <td>target</td>
-      <td>DOM node that the timeline belongs to</td>
+      <td>DOM node that the timeline belongs to (readonly)</td>
       <td>
-        <code>HTMLElement</code>
+        <code>HTMLDivElement</code>
       </td>
     </tr>
-     <tr>
-      <td>Time</td>
+    <tr>
+      <td>time</td>
       <td>Set/Get current playback time</td>
       <td>
         <code>number</code>
       </td>
     </tr>
-     <tr>
+    <tr>
+      <td>getTime</td>
+      <td>Get current playback time</td>
+      <td>
+        <code>() => number</code>
+      </td>
+    </tr>
+    <tr>
+      <td>setTime</td>
+      <td>Set current playback time</td>
+      <td>
+        <code>(time: number) => void</code>
+      </td>
+    </tr>
+    <tr>
       <td>setScrollLeft</td>
       <td>Set scrollLeft</td>
       <td>
         <code>(val: number) => void</code>
       </td>
     </tr>
-     <tr>
+    <tr>
       <td>setScrollTop</td>
       <td>Set scrollTop</td>
       <td>
         <code>(val: number) => void</code>
       </td>
     </tr>
+    <tr>
+      <td>scrollLeft</td>
+      <td>Get/Set scrollLeft</td>
+      <td>
+        <code>number</code>
+      </td>
+    </tr>
+    <tr>
+      <td>scrollTop</td>
+      <td>Get/Set scrollTop</td>
+      <td>
+        <code>number</code>
+      </td>
+    </tr>
+    <tr>
+      <td>scrollToTime</td>
+      <td>Scroll to a specific time position</td>
+      <td>
+        <code>
+          (time: number, options?:{" "}
+          <a href="#scrolltotimeoptions">ScrollToTimeOptions</a>) => void
+        </code>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+### ScrollToTimeOptions
+
+> Options for scrolling to a specific time
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>block</td>
+      <td>Alignment of the time position within the viewport</td>
+      <td>
+        <code>"start" | "center" | "end"</code>
+      </td>
+      <td>
+        <code>"start"</code>
+      </td>
+    </tr>
+    <tr>
+      <td>offset</td>
+      <td>Additional offset from the aligned position (unit: px)</td>
+      <td>
+        <code>number</code>
+      </td>
+      <td>
+        <code>0</code>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+## TimelineEditor
+
+> Timeline component props (extends EditData)
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>onScroll</td>
+      <td>
+        Editing area scroll callback (used to control synchronization with
+        editing row scrolling)
+      </td>
+      <td>
+        <code>(params: EventTarget & HTMLDivElement) => void</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+    <tr>
+      <td>autoScroll</td>
+      <td>Whether to enable auto scroll when dragging</td>
+      <td>
+        <code>boolean</code>
+      </td>
+      <td>
+        <code>false</code>
+      </td>
+    </tr>
+    <tr>
+      <td>style</td>
+      <td>Custom timeline style</td>
+      <td>
+        <code>React.CSSProperties</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+    <tr>
+      <td>onChange</td>
+      <td>
+        Data change callback, triggered after action end changes data (return
+        false to prevent automatic engine synchronization, used to reduce
+        performance overhead)
+      </td>
+      <td>
+        <code>
+          (editorData: <a href="#timelinerow">TimelineRow</a>[]) => void |
+          boolean
+        </code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+## EditData
+
+> Timeline editing configuration (base interface for TimelineEditor)
+
+<table>
+  <thead>
+    <tr>
+      <th>Property</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>editorData</td>
+      <td>Timeline editing data</td>
+      <td><code>TimelineRow[]</code></td>
+      <td><code>(required)</code></td>
+    </tr>
+    <tr>
+      <td>effects</td>
+      <td>Timeline action effects map</td>
+      <td><code>Record&lt;string, TimelineEffect&gt;</code></td>
+      <td><code>(required)</code></td>
+    </tr>
+    <tr>
+      <td>scale</td>
+      <td>Single scale mark range (&gt;0)</td>
+      <td><code>number</code></td>
+      <td><code>1</code></td>
+    </tr>
+    <tr>
+      <td>minScaleCount</td>
+      <td>Minimum number of scales (&gt;=1)</td>
+      <td><code>number</code></td>
+      <td><code>20</code></td>
+    </tr>
+    <tr>
+      <td>maxScaleCount</td>
+      <td>Maximum number of scales (&gt;=minScaleCount)</td>
+      <td><code>number</code></td>
+      <td><code>Infinity</code></td>
+    </tr>
+    <tr>
+      <td>scaleSplitCount</td>
+      <td>Number of subdivision units per scale (&gt;0 integer)</td>
+      <td><code>number</code></td>
+      <td><code>10</code></td>
+    </tr>
+    <tr>
+      <td>scaleWidth</td>
+      <td>Display width of a single scale (&gt;0, unit: px)</td>
+      <td><code>number</code></td>
+      <td><code>160</code></td>
+    </tr>
+    <tr>
+      <td>startLeft</td>
+      <td>Distance from the left where the scale starts (&gt;=0, unit: px)</td>
+      <td><code>number</code></td>
+      <td><code>20</code></td>
+    </tr>
+    <tr>
+      <td>rowHeight</td>
+      <td>Default height of each editing row (&gt;0, unit: px)</td>
+      <td><code>number</code></td>
+      <td><code>32</code></td>
+    </tr>
+    <tr>
+      <td>gridSnap</td>
+      <td>Whether to enable grid snap</td>
+      <td><code>boolean</code></td>
+      <td><code>false</code></td>
+    </tr>
+    <tr>
+      <td>snap</td>
+      <td>Enable snap</td>
+      <td><code>boolean</code></td>
+      <td><code>false</code></td>
+    </tr>
+    <tr>
+      <td>cursorSnap</td>
+      <td>Enable cursor snap to action endpoints when dragging</td>
+      <td><code>boolean</code></td>
+      <td><code>false</code></td>
+    </tr>
+    <tr>
+      <td>hideCursor</td>
+      <td>Whether to hide cursor</td>
+      <td><code>boolean</code></td>
+      <td><code>false</code></td>
+    </tr>
+    <tr>
+      <td>disableDrag</td>
+      <td>Disable dragging in all action areas</td>
+      <td><code>boolean</code></td>
+      <td><code>false</code></td>
+    </tr>
+    <tr>
+      <td>getActionRender</td>
+      <td>Custom action area rendering</td>
+      <td><code>(action: TimelineAction, row: TimelineRow) =&gt; React.ReactNode</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>getScaleRender</td>
+      <td>Custom scale rendering</td>
+      <td><code>(scale: number) =&gt; React.ReactNode</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onActionMoveStart</td>
+      <td>Start move callback</td>
+      <td><code>(params: &#123; action: TimelineAction; row: TimelineRow &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onActionMoving</td>
+      <td>Move callback (return false to prevent movement)</td>
+      <td><code>(params: &#123; action: TimelineAction; row: TimelineRow; start: number; end: number &#125;) =&gt; void | boolean</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onActionMoveEnd</td>
+      <td>Move end callback (return false to prevent onChange trigger)</td>
+      <td><code>(params: &#123; action: TimelineAction; row: TimelineRow; start: number; end: number &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onActionResizeStart</td>
+      <td>Start resize callback</td>
+      <td><code>(params: &#123; action: TimelineAction; row: TimelineRow; dir: "right" | "left" &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onActionResizing</td>
+      <td>Resize callback (return false to prevent resize)</td>
+      <td><code>(params: &#123; action: TimelineAction; row: TimelineRow; start: number; end: number; dir: "right" | "left" &#125;) =&gt; void | boolean</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onActionResizeEnd</td>
+      <td>Resize end callback (return false to prevent onChange trigger)</td>
+      <td><code>(params: &#123; action: TimelineAction; row: TimelineRow; start: number; end: number; dir: "right" | "left" &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onClickRow</td>
+      <td>Click row callback</td>
+      <td><code>(e: React.MouseEvent&lt;HTMLElement, MouseEvent&gt;, param: &#123; row: TimelineRow; time: number &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onClickAction</td>
+      <td>Click action callback</td>
+      <td><code>(e: React.MouseEvent&lt;HTMLElement, MouseEvent&gt;, param: &#123; action: TimelineAction; row: TimelineRow; time: number &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onClickActionOnly</td>
+      <td>Click action callback (not executed when drag is triggered)</td>
+      <td><code>(e: React.MouseEvent&lt;HTMLElement, MouseEvent&gt;, param: &#123; action: TimelineAction; row: TimelineRow; time: number &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onDoubleClickRow</td>
+      <td>Double click row callback</td>
+      <td><code>(e: React.MouseEvent&lt;HTMLElement, MouseEvent&gt;, param: &#123; row: TimelineRow; time: number &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onDoubleClickAction</td>
+      <td>Double click action callback</td>
+      <td><code>(e: React.MouseEvent&lt;HTMLElement, MouseEvent&gt;, param: &#123; action: TimelineAction; row: TimelineRow; time: number &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onContextMenuRow</td>
+      <td>Right click row callback</td>
+      <td><code>(e: React.MouseEvent&lt;HTMLElement, MouseEvent&gt;, param: &#123; row: TimelineRow; time: number &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onContextMenuAction</td>
+      <td>Right click action callback</td>
+      <td><code>(e: React.MouseEvent&lt;HTMLElement, MouseEvent&gt;, param: &#123; action: TimelineAction; row: TimelineRow; time: number &#125;) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>getAssistDragLineActionIds</td>
+      <td>Get the list of action ids to show assist drag lines, calculated at move/resize start, defaults to all actions except the currently moving action</td>
+      <td><code>(params: &#123; action: TimelineAction; editorData: TimelineRow[]; row: TimelineRow &#125;) =&gt; string[]</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onCursorDragStart</td>
+      <td>Cursor drag start event</td>
+      <td><code>(time: number) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onCursorDragEnd</td>
+      <td>Cursor drag end event</td>
+      <td><code>(time: number) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onCursorDrag</td>
+      <td>Cursor drag event</td>
+      <td><code>(time: number) =&gt; void</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>onClickTimeArea</td>
+      <td>Click time area event, return false to prevent setting time</td>
+      <td><code>(time: number, e: React.MouseEvent&lt;HTMLDivElement, MouseEvent&gt;) =&gt; boolean | undefined</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>unstable_rowActionsOverscan</td>
+      <td>Virtualization overscan count (unstable API, may change or be removed)</td>
+      <td><code>number</code></td>
+      <td><code>5</code></td>
+    </tr>
+  </tbody>
 </table>

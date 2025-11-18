@@ -33,6 +33,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
     startLeft,
     scale,
     scaleWidth,
+    unstable_rowActionsOverscan,
   } = props;
 
   const classNames = ["edit-row"];
@@ -96,7 +97,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
       );
       return width;
     },
-    overscan: 10,
+    overscan: unstable_rowActionsOverscan ?? 5,
   });
 
   // Remeasure when scale, scaleWidth or startLeft change
