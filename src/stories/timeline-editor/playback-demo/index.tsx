@@ -1,15 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Timeline, type TimelineState } from "@/index";
 
-import { useEffect, useRef, useState, useCallback, startTransition, type RefObject } from "react";
+import {
+  useEffect,
+  useRef,
+  useState, type RefObject
+} from "react";
 import "./index.less";
 import { mockData, mockEffect } from "./mock";
-import { parserTimeToPixel } from "@/utils/deal-data";
 import { useMeasure } from "@/utils/measured";
 import { MotionProp } from "./motion-prop";
 import type { MotionValue } from "motion";
 import { useMotionValueEvent } from "motion/react";
 import { useHasChanged } from "@/utils/use-has-changed";
+import { usePlaybackAnimation } from "./use-playback-animation";
 
 const defaultEditorData = structuredClone(mockData);
 
@@ -34,7 +38,6 @@ const PlaybackDemo = (args: {
     <div className="timeline-editor-example-playback-demo">
       <MotionProp
         value={visibleTimeSecs}
-        maxValue={600}
         render={(i, motionVal) => {
           const value = calculateScale(i, (width || 800) - startLeft * 2);
 
@@ -205,113 +208,13 @@ function PlaybackControls(args: {
   playbackSpeed?: number;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const animationFrameRef = useRef<number | null>(null);
-  const lastTimeRef = useRef<number>(0);
 
-  const propsRef = useRef<{
-    scale: number;
-    scaleWidth: number;
-    startLeft: number;
-    playbackSpeed: number;
-  }>({
-    scale: args.scale,
-    scaleWidth: args.scaleWidth,
-    startLeft: args.startLeft,
-    playbackSpeed: args.playbackSpeed ?? 1,
+  // Use custom hook to manage playback animation with stable cursor positioning
+  usePlaybackAnimation({
+    timelineStateRef: args.timelineStateRef,
+    playbackSpeed: args.playbackSpeed,
+    isPlaying,
   });
-
-  useEffect(() => {
-    propsRef.current = {
-      scale: args.scale,
-      scaleWidth: args.scaleWidth,
-      startLeft: args.startLeft,
-      playbackSpeed: args.playbackSpeed ?? 1,
-    };
-  }, [args.playbackSpeed, args.scale, args.scaleWidth, args.startLeft]);
-
-  useEffect(() => {
-    if (!isPlaying) {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      return;
-    }
-
-    const animate = (currentTime: number) => {
-      const editorState = args.timelineStateRef.current;
-      if (!editorState) {
-        setIsPlaying(false);
-        return;
-      }
-
-      const deltaTime = (currentTime - lastTimeRef.current) / 1000; // Convert to seconds
-      lastTimeRef.current = currentTime;
-
-      // Advance time based on playback speed
-      const currentTimeValue = editorState.time;
-      const newTime =
-        currentTimeValue + deltaTime * propsRef.current.playbackSpeed;
-
-      editorState.time = Math.max(0, newTime); // Ensure time doesn't go negative
-
-      // Use a more stable scroll approach: check bounds in next frame
-      const scrollElement = editorState.target;
-      if (!scrollElement) return;
-
-      const cursorPixelPosition = parserTimeToPixel(newTime, {
-        startLeft: propsRef.current.startLeft,
-        scale: propsRef.current.scale,
-        scaleWidth: propsRef.current.scaleWidth,
-      });
-
-      const viewportWidth = scrollElement.clientWidth;
-      const currentScrollLeft = scrollElement.scrollLeft;
-      const visibleLeft = currentScrollLeft;
-      const visibleRight = currentScrollLeft + viewportWidth;
-
-      const paddingPixels = 50;
-
-      // Calculate how far out of bounds the cursor is
-      const distanceFromLeftBound =
-        visibleLeft + paddingPixels - cursorPixelPosition;
-      const distanceFromRightBound =
-        cursorPixelPosition - (visibleRight - paddingPixels);
-
-      // Only scroll if cursor is significantly out of bounds (beyond threshold)
-      if (distanceFromLeftBound > 0) {
-        // Cursor is too far left, scroll to show it with padding
-        const targetScrollLeft = Math.max(
-          0,
-          cursorPixelPosition - paddingPixels
-        );
-        scrollElement.scrollTo({
-          left: targetScrollLeft,
-          behavior: "auto",
-        });
-      } else if (distanceFromRightBound > 0) {
-        // Cursor is too far right, scroll to show it with padding
-        const targetScrollLeft =
-          cursorPixelPosition - viewportWidth + paddingPixels;
-        scrollElement.scrollTo({
-          left: targetScrollLeft,
-          behavior: "auto",
-        });
-      }
-
-      animationFrameRef.current = requestAnimationFrame(animate);
-    };
-
-    lastTimeRef.current = performance.now();
-    animationFrameRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animationFrameRef.current !== null) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-    };
-  }, [args.timelineStateRef, isPlaying]);
 
   const handlePlay = () => {
     setIsPlaying(true);
@@ -368,24 +271,13 @@ function SetTimelineAnimatingClassState(props: {
 
 function useSyncedState<T>(value: T) {
   const [state, setState] = useState(value);
-  const isUncontrolledRef = useRef(false);
   const hasInputChanged = useHasChanged(value);
 
   // If input value changed, sync state to input and switch to controlled mode
   useEffect(() => {
-    if (hasInputChanged) {
-      isUncontrolledRef.current = false;
-      startTransition(() => {
-        setState(value);
-      });
-    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (hasInputChanged) setState(value);
   }, [value, hasInputChanged]);
 
-  // Wrapped setState that marks as uncontrolled when called
-  const setStateUncontrolled = useCallback((newValue: T | ((prev: T) => T)) => {
-    isUncontrolledRef.current = true;
-    setState(newValue);
-  }, []);
-
-  return [state, setStateUncontrolled] as const;
+  return [state, setState] as const;
 }

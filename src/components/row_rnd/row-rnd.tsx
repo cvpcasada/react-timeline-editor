@@ -1,9 +1,5 @@
 import { type GestureEvent } from "./gesture-types";
-import React, {
-  useEffect,
-  useImperativeHandle,
-  useRef
-} from "react";
+import React, { useEffect, useImperativeHandle, useRef } from "react";
 import {
   DEFAULT_SNAP_DISTANCE,
   DEFAULT_MOVE_GRID,
@@ -90,7 +86,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       if (!interactableRef.current) return;
       if (reset) deltaX.current = 0;
       const target = interactableRef.current;
-      target.style.setProperty('--translate-x', `${left}px`);
+      target.style.setProperty("--translate-x", `${left}px`);
       target.dataset.left = String(left);
     };
 
@@ -281,11 +277,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
         let curLeft = preLeft + count * distance;
 
         // Control snap
-        const { snap } = calculateSnap(
-          curLeft,
-          snapPositions,
-          snapDistance
-        );
+        const { snap } = calculateSnap(curLeft, snapPositions, snapDistance);
 
         if (snap !== curLeft) {
           isSnap.current = true;
@@ -329,11 +321,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
         const rightEdge = preLeft + curWidth;
 
         // Control snap
-        const { snap } = calculateSnap(
-          rightEdge,
-          snapPositions,
-          snapDistance
-        );
+        const { snap } = calculateSnap(rightEdge, snapPositions, snapDistance);
 
         if (snap !== rightEdge) {
           isSnap.current = true;
@@ -427,11 +415,14 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
 
     return (
       <Interactable
-        style={{
-          '--translate-x': `${left || 0}px`,
-          transform: `translateX(var(--translate-x)) scaleX(var(--scale-x,1))`,
-          width,
-        } as React.CSSProperties}
+        data-left={left || 0}
+        style={
+          {
+            "--translate-x": `${left || 0}px`,
+            transform: `translateX(var(--translate-x)) scaleX(var(--scale-x,1))`,
+            width,
+          } as React.CSSProperties
+        }
         ref={interactableRef}
         draggable={enableDragging}
         resizable={enableResizing}

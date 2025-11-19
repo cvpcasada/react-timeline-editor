@@ -26,7 +26,7 @@
     "lint:package": "npx --yes @arethetypeswrong/cli -P",
     "typecheck": "tsc --noEmit",
     "build-storybook": "storybook build",
-    "publish": "npm run build && npm publish --access public --tag alpha"
+    "npm:publish": "npm run build && npm publish --access public --tag alpha"
   },
   "files": [
     "dist"

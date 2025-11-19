@@ -250,6 +250,12 @@ export type ScrollToTimeBlock = "start" | "center" | "end";
 export interface ScrollToTimeOptions {
   block?: ScrollToTimeBlock;
   offset?: number;
+  /**
+   * @description Only scroll if the time is not currently visible in the viewport
+   * @default false
+   */
+  onlyIfNotVisible?: boolean;
+  behavior?: "instant" | "smooth" | "auto";
 }
 
 export interface TimelineState {
@@ -262,6 +268,7 @@ export interface TimelineState {
   scrollLeft: number;
   scrollTop: number;
   scrollToTime(time: number, options?: ScrollToTimeOptions): void;
+  getTimePixelPosition(time?: number): number;
 }
 
 /**

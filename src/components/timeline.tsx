@@ -4,7 +4,7 @@ import React, {
   useImperativeHandle,
   useLayoutEffect,
   useRef,
-  useState
+  useState,
 } from "react";
 import { PREFIX, START_CURSOR_TIME } from "@/interface/const";
 import {
@@ -123,7 +123,7 @@ export function Timeline({
     const element = domRef.current;
     if (!element) return;
 
-    const { block = "start", offset = 0 } = options;
+    const { block = "start", offset = 0, onlyIfNotVisible = false } = options;
     const target = parserTimeToPixel(time, {
       startLeft: timelineProps.startLeft,
       scale: timelineProps.scale,
@@ -131,6 +131,17 @@ export function Timeline({
     });
 
     const viewportWidth = element.clientWidth;
+
+    if (onlyIfNotVisible) {
+      const currentScrollLeft = element.scrollLeft;
+      if (
+        target >= currentScrollLeft &&
+        target <= currentScrollLeft + viewportWidth
+      ) {
+        return;
+      }
+    }
+
     let targetScrollLeft: number;
 
     if (block === "end") {
@@ -142,68 +153,79 @@ export function Timeline({
     }
 
     const maxScrollLeft = Math.max(0, element.scrollWidth - viewportWidth);
-    element.scrollLeft = Math.min(
-      Math.max(targetScrollLeft, 0),
-      maxScrollLeft
-    );
+    element.scrollTo({
+      left: Math.min(Math.max(targetScrollLeft, 0), maxScrollLeft),
+      behavior: options.behavior ?? "instant",
+    })
   };
 
   // Ref data
-  useImperativeHandle(ref, () => ({
-    get target() {
-      return domRef.current!;
-    },
-    set time(time: number) {
-      handleSetCursor({ time });
-    },
-    get time() {
-      return cursorTimeRef.current;
-    },
+  useImperativeHandle(
+    ref,
+    () =>
+    ({
+      get target() {
+        return domRef.current!;
+      },
+      set time(time: number) {
+        handleSetCursor({ time });
+      },
+      get time() {
+        return cursorTimeRef.current;
+      },
 
-    getTime() {
-      return cursorTimeRef.current;
-    },
+      getTime() {
+        return cursorTimeRef.current;
+      },
 
-    setTime(time: number) {
-      handleSetCursor({ time });
-    },
+      setTime(time: number) {
+        handleSetCursor({ time });
+      },
 
-    setScrollLeft: (val) => {
-      if (!domRef.current) return;
-      domRef.current.scrollLeft = val;
-    },
-    setScrollTop: (val) => {
-      if (!domRef.current) return;
-      domRef.current.scrollTop = val;
-    },
+      getTimePixelPosition(time?: number) {
+        return parserTimeToPixel(time ?? cursorTimeRef.current, {
+          startLeft: timelineProps.startLeft,
+          scale: timelineProps.scale,
+          scaleWidth: timelineProps.scaleWidth,
+        });
+      },
 
-    get scrollLeft() {
-      if (!domRef.current) return 0;
-      return domRef.current.scrollLeft;
-    },
+      setScrollLeft: (val) => {
+        if (!domRef.current) return;
+        domRef.current.scrollLeft = val;
+      },
+      setScrollTop: (val) => {
+        if (!domRef.current) return;
+        domRef.current.scrollTop = val;
+      },
 
-    get scrollTop() {
-      if (!domRef.current) return 0;
-      return domRef.current.scrollTop;
-    },
+      get scrollLeft() {
+        if (!domRef.current) return 0;
+        return domRef.current.scrollLeft;
+      },
 
-    set scrollLeft(val: number) {
-      if (!domRef.current) return;
-      domRef.current.scrollLeft = val;
-    },
-    set scrollTop(val: number) {
-      if (!domRef.current) return;
-      domRef.current.scrollTop = val;
-    },
-    scrollToTime: handleScrollToTime,
-  } satisfies TimelineState));
+      get scrollTop() {
+        if (!domRef.current) return 0;
+        return domRef.current.scrollTop;
+      },
+
+      set scrollLeft(val: number) {
+        if (!domRef.current) return;
+        domRef.current.scrollLeft = val;
+      },
+      set scrollTop(val: number) {
+        if (!domRef.current) return;
+        domRef.current.scrollTop = val;
+      },
+      scrollToTime: handleScrollToTime,
+    } satisfies TimelineState)
+  );
 
   return (
     <ScrollArea.Root
       style={timelineProps.style}
-      className={`${PREFIX} ${
-        timelineProps.disableDrag ? PREFIX + "-disable" : ""
-      }`}
+      className={`${PREFIX} ${timelineProps.disableDrag ? PREFIX + "-disable" : ""
+        }`}
       data-slot="scroll-area"
     >
       <ScrollArea.Viewport
