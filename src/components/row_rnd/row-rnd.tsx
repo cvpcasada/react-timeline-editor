@@ -11,7 +11,11 @@ import {
   type Direction,
   type RowRndApi,
   type RowRndProps,
+  type SnapPosition,
 } from "./row-rnd-interface";
+import { log as logger } from '@cyca/log'
+
+const log = logger.getLogger('[Snap Debug]').setLevel(import.meta.env.DEV ? 'debug' : 'info');
 
 // Helper function to parse dataset values
 const parseDatasetValue = (
@@ -24,7 +28,7 @@ const parseDatasetValue = (
 // Helper function to calculate snap position
 const calculateSnap = (
   position: number,
-  snapPositions: number[],
+  snapPositions: SnapPosition[],
   snapDistance: number,
   minDis: number = Number.MAX_SAFE_INTEGER
 ): { snap: number; minDis: number } => {
@@ -32,10 +36,19 @@ const calculateSnap = (
   let currentMinDis = minDis;
 
   for (const item of snapPositions) {
-    const dis = Math.abs(item - position);
+    const itemValue = typeof item === "number" ? item : item.value;
+    const dis = Math.abs(itemValue - position);
     if (dis < snapDistance && dis < currentMinDis) {
-      snap = item;
+      snap = itemValue;
       currentMinDis = dis;
+      if (typeof item === "object") {
+        log.debug(
+          `Snapped to: ${itemValue} (Distance: ${dis}) Row: ${item.rowId ?? "N/A"
+          } Action: ${item.actionId ?? "N/A"}`
+        );
+      } else {
+        log.debug(`Snapped to: ${itemValue} (Distance: ${dis})`);
+      }
     }
   }
 
@@ -60,6 +73,7 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       enableDragging = true,
       snapDistance = DEFAULT_SNAP_DISTANCE,
       snapPositions = [],
+      snapOrigin = "leading",
       onResizeStart,
       onResize,
       onResizeEnd,
@@ -161,7 +175,15 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
 
       // Control snap - check the leading edge based on movement direction
       const movingRight = deltaX.current > 0;
-      const checkPosition = movingRight ? curLeft + preWidth : curLeft;
+      let checkPosition = curLeft;
+      if (snapOrigin === "leading") {
+        checkPosition = movingRight ? curLeft + preWidth : curLeft;
+      } else if (snapOrigin === "right") {
+        checkPosition = curLeft + preWidth;
+      } else if (snapOrigin === "center") {
+        checkPosition = curLeft + preWidth / 2;
+      }
+
       const { snap: snapPosition } = calculateSnap(
         checkPosition,
         snapPositions,
@@ -171,7 +193,15 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       if (snapPosition !== checkPosition) {
         isSnap.current = true;
         // Adjust curLeft based on which edge snapped
-        curLeft = movingRight ? snapPosition - preWidth : snapPosition;
+        if (snapOrigin === "leading") {
+          curLeft = movingRight ? snapPosition - preWidth : snapPosition;
+        } else if (snapOrigin === "right") {
+          curLeft = snapPosition - preWidth;
+        } else if (snapOrigin === "center") {
+          curLeft = snapPosition - preWidth / 2;
+        } else {
+          curLeft = snapPosition;
+        }
       } else {
         // Control grid
         const offset = curLeft - start;

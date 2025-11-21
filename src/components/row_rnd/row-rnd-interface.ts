@@ -38,6 +38,12 @@ export interface RowRndApi {
   getWidth: () => number;
 }
 
+export type SnapPosition = {
+  value: number;
+  rowId?: string;
+  actionId?: string;
+} | number;
+
 export interface RowRndProps {
   width?: number;
   left?: number;
@@ -58,8 +64,9 @@ export interface RowRndProps {
 
   enableResizing?: boolean;
   enableDragging?: boolean;
-  snapPositions?: number[];
+  snapPositions?: SnapPosition[];
   snapDistance?: number;
+  snapOrigin?: "left" | "right" | "center" | "leading";
   /**
    * @description Whether to enable auto scroll when dragging/resizing near boundaries
    * @default true

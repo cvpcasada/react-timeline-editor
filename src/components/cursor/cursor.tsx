@@ -1,9 +1,9 @@
-import React, { type FC, useEffect, useRef } from "react";
+import React, { type FC, useEffect, useMemo, useRef } from "react";
 import { type CommonProp } from "@/interface/common-prop";
 import { prefix } from "@/utils/deal-class-prefix";
 import { parserActionsToPositions, parserPixelToTime, parserTimeToPixel } from "@/utils/deal-data";
 import { RowDnd } from "@/components/row_rnd/row-rnd";
-import { type RowRndApi } from "@/components/row_rnd/row-rnd-interface";
+import { type RowRndApi, type SnapPosition } from "@/components/row_rnd/row-rnd-interface";
 import { DEFAULT_SNAP_DISTANCE } from "@/interface/const";
 
 /** Animation timeline component parameters */
@@ -37,7 +37,6 @@ export const Cursor: FC<CursorProps> = ({
   autoScrollMaxSpeed,
 }) => {
   const rowRnd = useRef<RowRndApi>(null);
-  const draggingLeft = useRef<number | undefined>(undefined);
 
   // Define constants early for use in calculations
   const leftStart = startLeft ?? 20;
@@ -45,48 +44,34 @@ export const Cursor: FC<CursorProps> = ({
   const scaleValue = scale ?? 1;
 
   // Calculate snap positions from all action endpoints when cursorSnap is enabled
-  // This function will be called with the latest editorData to ensure sync during drag
-  const getSnapPositions = (
-    currentEditorData: typeof editorData,
-    currentStartLeft: number,
-    currentScaleWidth: number,
-    currentScale: number
-  ): number[] => {
-    if (!cursorSnap || !currentEditorData) return [];
+  const snapPositions = useMemo(() => {
+    if (!cursorSnap || !editorData) return [];
 
-    // Collect all actions from all rows
-    const allActions = currentEditorData.flatMap((row) => row.actions);
+    const positions: SnapPosition[] = [];
 
-    // Get positions for all action start and end points
-    return parserActionsToPositions(allActions, {
-      startLeft: currentStartLeft,
-      scale: currentScale,
-      scaleWidth: currentScaleWidth,
+    editorData.forEach((row) => {
+      row.actions.forEach((action) => {
+        const startPos = parserTimeToPixel(action.start, {
+          startLeft: leftStart,
+          scale: scaleValue,
+          scaleWidth: width,
+        });
+        const endPos = parserTimeToPixel(action.end, {
+          startLeft: leftStart,
+          scale: scaleValue,
+          scaleWidth: width,
+        });
+
+        positions.push({ value: startPos, rowId: row.id, actionId: action.id });
+        positions.push({ value: endPos, rowId: row.id, actionId: action.id });
+      });
     });
-  };
 
-  // Helper function to calculate snap position (similar to row-rnd.tsx)
-  const calculateSnap = (
-    position: number,
-    snapPositions: number[],
-    snapDistance: number
-  ): number => {
-    let snap = position;
-    let minDis = Number.MAX_SAFE_INTEGER;
-
-    for (const item of snapPositions) {
-      const dis = Math.abs(item - position);
-      if (dis < snapDistance && dis < minDis) {
-        snap = item;
-        minDis = dis;
-      }
-    }
-
-    return snap;
-  };
+    return positions;
+  }, [cursorSnap, editorData, leftStart, scaleValue, width]);
 
   useEffect(() => {
-    if (typeof draggingLeft.current === "undefined" && rowRnd.current) {
+    if (rowRnd.current) {
       // When not dragging, update cursor scale based on props
       const left = startLeft ?? 20;
       const width = scaleWidth ?? 160;
@@ -135,6 +120,9 @@ export const Cursor: FC<CursorProps> = ({
       autoScrollMaxSpeed={autoScrollMaxSpeed}
       enableDragging={!disableDrag}
       enableResizing={false}
+      snapPositions={snapPositions}
+      snapDistance={DEFAULT_SNAP_DISTANCE}
+      snapOrigin="left"
       onDragStart={() => {
         // Get initial position from the cursor element
         // getLeft() returns absolute position (same coordinate system as parserTimeToPixel)
@@ -146,8 +134,6 @@ export const Cursor: FC<CursorProps> = ({
             scale: scaleValue,
           });
 
-        draggingLeft.current = initialLeft;
-
         // Calculate time the same way as click event: use absolute position directly
         // The click event uses e.clientX - rect.x which gives absolute position within timeline
         const time = parserPixelToTime(initialLeft, {
@@ -156,122 +142,28 @@ export const Cursor: FC<CursorProps> = ({
           scaleWidth: width,
         });
         onCursorDragStart && onCursorDragStart(time);
-        rowRnd.current?.updateLeft(initialLeft);
       }}
-      onDragEnd={() => {
-        if (typeof draggingLeft.current !== "undefined") {
-          // Calculate time the same way as click event: use absolute position directly
-          // draggingLeft.current is absolute position (same coordinate system as click event)
-          const time = parserPixelToTime(draggingLeft.current, {
-            startLeft: leftStart,
-            scale: scaleValue,
-            scaleWidth: width,
-          });
-          setCursor({ time });
-          onCursorDragEnd && onCursorDragEnd(time);
-        }
-        draggingLeft.current = undefined;
+      onDragEnd={({ left }) => {
+        // Calculate time the same way as click event: use absolute position directly
+        const time = parserPixelToTime(left, {
+          startLeft: leftStart,
+          scale: scaleValue,
+          scaleWidth: width,
+        });
+        setCursor({ time });
+        onCursorDragEnd && onCursorDragEnd(time);
       }}
-      onDrag={({ left }, scrollDelta = 0) => {
-        let currentScrollLeft = scrollElementRef.current?.scrollLeft ?? 0;
-        const scrollElement = scrollElementRef.current;
-        const viewportWidth = scrollElement?.clientWidth ?? 0;
-
-        // Handle scroll compensation when auto-scroll is active
-        if (scrollDelta !== 0) {
-          // When auto-scrolling, compensate the cursor position by adding scrollDelta
-          if (typeof draggingLeft.current !== "undefined") {
-            draggingLeft.current += scrollDelta;
-
-            // Ensure cursor stays visible within viewport
-            // draggingLeft.current is relative to the scrollable content
-            // It's visible if it's between currentScrollLeft and currentScrollLeft + viewportWidth
-            const minVisibleLeft = currentScrollLeft;
-            const maxVisibleLeft = currentScrollLeft + viewportWidth;
-
-            // Keep cursor within visible bounds with a small margin
-            const margin = 10; // pixels margin from edges
-            if (draggingLeft.current < minVisibleLeft + margin) {
-              draggingLeft.current = minVisibleLeft + margin;
-            } else if (draggingLeft.current > maxVisibleLeft - margin) {
-              draggingLeft.current = maxVisibleLeft - margin;
-            }
-
-            // Also ensure cursor stays within logical bounds
-            if (draggingLeft.current < leftStart - currentScrollLeft) {
-              draggingLeft.current = leftStart - currentScrollLeft;
-            }
-          } else {
-            // Initialize draggingLeft if not set yet
-            draggingLeft.current = left + scrollDelta;
-            // Ensure it's visible
-            const minVisibleLeft = currentScrollLeft;
-            const maxVisibleLeft = currentScrollLeft + viewportWidth;
-            const margin = 10;
-            if (draggingLeft.current < minVisibleLeft + margin) {
-              draggingLeft.current = minVisibleLeft + margin;
-            } else if (draggingLeft.current > maxVisibleLeft - margin) {
-              draggingLeft.current = maxVisibleLeft - margin;
-            }
-          }
-        } else {
-          // Normal drag (no auto-scroll)
-          // When dragging, if current left < left min, set value to left min
-          if (left < leftStart - currentScrollLeft)
-            draggingLeft.current = leftStart - currentScrollLeft;
-          else draggingLeft.current = left;
-
-          // Ensure cursor stays visible in viewport during normal drag
-          if (scrollElement && viewportWidth > 0) {
-            const minVisibleLeft = currentScrollLeft;
-            const maxVisibleLeft = currentScrollLeft + viewportWidth;
-            const margin = 10;
-
-            if (draggingLeft.current < minVisibleLeft + margin) {
-              draggingLeft.current = minVisibleLeft + margin;
-            } else if (draggingLeft.current > maxVisibleLeft - margin) {
-              draggingLeft.current = maxVisibleLeft - margin;
-            }
-          }
-        }
-
-        if (typeof draggingLeft.current !== "undefined") {
-          let finalLeft = draggingLeft.current;
-
-          // Apply cursor snap if enabled
-          // Recalculate snap positions from latest editorData to ensure sync during drag
-          if (cursorSnap) {
-            const currentSnapPositions = getSnapPositions(
-              editorData,
-              leftStart,
-              width,
-              scaleValue
-            );
-            if (currentSnapPositions.length > 0) {
-              const snappedLeft = calculateSnap(
-                draggingLeft.current,
-                currentSnapPositions,
-                DEFAULT_SNAP_DISTANCE
-              );
-              finalLeft = snappedLeft;
-              // Update draggingLeft to snapped value for consistency
-              draggingLeft.current = finalLeft;
-            }
-          }
-
-          rowRnd.current?.updateLeft(finalLeft);
-          // Calculate time the same way as click event: use absolute position directly
-          // The click event uses e.clientX - rect.x which gives absolute position within timeline
-          // finalLeft is absolute position (same coordinate system as click event)
-          const time = parserPixelToTime(finalLeft, {
-            startLeft: leftStart,
-            scale: scaleValue,
-            scaleWidth: width,
-          });
-          setCursor({ time });
-          onCursorDrag && onCursorDrag(time);
-        }
-        return false;
+      onDrag={({ left }) => {
+        // Calculate time the same way as click event: use absolute position directly
+        // The click event uses e.clientX - rect.x which gives absolute position within timeline
+        // left is absolute position (same coordinate system as click event)
+        const time = parserPixelToTime(left, {
+          startLeft: leftStart,
+          scale: scaleValue,
+          scaleWidth: width,
+        });
+        setCursor({ time });
+        onCursorDrag && onCursorDrag(time);
       }}
     >
       <div className={prefix("cursor")}>

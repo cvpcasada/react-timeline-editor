@@ -189,7 +189,7 @@ export const EditAction: FC<EditActionProps> = ({
     if (!actionItem) return;
     actionItem.start = start;
     actionItem.end = end;
-    setEditorData(editorData);
+    setEditorData([...editorData]);
 
     // Execute callback
     if (onActionMoveEnd)
@@ -233,7 +233,7 @@ export const EditAction: FC<EditActionProps> = ({
     if (!actionItem) return;
     actionItem.start = start;
     actionItem.end = end;
-    setEditorData(editorData);
+    setEditorData([...editorData]);
 
     // Trigger callback
     if (onActionResizeEnd)
