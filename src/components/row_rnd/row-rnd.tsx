@@ -68,6 +68,8 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       onDrag,
       parentRef,
       autoScroll = true,
+      autoScrollSpeed,
+      autoScrollMaxSpeed,
     },
     ref
   ) => {
@@ -79,7 +81,11 @@ export const RowDnd = React.forwardRef<RowRndApi, RowRndProps>(
       stopAutoScroll,
       dealDragAutoScroll,
       dealResizeAutoScroll,
-    } = useAutoScroll(parentRef as React.RefObject<HTMLDivElement>);
+    } = useAutoScroll(
+      parentRef as React.RefObject<HTMLDivElement>,
+      autoScrollSpeed,
+      autoScrollMaxSpeed
+    );
 
     //#region [rgba(100,120,156,0.08)] Assignment related APIs
     const handleUpdateLeft = (left: number, reset = true) => {

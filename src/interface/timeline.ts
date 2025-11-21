@@ -287,6 +287,16 @@ export interface TimelineEditor extends EditData {
    */
   autoScroll?: boolean;
   /**
+   * @description Auto scroll speed (default 1)
+   * @default 1
+   */
+  autoScrollSpeed?: number;
+  /**
+   * @description Auto scroll max speed (default 10)
+   * @default 10
+   */
+  autoScrollMaxSpeed?: number;
+  /**
    * @description Custom timeline style
    */
   style?: React.CSSProperties;

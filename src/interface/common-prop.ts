@@ -10,4 +10,8 @@ export interface CommonProp extends EditData {
   cursorTime: number;
   /** Current timeline width */
   timelineWidth: number;
+  /** Auto scroll speed */
+  autoScrollSpeed?: number;
+  /** Auto scroll max speed */
+  autoScrollMaxSpeed?: number;
 }

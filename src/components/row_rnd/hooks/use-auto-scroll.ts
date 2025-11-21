@@ -5,11 +5,15 @@ const DEFAULT_SPEED = 1;
 const MAX_SPEED = 10;
 const CRITICAL_SIZE = 10;
 
-export function useAutoScroll(target: React.RefObject<HTMLDivElement>) {
+export function useAutoScroll(
+  target: React.RefObject<HTMLDivElement>,
+  autoScrollSpeed: number = DEFAULT_SPEED,
+  autoScrollMaxSpeed: number = MAX_SPEED
+) {
   const leftBoundRef = useRef(Number.MIN_SAFE_INTEGER);
   const rightBoundRef = useRef(Number.MAX_SAFE_INTEGER);
 
-  const speed = useRef(DEFAULT_SPEED);
+  const speed = useRef(autoScrollSpeed);
   const frame = useRef<number | undefined>(undefined);
 
   const initAutoScroll = () => {
@@ -27,7 +31,7 @@ export function useAutoScroll(target: React.RefObject<HTMLDivElement>) {
         cancelAnimationFrame(frame.current);
       }
       const over = Math.abs(e.clientX >= rightBoundRef.current ? e.clientX - rightBoundRef.current : e.clientX - leftBoundRef.current);
-      speed.current = Math.min(Number((over / CRITICAL_SIZE).toFixed(0)) * DEFAULT_SPEED, MAX_SPEED);
+      speed.current = Math.min(Number((over / CRITICAL_SIZE).toFixed(0)) * autoScrollSpeed, autoScrollMaxSpeed);
 
       const dir = e.clientX >= rightBoundRef.current ? 1 : -1;
       const delta = dir * speed.current;
@@ -53,7 +57,7 @@ export function useAutoScroll(target: React.RefObject<HTMLDivElement>) {
         cancelAnimationFrame(frame.current);
       }
       const over = Math.abs(e.clientX >= rightBoundRef.current ? e.clientX - rightBoundRef.current : e.clientX - leftBoundRef.current);
-      speed.current = Math.min(Number((over / CRITICAL_SIZE).toFixed(0)) * DEFAULT_SPEED, MAX_SPEED);
+      speed.current = Math.min(Number((over / CRITICAL_SIZE).toFixed(0)) * autoScrollSpeed, autoScrollMaxSpeed);
 
       const direction = e.clientX >= rightBoundRef.current ? 1 : -1;
       const delta = direction * speed.current;
@@ -76,7 +80,7 @@ export function useAutoScroll(target: React.RefObject<HTMLDivElement>) {
   const stopAutoScroll = () => {
     leftBoundRef.current = Number.MIN_SAFE_INTEGER;
     rightBoundRef.current = Number.MAX_SAFE_INTEGER;
-    speed.current = DEFAULT_SPEED;
+    speed.current = autoScrollSpeed;
     if (frame.current !== undefined) {
       cancelAnimationFrame(frame.current);
     }

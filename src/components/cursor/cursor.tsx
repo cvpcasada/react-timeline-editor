@@ -33,6 +33,8 @@ export const Cursor: FC<CursorProps> = ({
   onCursorDragEnd,
   cursorSnap,
   editorData,
+  autoScrollSpeed,
+  autoScrollMaxSpeed,
 }) => {
   const rowRnd = useRef<RowRndApi>(null);
   const draggingLeft = useRef<number | undefined>(undefined);
@@ -123,12 +125,14 @@ export const Cursor: FC<CursorProps> = ({
           right: Math.min(
             totalWidth,
             maxCount * width +
-              leftStart -
-              (scrollElementRef.current?.scrollLeft ?? 0)
+            leftStart -
+            (scrollElementRef.current?.scrollLeft ?? 0)
           ),
         };
       }}
       autoScroll
+      autoScrollSpeed={autoScrollSpeed}
+      autoScrollMaxSpeed={autoScrollMaxSpeed}
       enableDragging={!disableDrag}
       enableResizing={false}
       onDragStart={() => {

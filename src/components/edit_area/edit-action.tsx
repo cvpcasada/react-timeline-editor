@@ -36,6 +36,7 @@ export type EditActionProps = CommonProp & {
   setEditorData: (params: TimelineRow[]) => void;
   handleTime: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => number;
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
+  autoScroll?: boolean;
 };
 
 export const EditAction: FC<EditActionProps> = ({
@@ -50,6 +51,9 @@ export const EditAction: FC<EditActionProps> = ({
   startLeft,
   gridSnap,
   disableDrag,
+  autoScroll,
+  autoScrollSpeed,
+  autoScrollMaxSpeed,
 
   scaleCount,
   maxScaleCount,
@@ -265,9 +269,9 @@ export const EditAction: FC<EditActionProps> = ({
       snapDistance={
         gridSnap
           ? Math.max(
-              (gridSize || DEFAULT_MOVE_GRID) / 2,
-              DEFAULT_SNAP_DISTANCE
-            )
+            (gridSize || DEFAULT_MOVE_GRID) / 2,
+            DEFAULT_SNAP_DISTANCE
+          )
           : DEFAULT_SNAP_DISTANCE
       }
       snapPositions={snapData.assistPositions}
@@ -289,6 +293,9 @@ export const EditAction: FC<EditActionProps> = ({
       onResizeStart={handleResizeStart}
       onResize={handleResizing}
       onResizeEnd={handleResizeEnd}
+      autoScroll={autoScroll}
+      autoScrollSpeed={autoScrollSpeed}
+      autoScrollMaxSpeed={autoScrollMaxSpeed}
     >
       <div
         onMouseDown={() => {

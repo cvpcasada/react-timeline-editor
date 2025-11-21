@@ -65,4 +65,6 @@ export interface RowRndProps {
    * @default true
    */
   autoScroll?: boolean;
+  autoScrollSpeed?: number;
+  autoScrollMaxSpeed?: number;
 }

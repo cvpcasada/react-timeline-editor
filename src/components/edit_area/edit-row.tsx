@@ -20,6 +20,7 @@ export type EditRowProps = CommonProp & {
   style?: React.CSSProperties;
   snapData: SnapGuideLineData;
   setEditorData: (params: TimelineRow[]) => void;
+  autoScroll?: boolean;
 };
 
 export const EditRow: FC<EditRowProps> = (props) => {
