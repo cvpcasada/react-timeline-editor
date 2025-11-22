@@ -1,11 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { type TimelineRow } from "@/interface/action";
 import { type CommonProp } from "@/interface/common-prop";
-import { type EditData } from "@/interface/timeline";
-import { parserTimeToPixel } from "@/utils/deal-data";
 import { EditRow } from "./edit-row";
-import { useSnap } from "./hooks/use-snap";
 import { SnapGuideLines } from "./snap-lines";
+import { useSnap } from "./hooks/use-snap";
 
 export type EditAreaProps = CommonProp & {
   /** Timeline height */
@@ -16,121 +14,26 @@ export type EditAreaProps = CommonProp & {
 
   /** Scroll element reference */
   scrollElementRef: React.RefObject<HTMLDivElement | null>;
+
+  /** Snap positions */
+  snapPositions?: { value: number; actionId: string; rowId?: string }[];
 };
 
 export const EditArea = ({
   ref,
   ...props
 }: EditAreaProps & { ref?: React.RefObject<HTMLDivElement | null> }) => {
-  const {
-    snapData,
-    initSnap,
-    updateSnap,
-    disposeSnap,
-    getActiveDragState,
-    defaultGetAssistPosition,
-    defaultGetMovePosition,
-  } = useSnap();
-
-  // React to snap prop changes during active drag/resize
-  useEffect(() => {
-    const activeDragState = getActiveDragState();
-
-    // If snap is enabled and there's an active drag/resize operation
-    if (props.snap && activeDragState && snapData.isMoving) {
-      // Recalculate assist positions
-      const currentScaleWidth = props.scaleWidth ?? 160;
-      const currentScale = props.scale ?? 1;
-      const currentStartLeft = props.startLeft ?? 20;
-      const currentHideCursor = props.hideCursor ?? false;
-      const cursorLeft = parserTimeToPixel(props.cursorTime, {
-        scaleWidth: currentScaleWidth,
-        scale: currentScale,
-        startLeft: currentStartLeft,
-      });
-
-      const assistPositions = defaultGetAssistPosition({
-        editorData: props.editorData,
-        assistActionIds: activeDragState.assistActionIds,
-        action: activeDragState.action,
-        row: activeDragState.row,
-        scale: currentScale,
-        scaleWidth: currentScaleWidth,
-        startLeft: currentStartLeft,
-        hideCursor: currentHideCursor,
-        cursorLeft,
-      });
-
-      updateSnap({ assistPositions });
-    }
-    // If snap is disabled and there's an active drag, clear assist positions
-    else if (!props.snap && snapData.isMoving) {
-      updateSnap({ assistPositions: [] });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [props.snap, snapData.isMoving]);
-
-  const handleInitSnap: EditData["onActionMoveStart"] = (data) => {
-    const assistActionIds =
-      props.getAssistDragLineActionIds &&
-      props.getAssistDragLineActionIds({
-        action: data.action,
-        row: data.row,
-        editorData: props.editorData,
-      });
-
-    if (props.snap) {
-      const currentScaleWidth = props.scaleWidth ?? 160;
-      const currentScale = props.scale ?? 1;
-      const currentStartLeft = props.startLeft ?? 20;
-      const currentHideCursor = props.hideCursor ?? false;
-      const cursorLeft = parserTimeToPixel(props.cursorTime, {
-        scaleWidth: currentScaleWidth,
-        scale: currentScale,
-        startLeft: currentStartLeft,
-      });
-      const assistPositions = defaultGetAssistPosition({
-        editorData: props.editorData,
-        assistActionIds,
-        action: data.action,
-        row: data.row,
-        scale: currentScale,
-        scaleWidth: currentScaleWidth,
-        startLeft: currentStartLeft,
-        hideCursor: currentHideCursor,
-        cursorLeft,
-      });
-      initSnap({
-        assistPositions,
-        action: data.action,
-        row: data.row,
-        assistActionIds
-      });
-    } else {
-      // Even if snap is off, track the drag state for reactive updates
-      initSnap({
-        assistPositions: [],
-        action: data.action,
-        row: data.row,
-        assistActionIds
-      });
-    }
-  };
-
-  const handleUpdateSnap: EditData["onActionMoving"] = (data) => {
-    if (props.snap) {
-      const currentScaleWidth = props.scaleWidth ?? 160;
-      const currentScale = props.scale ?? 1;
-      const currentStartLeft = props.startLeft ?? 20;
-      const movePositions = defaultGetMovePosition({
-        ...data,
-        startLeft: currentStartLeft,
-        scaleWidth: currentScaleWidth,
-        scale: currentScale,
-      });
-      updateSnap({ movePositions });
-    }
-  };
+  const { snapData, handleInitSnap, handleUpdateSnap, disposeSnap } = useSnap({
+    snap: props.snap,
+    hideCursor: props.hideCursor,
+    cursorTime: props.cursorTime,
+    scaleWidth: props.scaleWidth,
+    scale: props.scale,
+    startLeft: props.startLeft,
+    getAssistDragLineActionIds: props.getAssistDragLineActionIds,
+    editorData: props.editorData,
+    snapPositions: props.snapPositions,
+  });
 
   const defaultRowHeight = props.rowHeight ?? 32;
   const currentScaleWidth = props.scaleWidth ?? 160;

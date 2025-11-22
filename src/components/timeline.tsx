@@ -18,6 +18,7 @@ import {
   getScaleCountByRows,
   parserPixelToTime,
   parserTimeToPixel,
+  parserActionsToPositions,
 } from "@/utils/deal-data";
 import { EditArea } from "./edit_area/edit-area";
 import { TimeArea } from "./time_area/time-area";
@@ -52,6 +53,17 @@ export function Timeline({
     timelineProps.maxScaleCount,
     minScaleCount
   );
+
+  const snapPositions = !timelineProps.editorData
+    ? []
+    : parserActionsToPositions(
+        timelineProps.editorData.flatMap((row) => row.actions),
+        {
+          startLeft: timelineProps.startLeft,
+          scale: timelineProps.scale,
+          scaleWidth: timelineProps.scaleWidth,
+        }
+      );
 
   // Track manual overrides only
   const [overrideScaleCount, setOverrideScaleCount] = useState<number | null>(
@@ -156,76 +168,77 @@ export function Timeline({
     element.scrollTo({
       left: Math.min(Math.max(targetScrollLeft, 0), maxScrollLeft),
       behavior: options.behavior ?? "instant",
-    })
+    });
   };
 
   // Ref data
   useImperativeHandle(
     ref,
     () =>
-    ({
-      get target() {
-        return domRef.current!;
-      },
-      set time(time: number) {
-        handleSetCursor({ time });
-      },
-      get time() {
-        return cursorTimeRef.current;
-      },
+      ({
+        get target() {
+          return domRef.current!;
+        },
+        set time(time: number) {
+          handleSetCursor({ time });
+        },
+        get time() {
+          return cursorTimeRef.current;
+        },
 
-      getTime() {
-        return cursorTimeRef.current;
-      },
+        getTime() {
+          return cursorTimeRef.current;
+        },
 
-      setTime(time: number) {
-        handleSetCursor({ time });
-      },
+        setTime(time: number) {
+          handleSetCursor({ time });
+        },
 
-      getTimePixelPosition(time?: number) {
-        return parserTimeToPixel(time ?? cursorTimeRef.current, {
-          startLeft: timelineProps.startLeft,
-          scale: timelineProps.scale,
-          scaleWidth: timelineProps.scaleWidth,
-        });
-      },
+        getTimePixelPosition(time?: number) {
+          return parserTimeToPixel(time ?? cursorTimeRef.current, {
+            startLeft: timelineProps.startLeft,
+            scale: timelineProps.scale,
+            scaleWidth: timelineProps.scaleWidth,
+          });
+        },
 
-      setScrollLeft: (val) => {
-        if (!domRef.current) return;
-        domRef.current.scrollLeft = val;
-      },
-      setScrollTop: (val) => {
-        if (!domRef.current) return;
-        domRef.current.scrollTop = val;
-      },
+        setScrollLeft: (val) => {
+          if (!domRef.current) return;
+          domRef.current.scrollLeft = val;
+        },
+        setScrollTop: (val) => {
+          if (!domRef.current) return;
+          domRef.current.scrollTop = val;
+        },
 
-      get scrollLeft() {
-        if (!domRef.current) return 0;
-        return domRef.current.scrollLeft;
-      },
+        get scrollLeft() {
+          if (!domRef.current) return 0;
+          return domRef.current.scrollLeft;
+        },
 
-      get scrollTop() {
-        if (!domRef.current) return 0;
-        return domRef.current.scrollTop;
-      },
+        get scrollTop() {
+          if (!domRef.current) return 0;
+          return domRef.current.scrollTop;
+        },
 
-      set scrollLeft(val: number) {
-        if (!domRef.current) return;
-        domRef.current.scrollLeft = val;
-      },
-      set scrollTop(val: number) {
-        if (!domRef.current) return;
-        domRef.current.scrollTop = val;
-      },
-      scrollToTime: handleScrollToTime,
-    } satisfies TimelineState)
+        set scrollLeft(val: number) {
+          if (!domRef.current) return;
+          domRef.current.scrollLeft = val;
+        },
+        set scrollTop(val: number) {
+          if (!domRef.current) return;
+          domRef.current.scrollTop = val;
+        },
+        scrollToTime: handleScrollToTime,
+      } satisfies TimelineState)
   );
 
   return (
     <ScrollArea.Root
       style={timelineProps.style}
-      className={`${PREFIX} ${timelineProps.disableDrag ? PREFIX + "-disable" : ""
-        }`}
+      className={`${PREFIX} ${
+        timelineProps.disableDrag ? PREFIX + "-disable" : ""
+      }`}
       data-slot="scroll-area"
     >
       <ScrollArea.Viewport
@@ -253,6 +266,7 @@ export function Timeline({
           scaleCount={scaleCount}
           setScaleCount={handleSetScaleCount}
           setEditorData={handleEditorDataChange}
+          snapPositions={snapPositions}
         />
 
         {!timelineProps.hideCursor && (
@@ -266,6 +280,7 @@ export function Timeline({
             cursorTime={cursorTime}
             editorData={timelineProps.editorData}
             scrollElementRef={domRef}
+            snapPositions={snapPositions}
           />
         )}
       </ScrollArea.Viewport>

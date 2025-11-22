@@ -103,11 +103,11 @@ export function parserActionsToPositions(
     scale: number;
     scaleWidth: number;
   }
-) {
-  const positions: number[] = [];
+): { value: number; actionId: string; rowId?: string }[] {
+  const positions: { value: number; actionId: string; rowId?: string }[] = [];
   actions.forEach((item) => {
-    positions.push(parserTimeToPixel(item.start, param));
-    positions.push(parserTimeToPixel(item.end, param));
+    positions.push({ value: parserTimeToPixel(item.start, param), actionId: item.id });
+    positions.push({ value: parserTimeToPixel(item.end, param), actionId: item.id });
   });
   return positions;
 }

@@ -1,5 +1,5 @@
 import { parserPixelToTime } from "@/utils/deal-data";
-import { Activity, useEffect } from "react";
+import { useEffect } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { prefix } from "@/utils/deal-class-prefix";
 
@@ -115,11 +115,11 @@ export function TimeArea({
             }}
             className={classNames.join(" ")}
           >
-            <Activity mode={isShowScale ? "visible" : "hidden"}>
+            {isShowScale && (
               <div className={prefix("time-unit-scale")}>
                 {getScaleRender?.(item) ?? item}
               </div>
-            </Activity>
+            )}
           </div>
         );
       })}

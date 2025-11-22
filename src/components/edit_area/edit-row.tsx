@@ -1,5 +1,3 @@
-/* eslint-disable react-hooks/incompatible-library */
-
 import React, { useCallback, useEffect, useMemo, type FC } from "react";
 import { type TimelineRow } from "@/interface/action";
 import { type CommonProp } from "@/interface/common-prop";
@@ -75,6 +73,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
     [actions]
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     horizontal: true,
     count: actions.length,

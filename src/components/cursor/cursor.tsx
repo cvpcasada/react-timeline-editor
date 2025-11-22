@@ -1,7 +1,7 @@
-import React, { type FC, useEffect, useMemo, useRef } from "react";
+import React, { type FC, useEffect, useRef } from "react";
 import { type CommonProp } from "@/interface/common-prop";
 import { prefix } from "@/utils/deal-class-prefix";
-import { parserActionsToPositions, parserPixelToTime, parserTimeToPixel } from "@/utils/deal-data";
+import { parserPixelToTime, parserTimeToPixel } from "@/utils/deal-data";
 import { RowDnd } from "@/components/row_rnd/row-rnd";
 import { type RowRndApi, type SnapPosition } from "@/components/row_rnd/row-rnd-interface";
 import { DEFAULT_SNAP_DISTANCE } from "@/interface/const";
@@ -15,6 +15,8 @@ export type CursorProps = CommonProp & {
   scrollElementRef: React.RefObject<HTMLDivElement | null>;
   /** Enable cursor snap to action endpoints when dragging */
   cursorSnap?: boolean;
+  /** Snap positions */
+  snapPositions?: SnapPosition[];
 };
 
 export const Cursor: FC<CursorProps> = ({
@@ -35,6 +37,7 @@ export const Cursor: FC<CursorProps> = ({
   editorData,
   autoScrollSpeed,
   autoScrollMaxSpeed,
+  snapPositions = [],
 }) => {
   const rowRnd = useRef<RowRndApi>(null);
 
@@ -43,32 +46,8 @@ export const Cursor: FC<CursorProps> = ({
   const width = scaleWidth ?? 160;
   const scaleValue = scale ?? 1;
 
-  // Calculate snap positions from all action endpoints when cursorSnap is enabled
-  const snapPositions = useMemo(() => {
-    if (!cursorSnap || !editorData) return [];
-
-    const positions: SnapPosition[] = [];
-
-    editorData.forEach((row) => {
-      row.actions.forEach((action) => {
-        const startPos = parserTimeToPixel(action.start, {
-          startLeft: leftStart,
-          scale: scaleValue,
-          scaleWidth: width,
-        });
-        const endPos = parserTimeToPixel(action.end, {
-          startLeft: leftStart,
-          scale: scaleValue,
-          scaleWidth: width,
-        });
-
-        positions.push({ value: startPos, rowId: row.id, actionId: action.id });
-        positions.push({ value: endPos, rowId: row.id, actionId: action.id });
-      });
-    });
-
-    return positions;
-  }, [cursorSnap, editorData, leftStart, scaleValue, width]);
+  // Filter snap positions if cursorSnap is enabled
+  const activeSnapPositions = !cursorSnap ? [] : snapPositions;
 
   useEffect(() => {
     if (rowRnd.current) {
@@ -120,7 +99,7 @@ export const Cursor: FC<CursorProps> = ({
       autoScrollMaxSpeed={autoScrollMaxSpeed}
       enableDragging={!disableDrag}
       enableResizing={false}
-      snapPositions={snapPositions}
+      snapPositions={activeSnapPositions}
       snapDistance={DEFAULT_SNAP_DISTANCE}
       snapOrigin="left"
       onDragStart={() => {
