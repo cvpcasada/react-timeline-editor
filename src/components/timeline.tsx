@@ -33,10 +33,13 @@ export function Timeline({
   ...props
 }: TimelineEditor & {
   ref?: React.RefObject<TimelineState | null>;
+  unstable_forceRemountEditorArea?: number;
 }) {
   const timelineProps = withDefaults(props);
   const domRef = useRef<HTMLDivElement>(null);
   const { width, height } = useMeasure({ elementRef: domRef });
+
+  const editorAreaKey = props.unstable_forceRemountEditorArea ?? 0;
 
   // Scale count - derived from props by default, but can be overridden
   const minScaleCount =
@@ -256,6 +259,7 @@ export function Timeline({
         />
 
         <EditArea
+          key={`__editor_area_${editorAreaKey}__`}
           {...timelineProps}
           scrollElementRef={domRef}
           timelineWidth={width}
