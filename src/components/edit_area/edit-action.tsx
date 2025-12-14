@@ -268,10 +268,7 @@ export const EditAction: FC<EditActionProps> = ({
       grid={(gridSnap && gridSize) || DEFAULT_MOVE_GRID}
       snapDistance={
         gridSnap
-          ? Math.max(
-            (gridSize || DEFAULT_MOVE_GRID) / 2,
-            DEFAULT_SNAP_DISTANCE
-          )
+          ? Math.max((gridSize || DEFAULT_MOVE_GRID) / 2, DEFAULT_SNAP_DISTANCE)
           : DEFAULT_SNAP_DISTANCE
       }
       snapPositions={snapData.assistPositions}
@@ -328,18 +325,22 @@ export const EditAction: FC<EditActionProps> = ({
         style={{ height: rowHeight }}
       >
         {getActionRender && getActionRender(nowAction, nowRow)}
-        {flexible && (
-          <div
-            className={prefix("action-left-stretch")}
-            style={{ touchAction: "none" }}
-          />
-        )}
-        {flexible && (
-          <div
-            className={prefix("action-right-stretch")}
-            style={{ touchAction: "none" }}
-          />
-        )}
+        <div
+          className={clsx(prefix("action-left-stretch"))}
+          style={{
+            touchAction: "none",
+            visibility: flexible ? "visible" : "hidden",
+            pointerEvents: flexible ? "auto" : "none",
+          }}
+        />
+        <div
+          className={prefix("action-right-stretch")}
+          style={{
+            touchAction: "none",
+            visibility: flexible ? "visible" : "hidden",
+            pointerEvents: flexible ? "auto" : "none",
+          }}
+        />
       </div>
     </RowDnd>
   );

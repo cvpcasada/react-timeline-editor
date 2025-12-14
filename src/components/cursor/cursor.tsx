@@ -34,7 +34,6 @@ export const Cursor: FC<CursorProps> = ({
   onCursorDrag,
   onCursorDragEnd,
   cursorSnap,
-  editorData,
   autoScrollSpeed,
   autoScrollMaxSpeed,
   snapPositions = [],

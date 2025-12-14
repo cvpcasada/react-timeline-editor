@@ -85,10 +85,8 @@ export const Interactable: FC<InteractableProps> = ({
 
   const leftResizeHandleRef = useRef<HTMLDivElement | null>(null);
   const rightResizeHandleRef = useRef<HTMLDivElement | null>(null);
-  const leftResizeSelectorRef = useRef<string | false | undefined>(undefined);
-  const rightResizeSelectorRef = useRef<string | false | undefined>(undefined);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     draggableOptionsRef.current = draggableOptions;
     resizableOptionsRef.current = resizableOptions;
 
@@ -98,22 +96,16 @@ export const Interactable: FC<InteractableProps> = ({
     const currentLeftSelector = resizableOptions?.edges?.left;
     const currentRightSelector = resizableOptions?.edges?.right;
 
-    if (
-      currentLeftSelector &&
-      currentLeftSelector !== leftResizeSelectorRef.current
-    ) {
-      leftResizeSelectorRef.current = currentLeftSelector;
-      leftResizeHandleRef.current = ref.current.querySelector(
+    const node = ref.current;
+
+    if (currentLeftSelector) {
+      leftResizeHandleRef.current = node.querySelector(
         currentLeftSelector
       ) as HTMLDivElement | null;
     }
 
-    if (
-      currentRightSelector &&
-      currentRightSelector !== rightResizeSelectorRef.current
-    ) {
-      rightResizeSelectorRef.current = currentRightSelector;
-      rightResizeHandleRef.current = ref.current.querySelector(
+    if (currentRightSelector) {
+      rightResizeHandleRef.current = node.querySelector(
         currentRightSelector
       ) as HTMLDivElement | null;
     }
@@ -218,27 +210,6 @@ export const Interactable: FC<InteractableProps> = ({
       threshold: 0,
     }
   );
-
-  // Initialize resize handle refs after render to ensure they're available for events
-  useLayoutEffect(() => {
-    const node = ref?.current;
-    if (!node) return;
-
-    const currentLeftSelector = resizableOptionsRef.current?.edges?.left;
-    const currentRightSelector = resizableOptionsRef.current?.edges?.right;
-
-    if (currentLeftSelector) {
-      leftResizeHandleRef.current = node.querySelector(
-        currentLeftSelector
-      ) as HTMLDivElement | null;
-    }
-
-    if (currentRightSelector) {
-      rightResizeHandleRef.current = node.querySelector(
-        currentRightSelector
-      ) as HTMLDivElement | null;
-    }
-  }, [ref]);
 
   return (
     <Slot.Root
