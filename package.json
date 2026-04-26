@@ -74,12 +74,12 @@
     "globals": "^16.5.0",
     "less": "^4.4.2",
     "prettier": "^2.8.8",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
     "storybook": "10.2.10",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.3",
-    "vite": "8.0.5",
+    "vite": "^8.0.10",
     "vite-plugin-dts": "^4.5.4"
   }
 }
