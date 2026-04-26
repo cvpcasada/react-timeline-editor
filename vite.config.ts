@@ -1,6 +1,6 @@
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { defineConfig } from "vite";
+import {defineConfig} from "vite";
 import dts from "vite-plugin-dts";
 
 export default defineConfig({
@@ -28,13 +28,17 @@ export default defineConfig({
     },
   },
   build: {
+    sourcemap: true,
     lib: {
       entry: path.resolve(__dirname, "src/index.tsx"),
       name: "react-timeline-editor",
       formats: ["es", "cjs"],
     },
-    rollupOptions: {
-      external: ["react", "react-dom"],
+    rolldownOptions: {
+      external: (id) => {
+        // externalize everything except your source
+        return !(id.startsWith("@/") || id.startsWith(".") || path.isAbsolute(id));
+      },
     },
   },
 });
