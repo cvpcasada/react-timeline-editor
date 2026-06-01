@@ -1,5 +1,5 @@
 import { useDrag } from "@use-gesture/react";
-import React, { type FC, useEffect, useLayoutEffect, useRef } from "react";
+import React, { type FC, useLayoutEffect, useRef } from "react";
 import { Slot } from "radix-ui";
 import { type GestureEvent } from "./gesture-types";
 
