@@ -15,7 +15,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 export type EditRowProps = CommonProp & {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   rowData?: TimelineRow;
-  renderRow?: TimelineRow;
+  rowRenderHeight: number;
   style?: React.CSSProperties;
   snapData: SnapGuideLineData;
   setEditorData: (params: TimelineRow[]) => void;
@@ -27,7 +27,7 @@ export type EditRowProps = CommonProp & {
 export const EditRow: FC<EditRowProps> = (props) => {
   const {
     rowData,
-    renderRow,
+    rowRenderHeight,
     style = {},
     onClickRow,
     onDoubleClickRow,
@@ -147,7 +147,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
               {...props}
               handleTime={handleTime}
               row={rowData}
-              renderRow={renderRow ?? rowData}
+              rowRenderHeight={rowRenderHeight}
               action={action}
             />
           );

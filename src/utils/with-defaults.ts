@@ -71,6 +71,27 @@ export function withDefaults(props: TimelineEditor) {
     collapsedRowHeight = rowHeight;
   }
 
+  if (
+    editorData.some(
+      (row) =>
+        typeof row.collapsed?.height !== "undefined" &&
+        row.collapsed.height <= 0
+    )
+  ) {
+    log.warn("Warning: collapsed row height must be greater than 0!");
+    editorData = editorData.map((row) =>
+      typeof row.collapsed?.height !== "undefined" && row.collapsed.height <= 0
+        ? {
+            ...row,
+            collapsed: {
+              ...row.collapsed,
+              height: undefined,
+            },
+          }
+        : row
+    );
+  }
+
   const temp = { ...props };
   delete temp["style"];
   return {

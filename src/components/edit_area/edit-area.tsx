@@ -4,7 +4,7 @@ import { type CommonProp } from "@/interface/common-prop";
 import { EditRow } from "./edit-row";
 import { SnapGuideLines } from "./snap-lines";
 import { useSnap } from "./hooks/use-snap";
-import { getTimelineRowLayouts } from "@/utils/row-layout";
+import { type TimelineRowLayout } from "@/utils/row-layout";
 
 export type EditAreaProps = CommonProp & {
   /** Timeline height */
@@ -19,8 +19,11 @@ export type EditAreaProps = CommonProp & {
   /** Snap positions */
   snapPositions?: { value: number; actionId: string; rowId?: string }[];
 
-  /** Focused collapsible row id */
-  focusedRowId: string | null;
+  /** Computed row layouts */
+  rowLayouts: TimelineRowLayout[];
+
+  /** Computed row layout total height */
+  rowLayoutsTotalHeight: number;
 
   /** Update hovered collapsible row */
   setHoveredRowId: (rowId: string | null) => void;
@@ -48,35 +51,24 @@ export const EditArea = ({
     snapPositions: props.snapPositions,
   });
 
-  const defaultRowHeight = props.rowHeight ?? 32;
-  const defaultCollapsedRowHeight =
-    props.collapsedRowHeight ?? defaultRowHeight;
   const currentScaleWidth = props.scaleWidth ?? 160;
   const currentStartLeft = props.startLeft ?? 20;
-  // const currentRowHeight = rowHeight ?? 32;
 
   const contentWidth = Math.max(
     props.scaleCount * currentScaleWidth + currentStartLeft,
     props.timelineWidth
   );
 
-  const { layouts, totalHeight } = getTimelineRowLayouts({
-    editorData: props.editorData,
-    rowHeight: defaultRowHeight,
-    collapsedRowHeight: defaultCollapsedRowHeight,
-    focusedRowId: props.focusedRowId,
-  });
-
   const rows = (() => {
     let result: React.ReactNode[] = [];
 
-    for (const { row, renderRow, top, height } of layouts) {
+    for (const { row, top, height } of props.rowLayouts) {
       result.push(
         <EditRow
           {...props}
           key={row.id}
           rowData={row}
-          renderRow={renderRow}
+          rowRenderHeight={height}
           snapData={snapData}
           scrollContainerRef={props.scrollElementRef}
           style={{
@@ -123,7 +115,6 @@ export const EditArea = ({
           }}
         />
       );
-
     }
 
     return result;
@@ -134,7 +125,7 @@ export const EditArea = ({
       ref={ref}
       style={{
         width: contentWidth,
-        height: totalHeight,
+        height: props.rowLayoutsTotalHeight,
         position: "relative",
         backgroundPositionX: `0, ${props.startLeft ?? 20}px`,
         backgroundSize: `${props.startLeft ?? 20}px, ${

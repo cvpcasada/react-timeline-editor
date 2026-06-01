@@ -28,7 +28,7 @@ import { ScrollArea } from "radix-ui";
 import { ScrollBar } from "./scroll-area";
 import { useStableScroll } from "./hooks/use-stable-scroll";
 import { log } from "@cyca/log";
-import { getTimelineRowLayouts } from "@/utils/row-layout";
+import { getTimelineRowPresentation } from "@/utils/row-layout";
 
 export function Timeline({
   ref,
@@ -84,13 +84,18 @@ export function Timeline({
 
   const scaleCount = overrideScaleCount ?? derivedScaleCount;
 
-  const defaultExpandedRowIds = timelineProps.editorData
-    .filter((row) => row.collapsed?.expandedByDefault)
-    .map((row) => row.id);
-  const defaultExpandedRowId = defaultExpandedRowIds[0] ?? null;
-  const duplicateDefaultRowsKey = defaultExpandedRowIds.join("\n");
+  const rowPresentation = getTimelineRowPresentation({
+    editorData: timelineProps.editorData,
+    rowHeight: timelineProps.rowHeight,
+    collapsedRowHeight:
+      timelineProps.collapsedRowHeight ?? timelineProps.rowHeight,
+    hoveredRowId,
+    lockedRowId,
+  });
+  const duplicateDefaultRowsKey =
+    rowPresentation.defaultExpandedRowIds.join("\n");
   if (
-    defaultExpandedRowIds.length > 1 &&
+    rowPresentation.defaultExpandedRowIds.length > 1 &&
     warnedDefaultRowsRef.current !== duplicateDefaultRowsKey
   ) {
     warnedDefaultRowsRef.current = duplicateDefaultRowsKey;
@@ -98,26 +103,6 @@ export function Timeline({
       "Warning: multiple collapsible rows set expandedByDefault. The first row in editorData wins."
     );
   }
-
-  const validLockedRowId = timelineProps.editorData.some(
-    (row) => row.collapsed && row.id === lockedRowId
-  )
-    ? lockedRowId
-    : null;
-  const validHoveredRowId = timelineProps.editorData.some(
-    (row) => row.collapsed && row.id === hoveredRowId
-  )
-    ? hoveredRowId
-    : null;
-  const focusedRowId =
-    validLockedRowId ?? validHoveredRowId ?? defaultExpandedRowId;
-  const { totalHeight: editAreaContentHeight } = getTimelineRowLayouts({
-    editorData: timelineProps.editorData,
-    rowHeight: timelineProps.rowHeight,
-    collapsedRowHeight:
-      timelineProps.collapsedRowHeight ?? timelineProps.rowHeight,
-    focusedRowId,
-  });
 
   /** Dynamically set scale count - overrides the derived value */
   const handleSetScaleCount = (value: number) => {
@@ -311,7 +296,8 @@ export function Timeline({
           setScaleCount={handleSetScaleCount}
           setEditorData={handleEditorDataChange}
           snapPositions={snapPositions}
-          focusedRowId={focusedRowId}
+          rowLayouts={rowPresentation.layouts}
+          rowLayoutsTotalHeight={rowPresentation.totalHeight}
           setHoveredRowId={setHoveredRowId}
           clearHoveredRowId={(rowId) => {
             setHoveredRowId((currentRowId) =>
@@ -325,7 +311,7 @@ export function Timeline({
           <Cursor
             {...timelineProps}
             timelineWidth={width}
-            height={Math.max(height, editAreaContentHeight + 42)}
+            height={Math.max(height, rowPresentation.totalHeight + 42)}
             scaleCount={scaleCount}
             setScaleCount={handleSetScaleCount}
             setCursor={handleSetCursor}
