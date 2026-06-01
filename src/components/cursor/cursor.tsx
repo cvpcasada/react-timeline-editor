@@ -3,7 +3,10 @@ import { type CommonProp } from "@/interface/common-prop";
 import { prefix } from "@/utils/deal-class-prefix";
 import { parserPixelToTime, parserTimeToPixel } from "@/utils/deal-data";
 import { RowDnd } from "@/components/row_rnd/row-rnd";
-import { type RowRndApi, type SnapPosition } from "@/components/row_rnd/row-rnd-interface";
+import {
+  type RowRndApi,
+  type SnapPosition,
+} from "@/components/row_rnd/row-rnd-interface";
 import { DEFAULT_SNAP_DISTANCE } from "@/interface/const";
 
 /** Animation timeline component parameters */
@@ -88,8 +91,8 @@ export const Cursor: FC<CursorProps> = ({
           right: Math.min(
             totalWidth,
             maxCount * width +
-            leftStart -
-            (scrollElementRef.current?.scrollLeft ?? 0)
+              leftStart -
+              (scrollElementRef.current?.scrollLeft ?? 0)
           ),
         };
       }}

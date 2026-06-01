@@ -6,6 +6,4 @@ export type {
   TimelineState,
 } from "./interface/timeline";
 export type { TimelineAction, TimelineRow } from "./interface/action";
-export type {
-  TimelineEffect,
-} from "./interface/effect";
+export type { TimelineEffect } from "./interface/effect";

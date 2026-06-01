@@ -1,5 +1,5 @@
-import { type GestureEvent } from '@/components/row_rnd/gesture-types';
-import { useRef } from 'react';
+import { type GestureEvent } from "@/components/row_rnd/gesture-types";
+import { useRef } from "react";
 
 const DEFAULT_SPEED = 1;
 const MAX_SPEED = 10;
@@ -24,14 +24,27 @@ export function useAutoScroll(
     }
   };
 
-  const dealDragAutoScroll = (e: GestureEvent, deltaScroll?: (delta: number) => void) => {
+  const dealDragAutoScroll = (
+    e: GestureEvent,
+    deltaScroll?: (delta: number) => void
+  ) => {
     // Out of bounds
-    if (e.clientX >= rightBoundRef.current || e.clientX <= leftBoundRef.current) {
+    if (
+      e.clientX >= rightBoundRef.current ||
+      e.clientX <= leftBoundRef.current
+    ) {
       if (frame.current !== undefined) {
         cancelAnimationFrame(frame.current);
       }
-      const over = Math.abs(e.clientX >= rightBoundRef.current ? e.clientX - rightBoundRef.current : e.clientX - leftBoundRef.current);
-      speed.current = Math.min(Number((over / CRITICAL_SIZE).toFixed(0)) * autoScrollSpeed, autoScrollMaxSpeed);
+      const over = Math.abs(
+        e.clientX >= rightBoundRef.current
+          ? e.clientX - rightBoundRef.current
+          : e.clientX - leftBoundRef.current
+      );
+      speed.current = Math.min(
+        Number((over / CRITICAL_SIZE).toFixed(0)) * autoScrollSpeed,
+        autoScrollMaxSpeed
+      );
 
       const dir = e.clientX >= rightBoundRef.current ? 1 : -1;
       const delta = dir * speed.current;
@@ -51,13 +64,27 @@ export function useAutoScroll(
     return true;
   };
 
-  const dealResizeAutoScroll = (e: GestureEvent, _dir: 'left' | 'right', deltaScroll?: (delta: number) => void) => {
-    if (e.clientX >= rightBoundRef.current || e.clientX < leftBoundRef.current) {
+  const dealResizeAutoScroll = (
+    e: GestureEvent,
+    _dir: "left" | "right",
+    deltaScroll?: (delta: number) => void
+  ) => {
+    if (
+      e.clientX >= rightBoundRef.current ||
+      e.clientX < leftBoundRef.current
+    ) {
       if (frame.current !== undefined) {
         cancelAnimationFrame(frame.current);
       }
-      const over = Math.abs(e.clientX >= rightBoundRef.current ? e.clientX - rightBoundRef.current : e.clientX - leftBoundRef.current);
-      speed.current = Math.min(Number((over / CRITICAL_SIZE).toFixed(0)) * autoScrollSpeed, autoScrollMaxSpeed);
+      const over = Math.abs(
+        e.clientX >= rightBoundRef.current
+          ? e.clientX - rightBoundRef.current
+          : e.clientX - leftBoundRef.current
+      );
+      speed.current = Math.min(
+        Number((over / CRITICAL_SIZE).toFixed(0)) * autoScrollSpeed,
+        autoScrollMaxSpeed
+      );
 
       const direction = e.clientX >= rightBoundRef.current ? 1 : -1;
       const delta = direction * speed.current;

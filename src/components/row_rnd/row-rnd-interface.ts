@@ -38,11 +38,13 @@ export interface RowRndApi {
   getWidth: () => number;
 }
 
-export type SnapPosition = {
-  value: number;
-  rowId?: string;
-  actionId?: string;
-} | number;
+export type SnapPosition =
+  | {
+      value: number;
+      rowId?: string;
+      actionId?: string;
+    }
+  | number;
 
 export interface RowRndProps {
   width?: number;

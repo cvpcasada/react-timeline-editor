@@ -6,7 +6,8 @@
     position: relative;
     font-size: 0.75rem;
     line-height: 1rem;
-    font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    font-family:
+      ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     background-color: oklch(15.2% 0 0);
     overflow: hidden;
@@ -87,7 +88,8 @@
     margin-top: 0.625rem;
     min-height: calc(100% - 42px);
     background-repeat: no-repeat, repeat;
-    background-image: linear-gradient(transparent, transparent),
+    background-image:
+      linear-gradient(transparent, transparent),
       linear-gradient(90deg, oklch(100% 0 0 / 0.08) 1px, transparent 0);
   }
 

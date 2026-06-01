@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+/* oxlint-disable react-refresh/only-export-components */
 import { useState, useLayoutEffect } from "react";
 import { resize } from "motion";
 import { withHooks } from "./with-hook";

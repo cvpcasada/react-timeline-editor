@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* oxlint-disable @typescript-eslint/no-explicit-any */
 import { Timeline, type TimelineState } from "@/index";
 
 import {
@@ -229,7 +229,7 @@ function PlaybackControls(args: {
     if (!editorState) return;
 
     const currentTime = editorState.time;
-    // eslint-disable-next-line react-hooks/immutability
+    // oxlint-disable-next-line react-hooks/immutability
     editorState.time = currentTime + 5;
   };
 
@@ -238,7 +238,7 @@ function PlaybackControls(args: {
     if (!editorState) return;
 
     const currentTime = editorState.time;
-    // eslint-disable-next-line react-hooks/immutability
+    // oxlint-disable-next-line react-hooks/immutability
     editorState.time = Math.max(0, currentTime - 5);
   };
 
@@ -275,7 +275,7 @@ function useSyncedState<T>(value: T) {
 
   // If input value changed, sync state to input and switch to controlled mode
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    // oxlint-disable-next-line react-hooks/set-state-in-effect
     if (hasInputChanged) setState(value);
   }, [value, hasInputChanged]);
 

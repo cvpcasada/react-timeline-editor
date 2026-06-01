@@ -70,7 +70,10 @@ export function parserTimeToTransform(
 }
 
 /** Get scale count based on data */
-export function getScaleCountByRows(data: TimelineRow[], param: { scale: number, pad?: number }) {
+export function getScaleCountByRows(
+  data: TimelineRow[],
+  param: { scale: number; pad?: number }
+) {
   let max = 0;
   data.forEach((row) => {
     row.actions.forEach((action) => {
@@ -106,8 +109,14 @@ export function parserActionsToPositions(
 ): { value: number; actionId: string; rowId?: string }[] {
   const positions: { value: number; actionId: string; rowId?: string }[] = [];
   actions.forEach((item) => {
-    positions.push({ value: parserTimeToPixel(item.start, param), actionId: item.id });
-    positions.push({ value: parserTimeToPixel(item.end, param), actionId: item.id });
+    positions.push({
+      value: parserTimeToPixel(item.start, param),
+      actionId: item.id,
+    });
+    positions.push({
+      value: parserTimeToPixel(item.end, param),
+      actionId: item.id,
+    });
   });
   return positions;
 }

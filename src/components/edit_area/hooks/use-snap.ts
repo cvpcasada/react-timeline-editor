@@ -201,4 +201,3 @@ export const useSnap = (props: UseSnapProps): UseSnapReturn => {
     disposeSnap,
   };
 };
-

@@ -51,7 +51,7 @@ export function TimeArea({
     }
   };
 
-  // eslint-disable-next-line react-hooks/incompatible-library
+  // oxlint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     horizontal: true,
     count: columnCount,

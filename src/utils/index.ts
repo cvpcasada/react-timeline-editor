@@ -1,2 +1,1 @@
 export * from "./deal-data";
-

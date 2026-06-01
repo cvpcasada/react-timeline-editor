@@ -25,6 +25,7 @@ export const ADD_SCALE_COUNT = 2;
 
 /** Error messages */
 export const ERROR = {
-  START_TIME_LESS_THEN_ZERO: 'Action start time cannot be less than 0!',
-  END_TIME_LESS_THEN_START_TIME: 'Action end time cannot be less then start time!',
-}
+  START_TIME_LESS_THEN_ZERO: "Action start time cannot be less than 0!",
+  END_TIME_LESS_THEN_START_TIME:
+    "Action end time cannot be less then start time!",
+};

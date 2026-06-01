@@ -233,7 +233,7 @@ export function Timeline({
           domRef.current.scrollTop = val;
         },
         scrollToTime: handleScrollToTime,
-      } satisfies TimelineState)
+      }) satisfies TimelineState
   );
 
   return (

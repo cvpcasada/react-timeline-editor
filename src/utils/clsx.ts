@@ -1,4 +1,4 @@
-/* eslint-disable prefer-rest-params */
+/* oxlint-disable prefer-rest-params */
 
 type ClassValue = string | number | bigint | null | boolean | undefined;
 
