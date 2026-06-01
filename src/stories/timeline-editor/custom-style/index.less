@@ -89,3 +89,26 @@
   }
 }
 
+.timeline-editor-example-custom-style-basic {
+  .timeline-editor {
+    width: 100%;
+    height: 300px;
+  }
+
+  .timeline-editor-edit-row .timeline-editor-action {
+    height: calc(100% - 4px) !important;
+  }
+
+
+  .timeline-editor-edit-row.collapsible-row-tone-0 .timeline-editor-action {
+    background-color: oklch(68.5% 0.165 35.4);
+  }
+
+  .timeline-editor-edit-row.collapsible-row-tone-1 .timeline-editor-action {
+    background-color: oklch(65.8% 0.142 155.1);
+  }
+
+  .timeline-editor-edit-row.collapsible-row-tone-2 .timeline-editor-action {
+    background-color: oklch(66.1% 0.157 263.2);
+  }
+}

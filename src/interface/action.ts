@@ -38,8 +38,15 @@ export interface TimelineRow {
   id: string;
   /** List of actions in the row */
   actions: TimelineAction[];
-  /** Custom row height */
+  /** Custom row height. Used as expanded height when the row is collapsible. */
   rowHeight?: number;
+  /** Collapsible row configuration. Rows without this option are fixed. */
+  collapsed?: {
+    /** Collapsed row height */
+    height?: number;
+    /** Whether this row is expanded when no collapsible row is focused */
+    expandedByDefault?: boolean;
+  };
   /** Whether the row is selected */
   selected?: boolean;
   /** Extended class names of the row */

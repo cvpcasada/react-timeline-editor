@@ -20,6 +20,7 @@ export function withDefaults(props: TimelineEditor) {
     minScaleCount,
     maxScaleCount = Infinity,
     rowHeight = DEFAULT_ROW_HEIGHT,
+    collapsedRowHeight,
     autoScrollSpeed = 1,
     autoScrollMaxSpeed = 10,
   } = props;
@@ -65,6 +66,11 @@ export function withDefaults(props: TimelineEditor) {
     rowHeight = DEFAULT_ROW_HEIGHT;
   }
 
+  if (typeof collapsedRowHeight !== "undefined" && collapsedRowHeight <= 0) {
+    log.warn("Warning: collapsedRowHeight must be greater than 0!");
+    collapsedRowHeight = rowHeight;
+  }
+
   const temp = { ...props };
   delete temp["style"];
   return {
@@ -78,6 +84,7 @@ export function withDefaults(props: TimelineEditor) {
     minScaleCount,
     maxScaleCount,
     rowHeight,
+    collapsedRowHeight,
     autoScrollSpeed,
     autoScrollMaxSpeed,
   };

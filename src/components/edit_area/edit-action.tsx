@@ -31,6 +31,7 @@ import clsx from "@/utils/clsx";
 
 export type EditActionProps = CommonProp & {
   row: TimelineRow;
+  renderRow: TimelineRow;
   action: TimelineAction;
   snapData: SnapGuideLineData;
   setEditorData: (params: TimelineRow[]) => void;
@@ -42,6 +43,7 @@ export type EditActionProps = CommonProp & {
 export const EditAction: FC<EditActionProps> = ({
   editorData,
   row,
+  renderRow,
   action,
   effects,
   rowHeight,
@@ -251,12 +253,14 @@ export const EditAction: FC<EditActionProps> = ({
   };
 
   const nowRow: TimelineRow = {
-    ...row,
-    actions: [...row.actions],
+    ...renderRow,
+    actions: [...renderRow.actions],
   };
   if (row.actions.includes(action)) {
     nowRow.actions[row.actions.indexOf(action)] = nowAction;
   }
+
+  const effectiveRowHeight = renderRow.rowHeight ?? rowHeight;
 
   return (
     <RowDnd
@@ -322,7 +326,7 @@ export const EditAction: FC<EditActionProps> = ({
           }
         }}
         className={classNames}
-        style={{ height: rowHeight }}
+        style={{ height: effectiveRowHeight }}
       >
         {getActionRender && getActionRender(nowAction, nowRow)}
         <div

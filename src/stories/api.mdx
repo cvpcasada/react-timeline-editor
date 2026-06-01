@@ -40,9 +40,19 @@ import { Meta } from "@storybook/addon-docs/blocks";
     </tr>
     <tr>
       <td>rowHeight</td>
-      <td>Custom row height (default determined by rowHeight in props)</td>
+      <td>Custom row height. Used as expanded height when the row is collapsible</td>
       <td>
         <code>number</code>
+      </td>
+      <td>
+        <code>--</code>
+      </td>
+    </tr>
+    <tr>
+      <td>collapsed</td>
+      <td>Collapsible row configuration. Rows without this option are fixed</td>
+      <td>
+        <code>&#123; height?: number; expandedByDefault?: boolean &#125;</code>
       </td>
       <td>
         <code>--</code>
@@ -533,6 +543,12 @@ import { Meta } from "@storybook/addon-docs/blocks";
       <td>Default height of each editing row (&gt;0, unit: px)</td>
       <td><code>number</code></td>
       <td><code>32</code></td>
+    </tr>
+    <tr>
+      <td>collapsedRowHeight</td>
+      <td>Default collapsed height for collapsible rows (&gt;0, unit: px)</td>
+      <td><code>number</code></td>
+      <td><code>rowHeight</code></td>
     </tr>
     <tr>
       <td>gridSnap</td>

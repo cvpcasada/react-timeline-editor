@@ -49,6 +49,11 @@ export interface EditData {
    */
   rowHeight?: number;
   /**
+   * @description Default collapsed height for collapsible rows (>0, unit: px)
+   * @default rowHeight
+   */
+  collapsedRowHeight?: number;
+  /**
    * @description Whether to enable grid snap
    * @default false
    */

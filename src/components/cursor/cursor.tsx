@@ -24,6 +24,7 @@ export type CursorProps = CommonProp & {
 
 export const Cursor: FC<CursorProps> = ({
   disableDrag,
+  height,
   cursorTime,
   setCursor,
   startLeft,
@@ -147,7 +148,7 @@ export const Cursor: FC<CursorProps> = ({
         onCursorDrag && onCursorDrag(time);
       }}
     >
-      <div className={prefix("cursor")}>
+      <div className={prefix("cursor")} style={{ height }}>
         <svg
           className={prefix("cursor-top")}
           width="8"
