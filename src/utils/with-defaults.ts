@@ -45,21 +45,27 @@ export function withDefaults(props: TimelineEditor) {
     startLeft = 0;
   }
 
-  if (minScaleCount && typeof minScaleCount === "number") {
+  if (typeof minScaleCount === "number") {
+    minScaleCount = parseInt(minScaleCount + "");
+
     if (minScaleCount < 1) {
       log.warn("Warning: minScaleCount must be greater than 1!");
       minScaleCount = MIN_SCALE_COUNT;
-    }
-    minScaleCount = parseInt(minScaleCount + "");
-
-    if (maxScaleCount < minScaleCount) {
-      log.warn("Warning: maxScaleCount cannot be less than minScaleCount!");
-      maxScaleCount = minScaleCount;
     }
   }
 
   maxScaleCount =
     maxScaleCount === Infinity ? Infinity : parseInt(maxScaleCount + "");
+
+  if (maxScaleCount < 1) {
+    log.warn("Warning: maxScaleCount must be greater than 1!");
+    maxScaleCount = MIN_SCALE_COUNT;
+  }
+
+  if (typeof minScaleCount === "number" && maxScaleCount < minScaleCount) {
+    log.warn("Warning: maxScaleCount cannot be less than minScaleCount!");
+    maxScaleCount = minScaleCount;
+  }
 
   if (rowHeight <= 0) {
     log.warn("Warning: rowHeight must be greater than 0!");

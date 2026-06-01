@@ -72,6 +72,10 @@ export default defineConfig({
   },
   test: {
     passWithNoTests: true,
+    coverage: {
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.test.{ts,tsx}", "src/stories/**", "src/typings.d.ts"],
+    },
   },
   build: {
     lib: {

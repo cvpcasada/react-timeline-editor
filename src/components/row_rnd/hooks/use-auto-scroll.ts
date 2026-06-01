@@ -42,7 +42,10 @@ export function useAutoScroll(
           : e.clientX - leftBoundRef.current
       );
       speed.current = Math.min(
-        Number((over / CRITICAL_SIZE).toFixed(0)) * autoScrollSpeed,
+        Math.max(
+          Math.ceil(over / CRITICAL_SIZE) * autoScrollSpeed,
+          autoScrollSpeed
+        ),
         autoScrollMaxSpeed
       );
 
@@ -82,7 +85,10 @@ export function useAutoScroll(
           : e.clientX - leftBoundRef.current
       );
       speed.current = Math.min(
-        Number((over / CRITICAL_SIZE).toFixed(0)) * autoScrollSpeed,
+        Math.max(
+          Math.ceil(over / CRITICAL_SIZE) * autoScrollSpeed,
+          autoScrollSpeed
+        ),
         autoScrollMaxSpeed
       );
 
