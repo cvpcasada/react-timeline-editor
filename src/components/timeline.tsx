@@ -27,7 +27,6 @@ import { Cursor } from "./cursor/cursor";
 import { ScrollArea } from "radix-ui";
 import { ScrollBar } from "./scroll-area";
 import { useStableScroll } from "./hooks/use-stable-scroll";
-import { log } from "@cyca/log";
 import { getTimelineRowPresentation } from "@/utils/row-layout";
 
 export function Timeline({
@@ -99,7 +98,7 @@ export function Timeline({
     warnedDefaultRowsRef.current !== duplicateDefaultRowsKey
   ) {
     warnedDefaultRowsRef.current = duplicateDefaultRowsKey;
-    log.warn(
+    console.warn(
       "Warning: multiple collapsible rows set expandedByDefault. The first row in editorData wins."
     );
   }

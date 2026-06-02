@@ -3,7 +3,6 @@ import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
 import { defineConfig } from "vite-plus";
-import dts from "vite-plugin-dts";
 
 const configDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -30,31 +29,6 @@ export default defineConfig({
     babel({
       presets: [reactCompilerPreset()],
     }),
-    dts({
-      include: ["src/**/*"],
-      exclude: ["src/**/*.test.*", "src/**/*.spec.*", "src/stories/**"],
-      outDirs: "dist",
-      entryRoot: "src",
-      tsconfigPath: "./tsconfig.app.json",
-      bundleTypes: true,
-      beforeWriteFile: (filePath, content) => {
-        const srcIndexPath = path.join("dist", "src", "index.d.ts");
-
-        if (filePath.endsWith(srcIndexPath)) {
-          return {
-            filePath: filePath.replace(
-              srcIndexPath,
-              path.join("dist", "index.d.ts")
-            ),
-            content,
-          };
-        }
-      },
-      compilerOptions: {
-        noEmit: false,
-        emitDeclarationOnly: true,
-      },
-    }),
   ],
   resolve: {
     alias: {
@@ -77,25 +51,24 @@ export default defineConfig({
       exclude: ["src/**/*.test.{ts,tsx}", "src/stories/**", "src/typings.d.ts"],
     },
   },
-  build: {
-    lib: {
-      entry: {
-        index: path.resolve(configDir, "src/index.tsx"),
-        utils: path.resolve(configDir, "src/utils/index.ts"),
-      },
-      formats: ["es", "cjs"],
-      fileName: (format, entryName) => {
-        if (entryName === "index") {
-          return `react-timeline-editor.${format === "es" ? "js" : "cjs"}`;
-        }
-        return `${entryName}.${format === "es" ? "js" : "cjs"}`;
-      },
+  pack: {
+    entry: {
+      "react-timeline-editor": "src/index.tsx",
+      utils: "src/utils/index.ts",
     },
-    rollupOptions: {
-      external: ["react", "react-dom"],
-      output: {
-        assetFileNames: "styles.css",
-      },
+    dts: true,
+    tsconfig: "tsconfig.app.json",
+    format: ["esm", "cjs"],
+    copy: [{ from: "src/styles.css.d.ts", to: "dist", flatten: true }],
+    env: {
+      DEV: false,
+      PROD: true,
+    },
+    deps: {
+      neverBundle: ["react", "react-dom"],
+    },
+    css: {
+      fileName: "styles.css",
     },
   },
 });

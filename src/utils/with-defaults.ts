@@ -7,7 +7,6 @@ import {
   MIN_SCALE_COUNT,
 } from "@/interface/const";
 import { type TimelineEditor } from "@/interface/timeline";
-import { log } from "@cyca/log";
 
 export function withDefaults(props: TimelineEditor) {
   let {
@@ -26,22 +25,22 @@ export function withDefaults(props: TimelineEditor) {
   } = props;
 
   if (scale <= 0) {
-    log.error("Error: scale must be greater than 0!");
+    console.error("Error: scale must be greater than 0!");
     scale = DEFAULT_SCALE;
   }
 
   if (scaleSplitCount <= 0) {
-    log.warn("Warning: scaleSplitCount cannot be less than 1!");
+    console.warn("Warning: scaleSplitCount cannot be less than 1!");
     scaleSplitCount = 1;
   }
 
   if (scaleWidth <= 0) {
-    log.warn("Warning: scaleWidth must be greater than 0!");
+    console.warn("Warning: scaleWidth must be greater than 0!");
     scaleWidth = DEFAULT_SCALE_WIDTH;
   }
 
   if (startLeft < 0) {
-    log.warn("Warning: startLeft cannot be less than 0!");
+    console.warn("Warning: startLeft cannot be less than 0!");
     startLeft = 0;
   }
 
@@ -49,7 +48,7 @@ export function withDefaults(props: TimelineEditor) {
     minScaleCount = parseInt(minScaleCount + "");
 
     if (minScaleCount < 1) {
-      log.warn("Warning: minScaleCount must be greater than 1!");
+      console.warn("Warning: minScaleCount must be greater than 1!");
       minScaleCount = MIN_SCALE_COUNT;
     }
   }
@@ -58,22 +57,22 @@ export function withDefaults(props: TimelineEditor) {
     maxScaleCount === Infinity ? Infinity : parseInt(maxScaleCount + "");
 
   if (maxScaleCount < 1) {
-    log.warn("Warning: maxScaleCount must be greater than 1!");
+    console.warn("Warning: maxScaleCount must be greater than 1!");
     maxScaleCount = MIN_SCALE_COUNT;
   }
 
   if (typeof minScaleCount === "number" && maxScaleCount < minScaleCount) {
-    log.warn("Warning: maxScaleCount cannot be less than minScaleCount!");
+    console.warn("Warning: maxScaleCount cannot be less than minScaleCount!");
     maxScaleCount = minScaleCount;
   }
 
   if (rowHeight <= 0) {
-    log.warn("Warning: rowHeight must be greater than 0!");
+    console.warn("Warning: rowHeight must be greater than 0!");
     rowHeight = DEFAULT_ROW_HEIGHT;
   }
 
   if (typeof collapsedRowHeight !== "undefined" && collapsedRowHeight <= 0) {
-    log.warn("Warning: collapsedRowHeight must be greater than 0!");
+    console.warn("Warning: collapsedRowHeight must be greater than 0!");
     collapsedRowHeight = rowHeight;
   }
 
@@ -84,7 +83,7 @@ export function withDefaults(props: TimelineEditor) {
         row.collapsed.height <= 0
     )
   ) {
-    log.warn("Warning: collapsed row height must be greater than 0!");
+    console.warn("Warning: collapsed row height must be greater than 0!");
     editorData = editorData.map((row) =>
       typeof row.collapsed?.height !== "undefined" && row.collapsed.height <= 0
         ? {

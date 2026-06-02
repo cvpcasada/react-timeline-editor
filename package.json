@@ -1,6 +1,6 @@
 {
   "name": "@cyca/react-timeline-editor",
-  "version": "0.2.4-alpha.6",
+  "version": "0.2.5-alpha.1",
   "author": "cyca",
   "license": "MIT",
   "keywords": [
@@ -20,35 +20,48 @@
   },
   "scripts": {
     "dev": "storybook dev -p 6006",
-    "build": "vp build",
+    "build": "vp pack",
     "check": "vp check && tsc --noEmit",
     "lint": "vp lint .",
     "lint:fix": "vp lint . --fix",
-    "lint:package": "npx --yes @arethetypeswrong/cli -P",
+    "lint:package": "npx --yes @arethetypeswrong/cli -P --profile node16 --exclude-entrypoints ./styles.css",
     "test": "vp test",
     "typecheck": "tsc --noEmit",
     "build-storybook": "storybook build",
-    "npm:publish": "vp build && npm publish --access public --tag alpha"
+    "npm:publish": "vp pack && npm publish --access public --tag alpha && npm dist-tag add $npm_package_name@$npm_package_version alpha && npm dist-tag add $npm_package_name@$npm_package_version latest"
   },
   "files": [
     "dist"
   ],
   "type": "module",
   "main": "./dist/react-timeline-editor.cjs",
-  "module": "./dist/react-timeline-editor.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/react-timeline-editor.mjs",
+  "types": "./dist/react-timeline-editor.d.mts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/react-timeline-editor.js",
-      "require": "./dist/react-timeline-editor.cjs"
+      "import": {
+        "types": "./dist/react-timeline-editor.d.mts",
+        "default": "./dist/react-timeline-editor.mjs"
+      },
+      "require": {
+        "types": "./dist/react-timeline-editor.d.cts",
+        "default": "./dist/react-timeline-editor.cjs"
+      }
     },
     "./utils": {
-      "types": "./dist/utils.d.ts",
-      "import": "./dist/utils.js",
-      "require": "./dist/utils.cjs"
+      "import": {
+        "types": "./dist/utils.d.mts",
+        "default": "./dist/utils.mjs"
+      },
+      "require": {
+        "types": "./dist/utils.d.cts",
+        "default": "./dist/utils.cjs"
+      }
     },
-    "./styles.css": "./dist/styles.css",
+    "./styles.css": {
+      "types": "./dist/styles.css.d.ts",
+      "default": "./dist/styles.css"
+    },
     "./package.json": "./package.json"
   },
   "peerDependencies": {
@@ -56,7 +69,6 @@
     "react-dom": ">=19.2.0"
   },
   "dependencies": {
-    "@cyca/log": "^0.1.1",
     "@tanstack/react-virtual": "^3.13.12",
     "@use-gesture/react": "^10.3.1",
     "framework-utils": "^1.1.0",
@@ -65,10 +77,10 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
-    "@microsoft/api-extractor": "^7.58.7",
     "@rolldown/plugin-babel": "^0.2.3",
     "@storybook/addon-docs": "^10.4.1",
     "@storybook/react-vite": "^10.4.1",
+    "@tsdown/css": "^0.22.1",
     "@types/babel__core": "^7.20.5",
     "@types/howler": "^2.2.12",
     "@types/node": "^24.10.0",
@@ -87,8 +99,14 @@
     "storybook": "^10.4.1",
     "typescript": "~6.0.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-    "vite-plugin-dts": "^5.0.2",
-    "vite-plus": "^0.1.23"
+    "vite-plus": "^0.1.24"
   },
-  "packageManager": "pnpm@11.5.0+sha512.dbfcc4f81cf48597afd4bc391ffdf12c11f1a9fb83a395bfa6b0a2d9cc2fd8ffebafdb1ccbd529632153f793904c2615b7f09fe1a345473fd1c35845172a8eb1"
+  "packageManager": "bun@1.3.13",
+  "trustedDependencies": [
+    "esbuild"
+  ],
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
+  }
 }

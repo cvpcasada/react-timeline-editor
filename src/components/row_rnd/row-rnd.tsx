@@ -13,11 +13,6 @@ import {
   type RowRndProps,
   type SnapPosition,
 } from "./row-rnd-interface";
-import { log as logger } from "@cyca/log";
-
-const log = logger
-  .getLogger("[Snap Debug]")
-  .setLevel(import.meta.env.DEV ? "debug" : "info");
 
 // Helper function to parse dataset values
 const parseDatasetValue = (
@@ -43,15 +38,6 @@ const calculateSnap = (
     if (dis < snapDistance && dis < currentMinDis) {
       snap = itemValue;
       currentMinDis = dis;
-      if (typeof item === "object") {
-        log.debug(
-          `Snapped to: ${itemValue} (Distance: ${dis}) Row: ${
-            item.rowId ?? "N/A"
-          } Action: ${item.actionId ?? "N/A"}`
-        );
-      } else {
-        log.debug(`Snapped to: ${itemValue} (Distance: ${dis})`);
-      }
     }
   }
 
