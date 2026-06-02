@@ -39,6 +39,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
     scale,
     scaleWidth,
     unstable_rowActionsOverscan,
+    getEmptyRowRender,
     getCollapsedRowLabelRender,
   } = props;
 
@@ -143,6 +144,14 @@ export const EditRow: FC<EditRowProps> = (props) => {
       {rowData && isCollapsed && getCollapsedRowLabelRender && (
         <div className={prefix("collapsed-row-label")} aria-hidden="true">
           {getCollapsedRowLabelRender({
+            row: rowData,
+            height: rowRenderHeight,
+          })}
+        </div>
+      )}
+      {rowData && actions.length === 0 && getEmptyRowRender && (
+        <div className={prefix("empty-row")}>
+          {getEmptyRowRender({
             row: rowData,
             height: rowRenderHeight,
           })}

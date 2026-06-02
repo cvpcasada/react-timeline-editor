@@ -24,6 +24,10 @@ _Avoid_: Active row, selected row
 A timeline row that does not participate in collapsible row expansion and keeps its configured height, even when the timeline cannot fit all rows without vertical scrolling.
 _Avoid_: Uncollapsible row, static row
 
+**Empty Row Placeholder**:
+A visual placeholder shown inside a visible timeline row that currently contains no actions, with content and presentation supplied by the timeline client.
+_Avoid_: Empty timeline state, empty track placeholder
+
 **Timeline Row**:
 A vertical lane in the editor that contains timeline actions.
 _Avoid_: Effect, track

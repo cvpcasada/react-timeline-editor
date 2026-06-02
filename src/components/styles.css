@@ -126,6 +126,16 @@
     max-width: min(16rem, 50vw);
   }
 
+  .timeline-editor-empty-row {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+
   .timeline-editor-action {
     position: absolute;
     left: 0;

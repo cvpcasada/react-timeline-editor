@@ -587,6 +587,18 @@ import { Meta } from "@storybook/addon-docs/blocks";
       <td><code>--</code></td>
     </tr>
     <tr>
+      <td>getEmptyRowRender</td>
+      <td>Render custom content inside rows with no actions</td>
+      <td><code>(params: &#123; row: TimelineRow; height: number &#125;) =&gt; React.ReactNode</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>getCollapsedRowLabelRender</td>
+      <td>Render decorative content over a collapsible row only while it is collapsed</td>
+      <td><code>(params: &#123; row: TimelineRow; height: number &#125;) =&gt; React.ReactNode</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
       <td>getScaleRender</td>
       <td>Custom scale rendering</td>
       <td><code>(scale: number) =&gt; React.ReactNode</code></td>

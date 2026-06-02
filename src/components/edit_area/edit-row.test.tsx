@@ -185,4 +185,38 @@ describe("EditRow", () => {
       expect.objectContaining({ time: 5 })
     );
   });
+
+  it("renders custom empty row content when the row has no actions", () => {
+    const emptyRender = vi.fn(({ row, height }) => (
+      <span data-testid="empty-row">
+        {row.id}:{height}
+      </span>
+    ));
+
+    const { rowElement } = renderEditRow({
+      rowData: {
+        id: "empty",
+        actions: [],
+      },
+      rowRenderHeight: 44,
+      getEmptyRowRender: emptyRender,
+    });
+
+    expect(emptyRender).toHaveBeenCalledWith({
+      row: { id: "empty", actions: [] },
+      height: 44,
+    });
+    expect(
+      rowElement.querySelector("[data-testid='empty-row']")?.textContent
+    ).toBe("empty:44");
+  });
+
+  it("does not render custom empty row content when the row has actions", () => {
+    const emptyRender = vi.fn();
+
+    const { rowElement } = renderEditRow({ getEmptyRowRender: emptyRender });
+
+    expect(emptyRender).not.toHaveBeenCalled();
+    expect(rowElement.querySelector(".timeline-editor-empty-row")).toBeNull();
+  });
 });

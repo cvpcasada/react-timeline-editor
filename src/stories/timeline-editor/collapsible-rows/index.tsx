@@ -235,6 +235,14 @@ const ToggleableRowsPrototype = ({
                   {rowLabels[row.id] ?? row.id}
                 </span>
               )}
+              getEmptyRowRender={({ row, height }) => (
+                <div
+                  className="toggleable-rows-prototype-empty-row"
+                  style={{ height }}
+                >
+                  Double Click to add {rowLabels[row.id] ?? row.id} on cursor
+                </div>
+              )}
               style={{ height: '100%' }}
               onClickRow={() => {
                 setData((currentData) =>
