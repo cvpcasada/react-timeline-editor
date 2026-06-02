@@ -1,6 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import { CollapsibleRows, type CollapsibleRowsProps } from '.';
+import {
+  CollapsibleRows,
+  ToggleableRowsPrototype,
+  type CollapsibleRowsProps,
+  type ToggleableRowsPrototypeProps,
+} from '.';
 
 const meta = {
   title: 'Interactive Features/Collapsible Rows',
@@ -63,5 +68,28 @@ export const CollapsedRowLabels: Story = {
   args: {
     ...CollapsibleRowsExample.args,
     showCollapsedRowLabels: true,
+  },
+};
+
+export const ToggleableRowsResizePrototype: StoryObj<
+  typeof ToggleableRowsPrototype
+> = {
+  name: 'Prototype: Toggleable Rows Resize',
+  render: (args: ToggleableRowsPrototypeProps) => {
+    return <ToggleableRowsPrototype {...args} />;
+  },
+  argTypes: {
+    rowHeight: {
+      control: { type: 'number', min: 32, max: 96, step: 1 },
+      description: 'Visible row height used to calculate the timeline height',
+    },
+    timelinePadding: {
+      control: { type: 'number', min: 24, max: 96, step: 1 },
+      description: 'Extra height for the time axis and horizontal scrollbar',
+    },
+  },
+  args: {
+    rowHeight: 48,
+    timelinePadding: 40,
   },
 };

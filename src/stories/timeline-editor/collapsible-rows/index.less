@@ -44,4 +44,59 @@
       oklch(12% 0.02 260 / 0)
     );
   }
+
+  &.timeline-editor-example-toggleable-rows-prototype {
+    display: grid;
+    gap: 10px;
+
+    .timeline-editor {
+      height: 100%;
+      min-height: 0;
+    }
+  }
+
+  .toggleable-rows-prototype-timeline-shell {
+    min-height: 96px;
+    overflow: hidden;
+  }
+
+  .toggleable-rows-prototype-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .toggleable-rows-prototype-control {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px solid oklch(74% 0.02 245);
+    border-radius: 6px;
+    color: oklch(28% 0.03 245);
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0;
+    background: oklch(99% 0.005 245);
+    cursor: pointer;
+  }
+
+  .toggleable-rows-prototype-control[data-visible='true'] {
+    border-color: oklch(58% 0.12 155);
+    color: oklch(24% 0.055 155);
+    background: oklch(94% 0.035 155);
+  }
+
+  .toggleable-rows-prototype-control input {
+    margin: 0;
+  }
+
+  .toggleable-rows-prototype-state {
+    color: oklch(42% 0.03 245);
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: 0;
+  }
 }
