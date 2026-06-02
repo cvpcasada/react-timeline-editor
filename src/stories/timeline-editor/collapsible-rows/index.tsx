@@ -123,15 +123,15 @@ const ToggleableRows = ({
   const actionIdRef = useRef(0);
 
   const visibleRowIdSet = new Set(visibleRowIds);
-  const hasCollapsibleVisibleRows = visibleRowIds.length > 2;
+  const hasCollapsibleVisibleRows =
+    visibleRowIds.length > 2 &&
+    data
+      .filter((row) => visibleRowIdSet.has(row.id))
+      .every((row) => row.actions.length > 0);
   const visibleData = data
     .filter((row) => visibleRowIdSet.has(row.id))
     .map((row) => {
-      if (
-        !hasCollapsibleVisibleRows ||
-        row.id === '0' ||
-        row.actions.length === 0
-      ) {
+      if (!hasCollapsibleVisibleRows || row.id === '0') {
         return {
           ...row,
           rowHeight,
@@ -231,15 +231,21 @@ const ToggleableRows = ({
               hideCursor={false}
               autoScroll={true}
               rowHeight={rowHeight}
-              collapsedRowHeight={collapsedRowHeight}
-              getCollapsedRowLabelRender={({ row, height }) => (
-                <span
-                  className="collapsed-row-label-rail"
-                  style={{ maxHeight: height }}
-                >
-                  {rowLabels[row.id] ?? row.id}
-                </span>
-              )}
+              collapsedRowHeight={
+                hasCollapsibleVisibleRows ? collapsedRowHeight : undefined
+              }
+              getCollapsedRowLabelRender={
+                hasCollapsibleVisibleRows
+                  ? ({ row, height }) => (
+                      <span
+                        className="collapsed-row-label-rail"
+                        style={{ maxHeight: height }}
+                      >
+                        {rowLabels[row.id] ?? row.id}
+                      </span>
+                    )
+                  : undefined
+              }
               getEmptyRowRender={({ row, height }) => (
                 <div
                   className="toggleable-rows-empty-row"
