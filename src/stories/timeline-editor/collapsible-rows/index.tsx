@@ -103,19 +103,19 @@ const CollapsibleRows = ({
   );
 };
 
-interface ToggleableRowsPrototypeProps {
+interface ToggleableRowsProps {
   rowHeight?: number;
   collapsedRowHeight?: number;
   timelinePadding?: number;
   scrollbarPadding?: number;
 }
 
-const ToggleableRowsPrototype = ({
+const ToggleableRows = ({
   rowHeight = 48,
   collapsedRowHeight = 18,
   timelinePadding = 40,
   scrollbarPadding = 14,
-}: ToggleableRowsPrototypeProps) => {
+}: ToggleableRowsProps) => {
   const [data, setData] = useState<TimelineRow[]>(timelineStoryRows);
   const [visibleRowIds, setVisibleRowIds] = useState(() =>
     timelineStoryRows.map((row) => row.id),
@@ -123,10 +123,15 @@ const ToggleableRowsPrototype = ({
   const actionIdRef = useRef(0);
 
   const visibleRowIdSet = new Set(visibleRowIds);
+  const hasCollapsibleVisibleRows = visibleRowIds.length > 2;
   const visibleData = data
     .filter((row) => visibleRowIdSet.has(row.id))
     .map((row) => {
-      if (row.id === '0' || row.actions.length === 0) {
+      if (
+        !hasCollapsibleVisibleRows ||
+        row.id === '0' ||
+        row.actions.length === 0
+      ) {
         return {
           ...row,
           rowHeight,
@@ -153,8 +158,8 @@ const ToggleableRowsPrototype = ({
       : 96;
 
   return (
-    <div className="timeline-editor-example-collapsible-rows timeline-editor-example-toggleable-rows-prototype">
-      <div className="toggleable-rows-prototype-toolbar">
+    <div className="timeline-editor-example-collapsible-rows timeline-editor-example-toggleable-rows">
+      <div className="toggleable-rows-toolbar">
         {timelineStoryRows.map((row) => {
           const isVisible = visibleRowIdSet.has(row.id);
           const actionCount = data.find((dataRow) => dataRow.id === row.id)
@@ -163,7 +168,7 @@ const ToggleableRowsPrototype = ({
           return (
             <label
               key={row.id}
-              className="toggleable-rows-prototype-control"
+              className="toggleable-rows-control"
               data-visible={isVisible}
             >
               <input
@@ -197,7 +202,7 @@ const ToggleableRowsPrototype = ({
         value={timelineHeight}
         render={(animatedTimelineHeight) => (
           <div
-            className="toggleable-rows-prototype-timeline-shell"
+            className="toggleable-rows-timeline-shell"
             onKeyDown={(event) => {
               if (event.key !== 'Delete' && event.key !== 'Backspace') return;
 
@@ -237,7 +242,7 @@ const ToggleableRowsPrototype = ({
               )}
               getEmptyRowRender={({ row, height }) => (
                 <div
-                  className="toggleable-rows-prototype-empty-row"
+                  className="toggleable-rows-empty-row"
                   style={{ height }}
                 >
                   Double Click to add {rowLabels[row.id] ?? row.id} on cursor
@@ -259,7 +264,7 @@ const ToggleableRowsPrototype = ({
                 event.stopPropagation();
                 event.currentTarget
                   .closest<HTMLElement>(
-                    '.toggleable-rows-prototype-timeline-shell',
+                    '.toggleable-rows-timeline-shell',
                   )
                   ?.focus();
                 setData((currentData) =>
@@ -281,7 +286,7 @@ const ToggleableRowsPrototype = ({
                     if (dataRow.id !== row.id) return dataRow;
 
                     const newAction: TimelineAction = {
-                      id: `prototype-action-${actionIdRef.current++}`,
+                      id: `toggleable-row-action-${actionIdRef.current++}`,
                       start: time,
                       end: time + 1,
                       effectId: dataRow.id === '1' ? 'effect1' : 'effect0',
@@ -308,7 +313,7 @@ const ToggleableRowsPrototype = ({
         )}
       />
 
-      <div className="toggleable-rows-prototype-state">
+      <div className="toggleable-rows-state">
         Visible rows: {visibleRowIds.join(', ') || 'none'} | height:{' '}
         {timelineHeight}px | actions:{' '}
         {data
@@ -320,5 +325,5 @@ const ToggleableRowsPrototype = ({
 };
 
 export { CollapsibleRows };
-export { ToggleableRowsPrototype };
-export type { CollapsibleRowsProps, ToggleableRowsPrototypeProps };
+export { ToggleableRows };
+export type { CollapsibleRowsProps, ToggleableRowsProps };

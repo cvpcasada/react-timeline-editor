@@ -2,9 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import {
   CollapsibleRows,
-  ToggleableRowsPrototype,
+  ToggleableRows,
   type CollapsibleRowsProps,
-  type ToggleableRowsPrototypeProps,
+  type ToggleableRowsProps,
 } from '.';
 
 const meta = {
@@ -71,12 +71,12 @@ export const CollapsedRowLabels: Story = {
   },
 };
 
-export const ToggleableRowsResizePrototype: StoryObj<
-  typeof ToggleableRowsPrototype
+export const ToggleableRowsResize: StoryObj<
+  typeof ToggleableRows
 > = {
-  name: 'Prototype: Toggleable Rows Resize',
-  render: (args: ToggleableRowsPrototypeProps) => {
-    return <ToggleableRowsPrototype {...args} />;
+  name: 'Toggleable Rows Resize',
+  render: (args: ToggleableRowsProps) => {
+    return <ToggleableRows {...args} />;
   },
   argTypes: {
     rowHeight: {
