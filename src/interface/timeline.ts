@@ -86,6 +86,13 @@ export interface EditData {
     row: TimelineRow
   ) => React.ReactNode;
   /**
+   * @description Render decorative content over a collapsible row only while it is collapsed
+   */
+  getCollapsedRowLabelRender?: (params: {
+    row: TimelineRow;
+    height: number;
+  }) => React.ReactNode;
+  /**
    * @description Custom scale rendering
    */
   getScaleRender?: (scale: number) => React.ReactNode;

@@ -16,6 +16,7 @@ export type EditRowProps = CommonProp & {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   rowData?: TimelineRow;
   rowRenderHeight: number;
+  isCollapsed?: boolean;
   style?: React.CSSProperties;
   snapData: SnapGuideLineData;
   setEditorData: (params: TimelineRow[]) => void;
@@ -28,6 +29,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
   const {
     rowData,
     rowRenderHeight,
+    isCollapsed = false,
     style = {},
     onClickRow,
     onDoubleClickRow,
@@ -37,6 +39,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
     scale,
     scaleWidth,
     unstable_rowActionsOverscan,
+    getCollapsedRowLabelRender,
   } = props;
 
   const classNames = ["edit-row"];
@@ -137,6 +140,14 @@ export const EditRow: FC<EditRowProps> = (props) => {
         }
       }}
     >
+      {rowData && isCollapsed && getCollapsedRowLabelRender && (
+        <div className={prefix("collapsed-row-label")} aria-hidden="true">
+          {getCollapsedRowLabelRender({
+            row: rowData,
+            height: rowRenderHeight,
+          })}
+        </div>
+      )}
       {rowData &&
         virtualizer.getVirtualItems().map((virtualEntry) => {
           const action = actions[virtualEntry.index];

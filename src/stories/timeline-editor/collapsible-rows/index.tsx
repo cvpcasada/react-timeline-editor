@@ -10,11 +10,18 @@ import './index.less';
 
 type DefaultExpandedRow = 'none' | 'second' | 'third';
 
+const rowLabels: Record<string, string> = {
+  '0': 'Primary video',
+  '1': 'Voiceover and sound design',
+  '2': 'Layouts and screen states',
+};
+
 interface CollapsibleRowsProps {
   rowHeight?: number;
   expandedRowHeight?: number;
   collapsedRowHeight?: number;
   defaultExpandedRow?: DefaultExpandedRow;
+  showCollapsedRowLabels?: boolean;
 }
 
 const CollapsibleRows = ({
@@ -22,6 +29,7 @@ const CollapsibleRows = ({
   expandedRowHeight = 56,
   collapsedRowHeight = 18,
   defaultExpandedRow = 'second',
+  showCollapsedRowLabels = false,
 }: CollapsibleRowsProps) => {
   const [data, setData] = useState<TimelineRow[]>(
     structuredClone(basicMockData.slice(0, 3)).map((row, index) => {
@@ -62,6 +70,18 @@ const CollapsibleRows = ({
         hideCursor={false}
         autoScroll={true}
         rowHeight={rowHeight}
+        getCollapsedRowLabelRender={
+          showCollapsedRowLabels
+            ? ({ row, height }) => (
+                <span
+                  className="collapsed-row-label-rail"
+                  style={{ maxHeight: height }}
+                >
+                  {rowLabels[row.id] ?? row.id}
+                </span>
+              )
+            : undefined
+        }
       />
     </div>
   );

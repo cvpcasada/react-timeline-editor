@@ -21,6 +21,7 @@ export const CollapsibleRowsExample: Story = {
       args.expandedRowHeight,
       args.collapsedRowHeight,
       args.defaultExpandedRow,
+      args.showCollapsedRowLabels,
     ].join(':');
 
     return <CollapsibleRows key={resetKey} {...args} />;
@@ -43,11 +44,24 @@ export const CollapsibleRowsExample: Story = {
       options: ['none', 'second', 'third'],
       description: 'Collapsible row expanded when no row is focused',
     },
+    showCollapsedRowLabels: {
+      control: 'boolean',
+      description: 'Show decorative labels over collapsed rows',
+    },
   },
   args: {
     rowHeight: 40,
     expandedRowHeight: 56,
     collapsedRowHeight: 18,
     defaultExpandedRow: 'second',
+    showCollapsedRowLabels: false,
+  },
+};
+
+export const CollapsedRowLabels: Story = {
+  ...CollapsibleRowsExample,
+  args: {
+    ...CollapsibleRowsExample.args,
+    showCollapsedRowLabels: true,
   },
 };

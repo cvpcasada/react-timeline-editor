@@ -62,13 +62,14 @@ export const EditArea = ({
   const rows = (() => {
     let result: React.ReactNode[] = [];
 
-    for (const { row, top, height } of props.rowLayouts) {
+    for (const { row, top, height, isCollapsed } of props.rowLayouts) {
       result.push(
         <EditRow
           {...props}
           key={row.id}
           rowData={row}
           rowRenderHeight={height}
+          isCollapsed={isCollapsed}
           snapData={snapData}
           scrollContainerRef={props.scrollElementRef}
           style={{

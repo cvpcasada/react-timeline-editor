@@ -4,6 +4,7 @@ export interface TimelineRowLayout {
   row: TimelineRow;
   top: number;
   height: number;
+  isCollapsed?: boolean;
 }
 
 export interface TimelineRowPresentation {
@@ -40,15 +41,14 @@ export function getTimelineRowPresentation(params: {
   for (const row of params.editorData) {
     const expandedHeight = row.rowHeight || params.rowHeight;
     const collapsedHeight = row.collapsed?.height ?? params.collapsedRowHeight;
-    const height =
-      row.collapsed && row.id !== focusedRowId
-        ? collapsedHeight
-        : expandedHeight;
+    const isCollapsed = Boolean(row.collapsed && row.id !== focusedRowId);
+    const height = isCollapsed ? collapsedHeight : expandedHeight;
 
     layouts.push({
       row,
       top: totalHeight,
       height,
+      isCollapsed,
     });
     totalHeight += height;
   }

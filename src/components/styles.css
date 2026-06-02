@@ -96,6 +96,7 @@
   .timeline-editor-edit-row {
     display: flex;
     flex-direction: row;
+    overflow: clip;
     transition: height, transform;
     transition-duration: 0.35s;
     transition-timing-function: linear(
@@ -112,6 +113,17 @@
       1.006 87.3%,
       1
     );
+  }
+
+  .timeline-editor-collapsed-row-label {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    max-width: min(16rem, 50vw);
   }
 
   .timeline-editor-action {
