@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { CustomStyle, CustomStyleBasicTimeline } from '.';
+import { CustomStyle } from '.';
 
 const meta = {
   title: 'Basic Features/Custom Style',
@@ -14,7 +14,3 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const CustomStyleExample: Story = {};
-
-export const CollapsibleRows: StoryObj<typeof CustomStyleBasicTimeline> = {
-  render: () => <CustomStyleBasicTimeline />,
-};
