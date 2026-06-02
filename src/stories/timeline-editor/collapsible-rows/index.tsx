@@ -123,6 +123,18 @@ const ToggleableRows = ({
   const actionIdRef = useRef(0);
 
   const visibleRowIdSet = new Set(visibleRowIds);
+
+  /*
+   * This story intentionally demonstrates three states with one data model:
+   *
+   * 1. Hidden rows stay in `data` so toggling them back on preserves edits.
+   * 2. Empty visible rows render the empty-row affordance at full row height.
+   * 3. Collapsible behavior is only enabled when every visible row has actions.
+   *
+   * That last rule avoids mixing collapsed rows with empty placeholders. Once a
+   * user double-clicks an empty row and every visible row has at least one
+   * action, rows 1 and 2 become collapsible again.
+   */
   const hasCollapsibleVisibleRows =
     visibleRowIds.length > 2 &&
     data
@@ -132,6 +144,11 @@ const ToggleableRows = ({
     .filter((row) => visibleRowIdSet.has(row.id))
     .map((row) => {
       if (!hasCollapsibleVisibleRows || row.id === '0') {
+        /*
+         * Row 0 is the fixed anchor row. The remaining rows are also kept fixed
+         * while the visible set contains any empty row, because the story should
+         * show either full-height empty rows or collapsible rows, not both.
+         */
         return {
           ...row,
           rowHeight,
@@ -142,6 +159,11 @@ const ToggleableRows = ({
       return {
         ...row,
         rowHeight,
+        /*
+         * When collapsible behavior is active, row 1 is the idle expanded row.
+         * Hovering or editing another collapsible row still lets the timeline
+         * focus that row according to the component's normal row-layout rules.
+         */
         collapsed: {
           height: collapsedRowHeight,
           ...(row.id === '1' ? { expandedByDefault: true } : {}),
@@ -177,11 +199,22 @@ const ToggleableRows = ({
                 onChange={() => {
                   setVisibleRowIds((currentVisibleRowIds) => {
                     if (currentVisibleRowIds.includes(row.id)) {
+                      /*
+                       * Hiding a row removes it from the rendered timeline only.
+                       * Actions, selection state, and later edits remain in
+                       * `data`, so restoring visibility brings the row back as
+                       * it was.
+                       */
                       return currentVisibleRowIds.filter(
                         (visibleRowId) => visibleRowId !== row.id,
                       );
                     }
 
+                    /*
+                     * Restoring a row follows the canonical story order instead
+                     * of appending, so row positions and default-expanded row
+                     * behavior stay deterministic across toggle sequences.
+                     */
                     return timelineStoryRows
                       .map((storyRow) => storyRow.id)
                       .filter(
@@ -197,6 +230,28 @@ const ToggleableRows = ({
           );
         })}
       </div>
+
+      <section className="toggleable-rows-notes" aria-label="Story behavior notes">
+        <div className="toggleable-rows-note-status">
+          Collapsible mode:{' '}
+          <strong>{hasCollapsibleVisibleRows ? 'active' : 'inactive'}</strong>
+        </div>
+        <ul>
+          <li>Hidden rows keep their actions and selection state.</li>
+          <li>Visible empty rows stay full height and show the empty-row prompt.</li>
+          <li>
+            Rows only collapse when every visible row has at least one action.
+          </li>
+          <li>
+            Row 0 stays fixed; rows 1 and 2 collapse, with row 1 expanded while
+            idle.
+          </li>
+          <li>
+            Double-clicking an empty row adds an action and can reactivate
+            collapsible mode.
+          </li>
+        </ul>
+      </section>
 
       <MotionProp
         value={timelineHeight}
@@ -234,6 +289,12 @@ const ToggleableRows = ({
               collapsedRowHeight={
                 hasCollapsibleVisibleRows ? collapsedRowHeight : undefined
               }
+              /*
+               * The story passes the collapsible timeline props only while rows
+               * actually have row-level `collapsed` config. This keeps the demo
+               * aligned with the visible state instead of implying collapsed
+               * labels are available for empty-row-only layouts.
+               */
               getCollapsedRowLabelRender={
                 hasCollapsibleVisibleRows
                   ? ({ row, height }) => (
@@ -291,6 +352,11 @@ const ToggleableRows = ({
                   currentData.map((dataRow) => {
                     if (dataRow.id !== row.id) return dataRow;
 
+                    /*
+                     * Adding to an empty row can flip the whole visible timeline
+                     * back into collapsible mode on the next render, provided no
+                     * other visible row is empty.
+                     */
                     const newAction: TimelineAction = {
                       id: `toggleable-row-action-${actionIdRef.current++}`,
                       start: time,
