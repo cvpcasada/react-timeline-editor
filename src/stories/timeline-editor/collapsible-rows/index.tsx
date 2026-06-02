@@ -105,12 +105,16 @@ const CollapsibleRows = ({
 
 interface ToggleableRowsPrototypeProps {
   rowHeight?: number;
+  collapsedRowHeight?: number;
   timelinePadding?: number;
+  scrollbarPadding?: number;
 }
 
 const ToggleableRowsPrototype = ({
   rowHeight = 48,
+  collapsedRowHeight = 18,
   timelinePadding = 40,
+  scrollbarPadding = 14,
 }: ToggleableRowsPrototypeProps) => {
   const [data, setData] = useState<TimelineRow[]>(timelineStoryRows);
   const [visibleRowIds, setVisibleRowIds] = useState(() =>
@@ -119,9 +123,34 @@ const ToggleableRowsPrototype = ({
   const actionIdRef = useRef(0);
 
   const visibleRowIdSet = new Set(visibleRowIds);
-  const visibleData = data.filter((row) => visibleRowIdSet.has(row.id));
+  const visibleData = data
+    .filter((row) => visibleRowIdSet.has(row.id))
+    .map((row) => {
+      if (row.id === '0' || row.actions.length === 0) {
+        return {
+          ...row,
+          rowHeight,
+          collapsed: undefined,
+        };
+      }
+
+      return {
+        ...row,
+        rowHeight,
+        collapsed: {
+          height: collapsedRowHeight,
+          ...(row.id === '1' ? { expandedByDefault: true } : {}),
+        },
+      };
+    });
+  const timelineRowsHeight = visibleData.reduce((height, row) => {
+    if (!row.collapsed) return height + rowHeight;
+    return height + (row.collapsed.expandedByDefault ? rowHeight : collapsedRowHeight);
+  }, 0);
   const timelineHeight =
-    visibleData.length > 0 ? visibleData.length * rowHeight + timelinePadding : 96;
+    visibleData.length > 0
+      ? timelineRowsHeight + timelinePadding + scrollbarPadding
+      : 96;
 
   return (
     <div className="timeline-editor-example-collapsible-rows timeline-editor-example-toggleable-rows-prototype">
@@ -169,7 +198,18 @@ const ToggleableRowsPrototype = ({
         render={(animatedTimelineHeight) => (
           <div
             className="toggleable-rows-prototype-timeline-shell"
+            onKeyDown={(event) => {
+              if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+
+              setData((currentData) =>
+                currentData.map((row) => ({
+                  ...row,
+                  actions: row.actions.filter((action) => !action.selected),
+                })),
+              );
+            }}
             style={{ height: animatedTimelineHeight }}
+            tabIndex={0}
           >
             <Timeline
               onChange={(nextVisibleData) => {
@@ -186,7 +226,47 @@ const ToggleableRowsPrototype = ({
               hideCursor={false}
               autoScroll={true}
               rowHeight={rowHeight}
+              collapsedRowHeight={collapsedRowHeight}
+              getCollapsedRowLabelRender={({ row, height }) => (
+                <span
+                  className="collapsed-row-label-rail"
+                  style={{ maxHeight: height }}
+                >
+                  {rowLabels[row.id] ?? row.id}
+                </span>
+              )}
               style={{ height: '100%' }}
+              onClickRow={() => {
+                setData((currentData) =>
+                  currentData.map((row) => ({
+                    ...row,
+                    actions: row.actions.map((action) => ({
+                      ...action,
+                      selected: false,
+                    })),
+                  })),
+                );
+              }}
+              onClickActionOnly={(event, { action }) => {
+                event.stopPropagation();
+                event.currentTarget
+                  .closest<HTMLElement>(
+                    '.toggleable-rows-prototype-timeline-shell',
+                  )
+                  ?.focus();
+                setData((currentData) =>
+                  currentData.map((row) => ({
+                    ...row,
+                    actions: row.actions.map((rowAction) => ({
+                      ...rowAction,
+                      selected: rowAction.id === action.id,
+                    })),
+                  })),
+                );
+              }}
+              onDoubleClickAction={(event) => {
+                event.stopPropagation();
+              }}
               onDoubleClickRow={(_event, { row, time }) => {
                 setData((currentData) =>
                   currentData.map((dataRow) => {
@@ -199,11 +279,18 @@ const ToggleableRowsPrototype = ({
                       effectId: dataRow.id === '1' ? 'effect1' : 'effect0',
                       flexible: true,
                       movable: true,
+                      selected: true,
                     };
 
                     return {
                       ...dataRow,
-                      actions: [...dataRow.actions, newAction],
+                      actions: [
+                        ...dataRow.actions.map((action) => ({
+                          ...action,
+                          selected: false,
+                        })),
+                        newAction,
+                      ],
                     };
                   }),
                 );
