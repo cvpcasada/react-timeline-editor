@@ -1,6 +1,7 @@
 import React from "react";
 import { type TimelineRow } from "@/interface/action";
 import { type CommonProp } from "@/interface/common-prop";
+import { type TimelineCursorPreviewRenderParams } from "@/interface/timeline";
 import { EditRow } from "./edit-row";
 import { SnapGuideLines } from "./snap-lines";
 import { useSnap } from "./hooks/use-snap";
@@ -33,6 +34,14 @@ export type EditAreaProps = CommonProp & {
 
   /** Lock collapsible row during an interaction */
   setLockedRowId: (rowId: string | null) => void;
+
+  /** Update timeline cursor preview while hovering rows */
+  onTimelineCursorPreviewPointerMove?: (
+    params: TimelineCursorPreviewRenderParams
+  ) => void;
+
+  /** Hide timeline cursor preview when leaving row surfaces */
+  onTimelineCursorPreviewPointerLeave?: () => void;
 };
 
 export const EditArea = ({
@@ -85,7 +94,14 @@ export const EditArea = ({
           }}
           onPointerLeave={() => {
             props.clearHoveredRowId(row.id);
+            props.onTimelineCursorPreviewPointerLeave?.();
           }}
+          onTimelineCursorPreviewPointerMove={
+            props.onTimelineCursorPreviewPointerMove
+          }
+          onTimelineCursorPreviewPointerLeave={
+            props.onTimelineCursorPreviewPointerLeave
+          }
           onActionMoveStart={(data) => {
             if (row.collapsed) props.setLockedRowId(row.id);
             handleInitSnap(data);

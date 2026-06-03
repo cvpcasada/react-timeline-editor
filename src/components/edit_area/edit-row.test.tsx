@@ -83,6 +83,7 @@ describe("EditRow", () => {
       scaleWidth: 100,
       startLeft: 20,
       scaleCount: 4,
+      maxScaleCount: 4,
       cursorTime: 0,
       timelineWidth: 500,
       setScaleCount: vi.fn(),
@@ -91,6 +92,8 @@ describe("EditRow", () => {
     const onPointerMoveRow = vi.fn();
     const onDoubleClickRow = vi.fn();
     const onContextMenuRow = vi.fn();
+    const onTimelineCursorPreviewPointerMove = vi.fn();
+    const onTimelineCursorPreviewPointerLeave = vi.fn();
 
     act(() => {
       root?.render(
@@ -114,6 +117,12 @@ describe("EditRow", () => {
           onPointerMoveRow={onPointerMoveRow}
           onDoubleClickRow={onDoubleClickRow}
           onContextMenuRow={onContextMenuRow}
+          onTimelineCursorPreviewPointerMove={
+            onTimelineCursorPreviewPointerMove
+          }
+          onTimelineCursorPreviewPointerLeave={
+            onTimelineCursorPreviewPointerLeave
+          }
           {...props}
         />
       );
@@ -142,6 +151,8 @@ describe("EditRow", () => {
       onPointerMoveRow,
       onDoubleClickRow,
       onContextMenuRow,
+      onTimelineCursorPreviewPointerMove,
+      onTimelineCursorPreviewPointerLeave,
     };
   }
 
@@ -151,11 +162,13 @@ describe("EditRow", () => {
     });
   }
 
-  function dispatchPointer(element: HTMLElement, type: string, clientX: number) {
+  function dispatchPointer(
+    element: HTMLElement,
+    type: string,
+    clientX: number
+  ) {
     act(() => {
-      element.dispatchEvent(
-        new PointerEvent(type, { bubbles: true, clientX })
-      );
+      element.dispatchEvent(new PointerEvent(type, { bubbles: true, clientX }));
     });
   }
 
@@ -190,6 +203,26 @@ describe("EditRow", () => {
       expect.objectContaining({ clientX: 270 }),
       expect.objectContaining({ time: 3 })
     );
+  });
+
+  it("reports timeline cursor preview movement over valid row positions", () => {
+    const { rowElement, onTimelineCursorPreviewPointerMove } = renderEditRow();
+
+    dispatchPointer(rowElement, "pointermove", 270);
+
+    expect(onTimelineCursorPreviewPointerMove).toHaveBeenCalledWith({
+      surface: "edit-row",
+      row: expect.objectContaining({ id: "row" }),
+      time: 3,
+    });
+  });
+
+  it("hides the timeline cursor preview before startLeft", () => {
+    const { rowElement, onTimelineCursorPreviewPointerLeave } = renderEditRow();
+
+    dispatchPointer(rowElement, "pointermove", 110);
+
+    expect(onTimelineCursorPreviewPointerLeave).toHaveBeenCalled();
   });
 
   it("routes double click and context menu through the same time conversion", () => {

@@ -63,6 +63,8 @@ describe("TimeArea", () => {
 
     const setCursor = vi.fn();
     const onClickTimeArea = vi.fn();
+    const onTimelineCursorPreviewPointerMove = vi.fn();
+    const onTimelineCursorPreviewPointerLeave = vi.fn();
     const scrollElementRef = React.createRef<HTMLDivElement | null>();
     scrollElementRef.current = document.createElement("div");
 
@@ -78,6 +80,12 @@ describe("TimeArea", () => {
           scrollElementRef={scrollElementRef}
           setCursor={setCursor}
           onClickTimeArea={onClickTimeArea}
+          onTimelineCursorPreviewPointerMove={
+            onTimelineCursorPreviewPointerMove
+          }
+          onTimelineCursorPreviewPointerLeave={
+            onTimelineCursorPreviewPointerLeave
+          }
           {...props}
         />
       );
@@ -100,13 +108,27 @@ describe("TimeArea", () => {
         toJSON: () => ({}),
       }) as DOMRect;
 
-    return { timeArea, setCursor, onClickTimeArea };
+    return {
+      timeArea,
+      setCursor,
+      onClickTimeArea,
+      onTimelineCursorPreviewPointerMove,
+      onTimelineCursorPreviewPointerLeave,
+    };
   }
 
   function clickAt(element: HTMLElement, clientX: number) {
     act(() => {
       element.dispatchEvent(
         new MouseEvent("click", { bubbles: true, clientX })
+      );
+    });
+  }
+
+  function pointerMoveAt(element: HTMLElement, clientX: number) {
+    act(() => {
+      element.dispatchEvent(
+        new PointerEvent("pointermove", { bubbles: true, clientX })
       );
     });
   }
@@ -142,6 +164,26 @@ describe("TimeArea", () => {
 
     expect(onClickTimeArea).not.toHaveBeenCalled();
     expect(setCursor).not.toHaveBeenCalled();
+  });
+
+  it("reports timeline cursor preview movement over valid time positions", () => {
+    const { timeArea, onTimelineCursorPreviewPointerMove } = renderTimeArea();
+
+    pointerMoveAt(timeArea, 220);
+
+    expect(onTimelineCursorPreviewPointerMove).toHaveBeenCalledWith({
+      surface: "time-area",
+      time: 2,
+    });
+  });
+
+  it("hides the timeline cursor preview before startLeft or past maxScaleCount", () => {
+    const { timeArea, onTimelineCursorPreviewPointerLeave } = renderTimeArea();
+
+    pointerMoveAt(timeArea, 110);
+    pointerMoveAt(timeArea, 450);
+
+    expect(onTimelineCursorPreviewPointerLeave).toHaveBeenCalledTimes(2);
   });
 
   it("renders major scale labels with the custom renderer", () => {

@@ -5,6 +5,7 @@ import {
   BasicActionPreview,
   BasicCursorDisabled,
   BasicHideCursor,
+  BasicTimelineCursorPreview,
 } from ".";
 import { action } from "storybook/actions";
 
@@ -69,5 +70,20 @@ export const ActionPreview: StoryObj<typeof BasicActionPreview> = {
   args: {
     resizeToAvailableSpace: true,
     minPreviewDuration: 0.5,
+  },
+};
+
+export const TimelineCursorPreview: StoryObj<
+  typeof BasicTimelineCursorPreview
+> = {
+  render: (args) => <BasicTimelineCursorPreview {...args} />,
+  argTypes: {
+    customHead: {
+      control: { type: "boolean" },
+      description: "Render formatted time and surface details in the preview head",
+    },
+  },
+  args: {
+    customHead: false,
   },
 };

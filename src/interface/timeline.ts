@@ -4,6 +4,17 @@ import { type TimelineEffect } from "./effect";
 export * from "./action";
 export * from "./effect";
 
+export type TimelineCursorPreviewRenderParams =
+  | {
+      surface: "time-area";
+      time: number;
+    }
+  | {
+      surface: "edit-row";
+      time: number;
+      row: TimelineRow;
+    };
+
 export interface EditData {
   /**
    * @description Timeline editing data
@@ -74,6 +85,11 @@ export interface EditData {
    */
   hideCursor?: boolean;
   /**
+   * @description Whether to show the timeline cursor preview while hovering the timeline surface
+   * @default false
+   */
+  showTimelineCursorPreview?: boolean;
+  /**
    * @description Disable dragging in all action areas
    * @default false
    */
@@ -100,6 +116,12 @@ export interface EditData {
     row: TimelineRow;
     height: number;
   }) => React.ReactNode;
+  /**
+   * @description Render custom content inside the timeline cursor preview head
+   */
+  getTimelineCursorPreviewHeadRender?: (
+    params: TimelineCursorPreviewRenderParams
+  ) => React.ReactNode;
   /**
    * @description Render custom content inside rows with no actions
    */

@@ -1,6 +1,7 @@
 import {
   Timeline,
   type TimelineAction,
+  type TimelineCursorPreviewRenderParams,
   type TimelineEditor,
   type TimelineState,
 } from "@/index";
@@ -71,6 +72,44 @@ const BasicHideCursor = ({ hideCursor = true }: BasicHideCursorProps) => {
   );
 };
 
+interface BasicTimelineCursorPreviewProps {
+  customHead?: boolean;
+}
+
+const formatTimelineCursorPreviewHead = (
+  params: TimelineCursorPreviewRenderParams
+) => {
+  const label =
+    params.surface === "edit-row" ? `Row ${params.row.id}` : "Time ruler";
+
+  return (
+    <span className="timeline-editor-example-basic-cursor-preview-head">
+      <span>{params.time.toFixed(1)}s</span>
+      <span>{label}</span>
+    </span>
+  );
+};
+
+const BasicTimelineCursorPreview = ({
+  customHead = false,
+}: BasicTimelineCursorPreviewProps) => {
+  const [data, setData] = useState(defaultEditorData);
+
+  return (
+    <div className="timeline-editor-example-basic">
+      <Timeline
+        onChange={setData}
+        editorData={data}
+        effects={mockEffect}
+        showTimelineCursorPreview
+        getTimelineCursorPreviewHeadRender={
+          customHead ? formatTimelineCursorPreviewHead : undefined
+        }
+      />
+    </div>
+  );
+};
+
 interface BasicActionPreviewProps {
   resizeToAvailableSpace?: boolean;
   minPreviewDuration?: number;
@@ -99,6 +138,7 @@ const BasicActionPreview = ({
         editorData={data}
         effects={mockEffect}
         actionPreview={actionPreview ?? undefined}
+        showTimelineCursorPreview
         onPointerMoveRow={(_event, { row, time }) => {
           const previewStart = Math.max(0, time);
           const previewDuration = 2;
@@ -172,4 +212,10 @@ const BasicActionPreview = ({
   );
 };
 
-export { Basic, BasicActionPreview, BasicCursorDisabled, BasicHideCursor };
+export {
+  Basic,
+  BasicActionPreview,
+  BasicCursorDisabled,
+  BasicHideCursor,
+  BasicTimelineCursorPreview,
+};

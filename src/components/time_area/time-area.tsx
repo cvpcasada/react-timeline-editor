@@ -14,6 +14,11 @@ interface TimeAreaProps {
   onClickTimeArea?: (time: number, e: React.MouseEvent<HTMLDivElement>) => void;
   setCursor: (param: { left?: number; time: number }) => void;
   getScaleRender?: (scale: number) => React.ReactNode;
+  onTimelineCursorPreviewPointerMove?: (params: {
+    surface: "time-area";
+    time: number;
+  }) => void;
+  onTimelineCursorPreviewPointerLeave?: () => void;
 }
 
 export function TimeArea({
@@ -27,6 +32,8 @@ export function TimeArea({
   onClickTimeArea,
   setCursor,
   getScaleRender,
+  onTimelineCursorPreviewPointerMove,
+  onTimelineCursorPreviewPointerLeave,
 }: TimeAreaProps) {
   const splitCount = scaleSplitCount ?? 1;
   const width = scaleWidth ?? 160;
@@ -41,6 +48,26 @@ export function TimeArea({
 
   const totalWidth =
     (showUnit ? width / splitCount : width) * (columnCount - 1) + left;
+
+  const getTimeFromPointerX = (currentTarget: HTMLElement, clientX: number) => {
+    const leftStart = startLeft ?? 20;
+    const widthValue = scaleWidth ?? 160;
+    const scaleValue = scale ?? 1;
+    const maxCount = maxScaleCount ?? Infinity;
+    const rect = currentTarget.getBoundingClientRect();
+    const position = clientX - rect.x;
+    const maxLeft = Number.isFinite(maxCount)
+      ? maxCount * widthValue + leftStart
+      : totalWidth;
+
+    if (position < leftStart || position > maxLeft) return null;
+
+    return parserPixelToTime(position, {
+      startLeft: leftStart,
+      scale: scaleValue,
+      scaleWidth: widthValue,
+    });
+  };
 
   const getColumnWidth = (index: number): number => {
     switch (index) {
@@ -69,6 +96,17 @@ export function TimeArea({
     <div
       style={{ width: `${totalWidth}px` }}
       className={prefix("time-area")}
+      onPointerMove={(e) => {
+        const time = getTimeFromPointerX(e.currentTarget, e.clientX);
+        if (time === null) {
+          onTimelineCursorPreviewPointerLeave?.();
+          return;
+        }
+        onTimelineCursorPreviewPointerMove?.({ surface: "time-area", time });
+      }}
+      onPointerLeave={() => {
+        onTimelineCursorPreviewPointerLeave?.();
+      }}
       onClick={(e) => {
         // if (hideCursor) return;
         const leftStart = startLeft ?? 20;

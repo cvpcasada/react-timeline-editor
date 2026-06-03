@@ -11,6 +11,7 @@ import { parserPixelToTime, parserTimeToTransform } from "@/utils/deal-data";
 import { type SnapGuideLineData } from "./snap-lines";
 import { EditAction } from "./edit-action";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { type TimelineCursorPreviewRenderParams } from "@/interface/timeline";
 
 export type EditRowProps = CommonProp & {
   scrollContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -23,6 +24,10 @@ export type EditRowProps = CommonProp & {
   autoScroll?: boolean;
   onPointerEnter?: React.PointerEventHandler<HTMLDivElement>;
   onPointerLeave?: React.PointerEventHandler<HTMLDivElement>;
+  onTimelineCursorPreviewPointerMove?: (
+    params: TimelineCursorPreviewRenderParams
+  ) => void;
+  onTimelineCursorPreviewPointerLeave?: () => void;
 };
 
 export const EditRow: FC<EditRowProps> = (props) => {
@@ -69,6 +74,32 @@ export const EditRow: FC<EditRowProps> = (props) => {
       scaleWidth: safeScaleWidth,
     });
     return time;
+  };
+
+  const handleTimelineCursorPreviewPointerMove = (
+    e: React.PointerEvent<HTMLDivElement>
+  ) => {
+    if (!rowData) return;
+    const position = e.clientX - e.currentTarget.getBoundingClientRect().x;
+    const maxCount = props.maxScaleCount ?? Infinity;
+    const maxLeft = Number.isFinite(maxCount)
+      ? maxCount * safeScaleWidth + safeStartLeft
+      : e.currentTarget.offsetWidth;
+
+    if (position < safeStartLeft || position > maxLeft) {
+      props.onTimelineCursorPreviewPointerLeave?.();
+      return;
+    }
+
+    props.onTimelineCursorPreviewPointerMove?.({
+      surface: "edit-row",
+      row: rowData,
+      time: parserPixelToTime(position, {
+        startLeft: safeStartLeft,
+        scale: safeScale,
+        scaleWidth: safeScaleWidth,
+      }),
+    });
   };
 
   const actions = useMemo(
@@ -142,6 +173,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
       onPointerEnter={props.onPointerEnter}
       onPointerLeave={props.onPointerLeave}
       onPointerMove={(e) => {
+        handleTimelineCursorPreviewPointerMove(e);
         if (rowData && onPointerMoveRow) {
           const time = handleTime(e);
           onPointerMoveRow(e, { row: rowData, time: time });

@@ -575,6 +575,12 @@ import { Meta } from "@storybook/addon-docs/blocks";
       <td><code>false</code></td>
     </tr>
     <tr>
+      <td>showTimelineCursorPreview</td>
+      <td>Whether to show the timeline cursor preview while hovering the timeline surface</td>
+      <td><code>boolean</code></td>
+      <td><code>false</code></td>
+    </tr>
+    <tr>
       <td>disableDrag</td>
       <td>Disable dragging in all action areas</td>
       <td><code>boolean</code></td>
@@ -584,6 +590,12 @@ import { Meta } from "@storybook/addon-docs/blocks";
       <td>getActionRender</td>
       <td>Custom action area rendering</td>
       <td><code>(action: TimelineAction, row: TimelineRow) =&gt; React.ReactNode</code></td>
+      <td><code>--</code></td>
+    </tr>
+    <tr>
+      <td>getTimelineCursorPreviewHeadRender</td>
+      <td>Render custom content inside the timeline cursor preview head</td>
+      <td><code>(params: &#123; surface: "time-area"; time: number &#125; | &#123; surface: "edit-row"; time: number; row: TimelineRow &#125;) =&gt; React.ReactNode</code></td>
       <td><code>--</code></td>
     </tr>
     <tr>

@@ -12,6 +12,7 @@ import {
   vi,
 } from "vite-plus/test";
 import { type CursorProps } from "./cursor/cursor";
+import { type TimelineCursorPreviewProps } from "./cursor/timeline-cursor-preview";
 import { type EditAreaProps } from "./edit_area/edit-area";
 import { type TimeArea } from "./time_area/time-area";
 import { Timeline } from "./timeline";
@@ -23,6 +24,7 @@ const childMocks = vi.hoisted(() => ({
   timeAreaProps: null as TimeAreaProps | null,
   editAreaProps: null as EditAreaProps | null,
   cursorProps: null as CursorProps | null,
+  timelineCursorPreviewProps: null as TimelineCursorPreviewProps | null,
 }));
 
 vi.mock("../utils/measured", () => ({
@@ -85,6 +87,18 @@ vi.mock("./cursor/cursor", async () => {
   };
 });
 
+vi.mock("./cursor/timeline-cursor-preview", async () => {
+  const ReactModule = await import("react");
+  return {
+    TimelineCursorPreview: (props: TimelineCursorPreviewProps) => {
+      childMocks.timelineCursorPreviewProps = props;
+      return ReactModule.createElement("div", {
+        "data-testid": "timeline-cursor-preview",
+      });
+    },
+  };
+});
+
 describe("Timeline", () => {
   let root: Root | null = null;
   let host: HTMLDivElement | null = null;
@@ -94,6 +108,7 @@ describe("Timeline", () => {
     childMocks.timeAreaProps = null;
     childMocks.editAreaProps = null;
     childMocks.cursorProps = null;
+    childMocks.timelineCursorPreviewProps = null;
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
@@ -276,5 +291,60 @@ describe("Timeline", () => {
     renderTimeline({ hideCursor: true });
 
     expect(childMocks.cursorProps).toBeNull();
+  });
+
+  it("shows the timeline cursor preview from time-area pointer movement when opted in", () => {
+    renderTimeline({ showTimelineCursorPreview: true });
+
+    act(() => {
+      childMocks.timeAreaProps?.onTimelineCursorPreviewPointerMove?.({
+        surface: "time-area",
+        time: 2,
+      });
+    });
+
+    expect(childMocks.timelineCursorPreviewProps?.preview).toEqual({
+      surface: "time-area",
+      time: 2,
+    });
+    expect(childMocks.timelineCursorPreviewProps?.height).toBe(120);
+  });
+
+  it("enables the timeline cursor preview when a custom head renderer is provided", () => {
+    const getTimelineCursorPreviewHeadRender = vi.fn();
+    renderTimeline({ getTimelineCursorPreviewHeadRender });
+
+    act(() => {
+      childMocks.editAreaProps?.onTimelineCursorPreviewPointerMove?.({
+        surface: "edit-row",
+        row: { id: "default", actions: [] },
+        time: 3,
+      });
+    });
+
+    expect(
+      childMocks.timelineCursorPreviewProps?.getTimelineCursorPreviewHeadRender
+    ).toBe(getTimelineCursorPreviewHeadRender);
+    expect(childMocks.timelineCursorPreviewProps?.preview).toEqual({
+      surface: "edit-row",
+      row: { id: "default", actions: [] },
+      time: 3,
+    });
+  });
+
+  it("lets explicit false disable the timeline cursor preview", () => {
+    renderTimeline({
+      showTimelineCursorPreview: false,
+      getTimelineCursorPreviewHeadRender: vi.fn(),
+    });
+
+    act(() => {
+      childMocks.timeAreaProps?.onTimelineCursorPreviewPointerMove?.({
+        surface: "time-area",
+        time: 2,
+      });
+    });
+
+    expect(childMocks.timelineCursorPreviewProps).toBeNull();
   });
 });

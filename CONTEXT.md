@@ -32,6 +32,10 @@ _Avoid_: Empty timeline state, empty track placeholder
 A client-controlled visual representation of a timeline action that may be inserted into a row, shown before the action is added to the timeline data. It previews the future action without making it part of the row's action list.
 _Avoid_: Ghost action, placeholder action, pending action
 
+**Timeline Cursor Preview**:
+A visual-only marker that follows the pointer while it is inside the timeline surface, previewing the pointer's timeline time without changing the real timeline cursor or participating in pointer interactions.
+_Avoid_: Ghost cursor, hover cursor
+
 **Timeline Row**:
 A vertical lane in the editor that contains timeline actions.
 _Avoid_: Effect, track

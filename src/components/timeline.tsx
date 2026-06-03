@@ -5,6 +5,7 @@ import React, {
   useLayoutEffect,
   useRef,
   useState,
+  useCallback,
 } from "react";
 import { PREFIX, START_CURSOR_TIME } from "@/interface/const";
 import {
@@ -24,6 +25,10 @@ import { EditArea } from "./edit_area/edit-area";
 import { TimeArea } from "./time_area/time-area";
 import { useMeasure } from "../utils/measured";
 import { Cursor } from "./cursor/cursor";
+import {
+  TimelineCursorPreview,
+  type TimelineCursorPreviewState,
+} from "./cursor/timeline-cursor-preview";
 import { ScrollArea } from "radix-ui";
 import { ScrollBar } from "./scroll-area";
 import { useStableScroll } from "./hooks/use-stable-scroll";
@@ -43,6 +48,9 @@ export function Timeline({
   const { width, height } = useMeasure({ elementRef: domRef });
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
   const [lockedRowId, setLockedRowId] = useState<string | null>(null);
+  const [timelineCursorPreview, setTimelineCursorPreview] =
+    useState<TimelineCursorPreviewState | null>(null);
+  const [isCursorDragging, setIsCursorDragging] = useState(false);
 
   const editorAreaKey = props.unstable_forceRemountEditorArea ?? 0;
 
@@ -108,9 +116,11 @@ export function Timeline({
     !timelineProps.editorData.some(
       (row) => row.id === timelineProps.actionPreview?.rowId
     ) &&
-    warnedMissingActionPreviewRowRef.current !== timelineProps.actionPreview.rowId
+    warnedMissingActionPreviewRowRef.current !==
+      timelineProps.actionPreview.rowId
   ) {
-    warnedMissingActionPreviewRowRef.current = timelineProps.actionPreview.rowId;
+    warnedMissingActionPreviewRowRef.current =
+      timelineProps.actionPreview.rowId;
     console.warn(
       `Warning: actionPreview rowId "${timelineProps.actionPreview.rowId}" does not match any timeline row.`
     );
@@ -167,6 +177,26 @@ export function Timeline({
 
     return false;
   };
+
+  const handleTimelineCursorPreviewPointerMove = useCallback(
+    (preview: TimelineCursorPreviewState) => {
+      setTimelineCursorPreview(preview);
+    },
+    []
+  );
+
+  const handleTimelineCursorPreviewPointerLeave = useCallback(() => {
+    setTimelineCursorPreview(null);
+  }, []);
+
+  const timelineCursorHeight = Math.max(
+    height,
+    rowPresentation.totalHeight + 42
+  );
+  const showTimelineCursorPreview =
+    timelineProps.showTimelineCursorPreview !== false &&
+    (timelineProps.showTimelineCursorPreview === true ||
+      Boolean(timelineProps.getTimelineCursorPreviewHeadRender));
 
   const handleScrollToTime = (
     time: number,
@@ -293,6 +323,16 @@ export function Timeline({
           setCursor={handleSetCursor}
           scaleCount={scaleCount}
           scrollElementRef={domRef}
+          onTimelineCursorPreviewPointerMove={
+            showTimelineCursorPreview
+              ? handleTimelineCursorPreviewPointerMove
+              : undefined
+          }
+          onTimelineCursorPreviewPointerLeave={
+            showTimelineCursorPreview
+              ? handleTimelineCursorPreviewPointerLeave
+              : undefined
+          }
         />
 
         <EditArea
@@ -317,13 +357,39 @@ export function Timeline({
             );
           }}
           setLockedRowId={setLockedRowId}
+          onTimelineCursorPreviewPointerMove={
+            showTimelineCursorPreview
+              ? handleTimelineCursorPreviewPointerMove
+              : undefined
+          }
+          onTimelineCursorPreviewPointerLeave={
+            showTimelineCursorPreview
+              ? handleTimelineCursorPreviewPointerLeave
+              : undefined
+          }
         />
+
+        {showTimelineCursorPreview &&
+          timelineCursorPreview &&
+          !isCursorDragging && (
+            <TimelineCursorPreview
+              cursorTime={cursorTime}
+              height={timelineCursorHeight}
+              preview={timelineCursorPreview}
+              startLeft={timelineProps.startLeft}
+              scaleWidth={timelineProps.scaleWidth}
+              scale={timelineProps.scale}
+              getTimelineCursorPreviewHeadRender={
+                timelineProps.getTimelineCursorPreviewHeadRender
+              }
+            />
+          )}
 
         {!timelineProps.hideCursor && (
           <Cursor
             {...timelineProps}
             timelineWidth={width}
-            height={Math.max(height, rowPresentation.totalHeight + 42)}
+            height={timelineCursorHeight}
             scaleCount={scaleCount}
             setScaleCount={handleSetScaleCount}
             setCursor={handleSetCursor}
@@ -331,6 +397,14 @@ export function Timeline({
             editorData={timelineProps.editorData}
             scrollElementRef={domRef}
             snapPositions={snapPositions}
+            onCursorDragStart={(time) => {
+              setIsCursorDragging(true);
+              timelineProps.onCursorDragStart?.(time);
+            }}
+            onCursorDragEnd={(time) => {
+              setIsCursorDragging(false);
+              timelineProps.onCursorDragEnd?.(time);
+            }}
           />
         )}
       </ScrollArea.Viewport>
