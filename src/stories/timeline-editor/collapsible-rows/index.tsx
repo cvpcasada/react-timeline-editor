@@ -1,4 +1,9 @@
-import { Timeline, type TimelineAction, type TimelineRow } from '@/index';
+import {
+  Timeline,
+  type TimelineAction,
+  type TimelineCursorPreviewRenderParams,
+  type TimelineRow,
+} from '@/index';
 import { useRef, useState } from 'react';
 
 import '../basic/index.less';
@@ -31,6 +36,38 @@ const rowLabels: Record<string, string> = {
   '1': 'Voiceover and sound design',
   '2': 'Layouts and screen states',
 };
+
+const hasActionIntersection = (
+  row: TimelineRow,
+  interval: Pick<TimelineAction, 'start' | 'end'>,
+  ignoredActionId?: string,
+) =>
+  row.actions.some(
+    (action) =>
+      action.id !== ignoredActionId &&
+      interval.start < action.end &&
+      interval.end > action.start,
+  );
+
+const formatTimelinePreviewTime = (time: number) => {
+  const totalMilliseconds = Math.max(0, Math.round(time * 1000));
+  const minutes = Math.floor(totalMilliseconds / 60_000);
+  const seconds = Math.floor((totalMilliseconds % 60_000) / 1000);
+  const milliseconds = totalMilliseconds % 1000;
+
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(
+    2,
+    '0',
+  )}.${String(milliseconds).padStart(3, '0')}`;
+};
+
+const renderToggleableRowsCursorPreviewHead = (
+  params: TimelineCursorPreviewRenderParams,
+) => (
+  <span className="toggleable-rows-cursor-preview-head">
+    {formatTimelinePreviewTime(params.time)}
+  </span>
+);
 
 interface CollapsibleRowsProps {
   rowHeight?: number;
@@ -120,7 +157,12 @@ const ToggleableRows = ({
   const [visibleRowIds, setVisibleRowIds] = useState(() =>
     timelineStoryRows.map((row) => row.id),
   );
+  const [actionPreview, setActionPreview] = useState<{
+    rowId: string;
+    action: TimelineAction;
+  } | null>(null);
   const actionIdRef = useRef(0);
+  const isActionGestureActive = useRef(false);
 
   const visibleRowIdSet = new Set(visibleRowIds);
 
@@ -180,7 +222,12 @@ const ToggleableRows = ({
       : 96;
 
   return (
-    <div className="timeline-editor-example-collapsible-rows timeline-editor-example-toggleable-rows">
+    <div
+      className="timeline-editor-example-collapsible-rows timeline-editor-example-toggleable-rows"
+      onPointerLeave={() => {
+        setActionPreview(null);
+      }}
+    >
       <div className="toggleable-rows-toolbar">
         {timelineStoryRows.map((row) => {
           const isVisible = visibleRowIdSet.has(row.id);
@@ -247,9 +294,10 @@ const ToggleableRows = ({
             idle.
           </li>
           <li>
-            Double-clicking an empty row adds an action and can reactivate
-            collapsible mode.
+            Clicking an action preview adds it and can reactivate collapsible
+            mode.
           </li>
+          <li>Actions cannot be inserted, moved, or resized over another action.</li>
         </ul>
       </section>
 
@@ -283,6 +331,11 @@ const ToggleableRows = ({
               }}
               editorData={visibleData}
               effects={basicMockEffect}
+              actionPreview={actionPreview ?? undefined}
+              showTimelineCursorPreview
+              getTimelineCursorPreviewHeadRender={
+                renderToggleableRowsCursorPreviewHead
+              }
               hideCursor={false}
               autoScroll={true}
               rowHeight={rowHeight}
@@ -312,11 +365,149 @@ const ToggleableRows = ({
                   className="toggleable-rows-empty-row"
                   style={{ height }}
                 >
-                  Double Click to add {rowLabels[row.id] ?? row.id} on cursor
+                  Move over the row to preview {rowLabels[row.id] ?? row.id}
+                </div>
+              )}
+              getActionPreviewRender={({ action }) => (
+                <div className="toggleable-rows-action-preview">
+                  {action.start.toFixed(1)}s - {action.end.toFixed(1)}s
                 </div>
               )}
               style={{ height: '100%' }}
-              onClickRow={() => {
+              onActionMoveStart={() => {
+                isActionGestureActive.current = true;
+                setActionPreview(null);
+              }}
+              onActionMoveEnd={() => {
+                isActionGestureActive.current = false;
+              }}
+              onActionResizeStart={() => {
+                isActionGestureActive.current = true;
+                setActionPreview(null);
+              }}
+              onActionResizeEnd={() => {
+                isActionGestureActive.current = false;
+              }}
+              onActionMoving={({ action, row, start, end }) => {
+                const currentRow = data.find((dataRow) => dataRow.id === row.id);
+                if (!currentRow) return false;
+
+                return !hasActionIntersection(
+                  currentRow,
+                  { start, end },
+                  action.id,
+                );
+              }}
+              onActionResizing={({ action, row, start, end }) => {
+                const currentRow = data.find((dataRow) => dataRow.id === row.id);
+                if (!currentRow) return false;
+
+                return !hasActionIntersection(
+                  currentRow,
+                  { start, end },
+                  action.id,
+                );
+              }}
+              onPointerMoveRow={(_event, { row, time }) => {
+                if (isActionGestureActive.current) {
+                  setActionPreview(null);
+                  return;
+                }
+
+                const previewStart = Math.max(0, time);
+                const previewDuration = 1;
+                const sortedActions = [...row.actions].sort(
+                  (first, second) => first.start - second.start,
+                );
+                const actionAtPreviewStart = sortedActions.find(
+                  (action) =>
+                    previewStart >= action.start && previewStart < action.end,
+                );
+                if (actionAtPreviewStart) {
+                  setActionPreview(null);
+                  return;
+                }
+
+                const nextAction = sortedActions.find(
+                  (action) => action.start >= previewStart,
+                );
+                const previewEnd = Math.min(
+                  previewStart + previewDuration,
+                  nextAction?.start ?? previewStart + previewDuration,
+                );
+
+                if (previewEnd - previewStart < 0.35) {
+                  setActionPreview(null);
+                  return;
+                }
+                if (
+                  hasActionIntersection(row, {
+                    start: previewStart,
+                    end: previewEnd,
+                  })
+                ) {
+                  setActionPreview(null);
+                  return;
+                }
+
+                setActionPreview({
+                  rowId: row.id,
+                  action: {
+                    id: 'toggleable-row-action-preview',
+                    start: previewStart,
+                    end: previewEnd,
+                    effectId: row.id === '1' ? 'effect1' : 'effect0',
+                    flexible: true,
+                    movable: true,
+                  },
+                });
+              }}
+              onClickRow={(_event, { row }) => {
+                if (isActionGestureActive.current) {
+                  setActionPreview(null);
+                  return;
+                }
+
+                if (actionPreview && actionPreview.rowId === row.id) {
+                  const currentRow = data.find(
+                    (dataRow) => dataRow.id === row.id,
+                  );
+                  if (
+                    !currentRow ||
+                    hasActionIntersection(currentRow, actionPreview.action)
+                  ) {
+                    setActionPreview(null);
+                    return;
+                  }
+
+                  const insertedAction: TimelineAction = {
+                    ...actionPreview.action,
+                    id: `toggleable-row-action-${actionIdRef.current++}`,
+                    selected: true,
+                  };
+
+                  setData((currentData) =>
+                    currentData.map((dataRow) => ({
+                      ...dataRow,
+                      actions:
+                        dataRow.id === row.id
+                          ? [
+                              ...dataRow.actions.map((action) => ({
+                                ...action,
+                                selected: false,
+                              })),
+                              insertedAction,
+                            ]
+                          : dataRow.actions.map((action) => ({
+                              ...action,
+                              selected: false,
+                            })),
+                    })),
+                  );
+                  setActionPreview(null);
+                  return;
+                }
+
                 setData((currentData) =>
                   currentData.map((row) => ({
                     ...row,
@@ -347,38 +538,8 @@ const ToggleableRows = ({
               onDoubleClickAction={(event) => {
                 event.stopPropagation();
               }}
-              onDoubleClickRow={(_event, { row, time }) => {
-                setData((currentData) =>
-                  currentData.map((dataRow) => {
-                    if (dataRow.id !== row.id) return dataRow;
-
-                    /*
-                     * Adding to an empty row can flip the whole visible timeline
-                     * back into collapsible mode on the next render, provided no
-                     * other visible row is empty.
-                     */
-                    const newAction: TimelineAction = {
-                      id: `toggleable-row-action-${actionIdRef.current++}`,
-                      start: time,
-                      end: time + 1,
-                      effectId: dataRow.id === '1' ? 'effect1' : 'effect0',
-                      flexible: true,
-                      movable: true,
-                      selected: true,
-                    };
-
-                    return {
-                      ...dataRow,
-                      actions: [
-                        ...dataRow.actions.map((action) => ({
-                          ...action,
-                          selected: false,
-                        })),
-                        newAction,
-                      ],
-                    };
-                  }),
-                );
+              onDoubleClickRow={(event) => {
+                event.stopPropagation();
               }}
             />
           </div>

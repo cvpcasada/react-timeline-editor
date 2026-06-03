@@ -6,9 +6,9 @@ import {
   type TimelineRow,
 } from "@/interface/timeline";
 
-const HIDDEN_DISTANCE = 16;
-const VISIBLE_DISTANCE = 32;
-const MAX_OPACITY = 0.55;
+const HIDDEN_DISTANCE = 2;
+const VISIBLE_DISTANCE = 16;
+const MAX_OPACITY = 1;
 
 export type TimelineCursorPreviewState =
   | {

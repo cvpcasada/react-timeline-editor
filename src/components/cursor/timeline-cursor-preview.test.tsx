@@ -77,6 +77,15 @@ describe("TimelineCursorPreview", () => {
     expect(preview.style.opacity).toBe("0.55");
   });
 
+  it("renders the default preview marker", () => {
+    renderPreview();
+
+    expect(host?.querySelector(".timeline-editor-cursor-top")).not.toBeNull();
+    expect(
+      host?.querySelector(".timeline-editor-cursor-preview-head")
+    ).toBeNull();
+  });
+
   it("renders custom head content inside the built-in head", () => {
     renderPreview({
       getTimelineCursorPreviewHeadRender: (params) => (

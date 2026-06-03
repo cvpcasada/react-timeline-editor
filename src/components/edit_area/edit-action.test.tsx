@@ -20,6 +20,7 @@ type CapturedRowDndProps = RowRndProps & { children?: React.ReactNode };
 
 const rowDndMock = vi.hoisted(() => ({
   props: null as CapturedRowDndProps | null,
+  parentClick: null as React.MouseEventHandler<HTMLDivElement> | null,
 }));
 
 vi.mock("@/components/row_rnd/row-rnd", async () => {
@@ -29,7 +30,7 @@ vi.mock("@/components/row_rnd/row-rnd", async () => {
       rowDndMock.props = props;
       return ReactModule.createElement(
         "div",
-        { "data-testid": "row-dnd" },
+        { "data-testid": "row-dnd", onClick: rowDndMock.parentClick },
         props.children
       );
     },
@@ -43,6 +44,7 @@ describe("EditAction", () => {
   beforeEach(() => {
     vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
     rowDndMock.props = null;
+    rowDndMock.parentClick = null;
   });
 
   afterEach(() => {
@@ -165,6 +167,34 @@ describe("EditAction", () => {
 
     expect(result).toBe(false);
     expect(setScaleCount).not.toHaveBeenCalled();
+  });
+
+  it("does not bubble the post-drag click to row handlers", () => {
+    const onRowClick = vi.fn();
+    const onClickAction = vi.fn();
+    rowDndMock.parentClick = onRowClick;
+    const { rowDnd } = renderEditAction({
+      onClickAction,
+    });
+    const actionElement = host?.querySelector<HTMLElement>(
+      ".timeline-editor-action"
+    );
+    if (!actionElement) throw new Error("EditAction did not render action");
+
+    act(() => {
+      rowDnd.onDrag?.({
+        lastLeft: 120,
+        left: 140,
+        lastWidth: 200,
+        width: 200,
+      });
+    });
+    act(() => {
+      actionElement.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(onClickAction).toHaveBeenCalledOnce();
+    expect(onRowClick).not.toHaveBeenCalled();
   });
 
   it("commits drag-end times into editor data and publishes a new row array", () => {

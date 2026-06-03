@@ -305,7 +305,11 @@ export const EditAction: FC<EditActionProps> = ({
             time = handleTime(e);
             onClickAction(e, { row, action, time: time });
           }
-          if (!isDragWhenClick.current && onClickActionOnly) {
+          if (isDragWhenClick.current) {
+            e.stopPropagation();
+            return;
+          }
+          if (onClickActionOnly) {
             if (time === undefined) time = handleTime(e);
             onClickActionOnly(e, { row, action, time: time });
           }
