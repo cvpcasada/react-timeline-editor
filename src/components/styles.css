@@ -7,8 +7,8 @@
     font-size: 0.75rem;
     line-height: 1rem;
     font-family:
-      ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
-      "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+      "Segoe UI Symbol", "Noto Color Emoji";
     background-color: oklch(15.2% 0 0);
     overflow: hidden;
     transition: all 0.3s ease-in-out;
@@ -254,7 +254,7 @@
     box-sizing: border-box;
     top: 2rem;
     min-height: calc(100% - 32px);
-    z-index: 2;
+    z-index: 4;
   }
 
   .timeline-editor-cursor-preview {
@@ -263,7 +263,7 @@
     box-sizing: border-box;
     top: 2rem;
     min-height: calc(100% - 32px);
-    z-index: 1;
+    z-index: 5;
     pointer-events: none;
     color: oklch(78% 0 0);
     transition: opacity 0.08s ease-out;
