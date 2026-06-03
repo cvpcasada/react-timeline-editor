@@ -86,6 +86,21 @@ export interface EditData {
     row: TimelineRow
   ) => React.ReactNode;
   /**
+   * @description Client-controlled action preview to render before insertion
+   */
+  actionPreview?: {
+    rowId: string;
+    action: TimelineAction;
+  };
+  /**
+   * @description Render custom content for an action preview
+   */
+  getActionPreviewRender?: (params: {
+    action: TimelineAction;
+    row: TimelineRow;
+    height: number;
+  }) => React.ReactNode;
+  /**
    * @description Render custom content inside rows with no actions
    */
   getEmptyRowRender?: (params: {
@@ -161,6 +176,16 @@ export interface EditData {
    */
   onClickRow?: (
     e: React.MouseEvent<HTMLElement, MouseEvent>,
+    param: {
+      row: TimelineRow;
+      time: number;
+    }
+  ) => void;
+  /**
+   * @description Pointer move row callback
+   */
+  onPointerMoveRow?: (
+    e: React.PointerEvent<HTMLElement>,
     param: {
       row: TimelineRow;
       time: number;

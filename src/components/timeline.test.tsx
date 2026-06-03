@@ -94,6 +94,7 @@ describe("Timeline", () => {
     childMocks.timeAreaProps = null;
     childMocks.editAreaProps = null;
     childMocks.cursorProps = null;
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   afterEach(() => {
@@ -104,6 +105,7 @@ describe("Timeline", () => {
     root = null;
     host = null;
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   function renderTimeline(
@@ -185,6 +187,57 @@ describe("Timeline", () => {
     });
 
     expect(onChange).toHaveBeenCalledWith(nextData);
+  });
+
+  it("passes valid action preview props through to the edit area", () => {
+    const getActionPreviewRender = vi.fn();
+
+    renderTimeline({
+      actionPreview: {
+        rowId: "default",
+        action: { id: "preview", start: 2, end: 3, effectId: "video" },
+      },
+      getActionPreviewRender,
+    });
+
+    expect(childMocks.editAreaProps?.actionPreview).toEqual({
+      rowId: "default",
+      action: { id: "preview", start: 2, end: 3, effectId: "video" },
+    });
+    expect(childMocks.editAreaProps?.getActionPreviewRender).toBe(
+      getActionPreviewRender
+    );
+    expect(console.warn).not.toHaveBeenCalledWith(
+      expect.stringContaining("actionPreview rowId")
+    );
+  });
+
+  it("warns once per missing action preview row id", () => {
+    renderTimeline({
+      actionPreview: {
+        rowId: "missing",
+        action: { id: "preview", start: 2, end: 3, effectId: "video" },
+      },
+    });
+
+    expect(console.warn).toHaveBeenCalledWith(
+      'Warning: actionPreview rowId "missing" does not match any timeline row.'
+    );
+
+    act(() => {
+      root?.render(
+        <Timeline
+          editorData={[{ id: "default", actions: [] }]}
+          effects={{ video: { id: "video" } }}
+          actionPreview={{
+            rowId: "missing",
+            action: { id: "preview", start: 2, end: 3, effectId: "video" },
+          }}
+        />
+      );
+    });
+
+    expect(console.warn).toHaveBeenCalledTimes(1);
   });
 
   it("exposes imperative time and scroll APIs", () => {

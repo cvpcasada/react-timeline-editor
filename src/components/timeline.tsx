@@ -39,6 +39,7 @@ export function Timeline({
   const timelineProps = withDefaults(props);
   const domRef = useRef<HTMLDivElement>(null);
   const warnedDefaultRowsRef = useRef("");
+  const warnedMissingActionPreviewRowRef = useRef("");
   const { width, height } = useMeasure({ elementRef: domRef });
   const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
   const [lockedRowId, setLockedRowId] = useState<string | null>(null);
@@ -100,6 +101,18 @@ export function Timeline({
     warnedDefaultRowsRef.current = duplicateDefaultRowsKey;
     console.warn(
       "Warning: multiple collapsible rows set expandedByDefault. The first row in editorData wins."
+    );
+  }
+  if (
+    timelineProps.actionPreview &&
+    !timelineProps.editorData.some(
+      (row) => row.id === timelineProps.actionPreview?.rowId
+    ) &&
+    warnedMissingActionPreviewRowRef.current !== timelineProps.actionPreview.rowId
+  ) {
+    warnedMissingActionPreviewRowRef.current = timelineProps.actionPreview.rowId;
+    console.warn(
+      `Warning: actionPreview rowId "${timelineProps.actionPreview.rowId}" does not match any timeline row.`
     );
   }
 

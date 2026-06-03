@@ -32,6 +32,7 @@ export const EditRow: FC<EditRowProps> = (props) => {
     isCollapsed = false,
     style = {},
     onClickRow,
+    onPointerMoveRow,
     onDoubleClickRow,
     onContextMenuRow,
     scrollContainerRef,
@@ -41,6 +42,8 @@ export const EditRow: FC<EditRowProps> = (props) => {
     unstable_rowActionsOverscan,
     getEmptyRowRender,
     getCollapsedRowLabelRender,
+    getActionPreviewRender,
+    actionPreview,
   } = props;
 
   const classNames = ["edit-row"];
@@ -80,6 +83,22 @@ export const EditRow: FC<EditRowProps> = (props) => {
     (index: number) => actions[index]?.id ?? index,
     [actions]
   );
+
+  const previewAction =
+    rowData && actionPreview?.rowId === rowData.id
+      ? actionPreview.action
+      : null;
+
+  const previewTransform = previewAction
+    ? parserTimeToTransform(
+        { start: previewAction.start, end: previewAction.end },
+        {
+          startLeft: safeStartLeft,
+          scale: safeScale,
+          scaleWidth: safeScaleWidth,
+        }
+      )
+    : null;
 
   // oxlint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
@@ -122,6 +141,12 @@ export const EditRow: FC<EditRowProps> = (props) => {
       style={style}
       onPointerEnter={props.onPointerEnter}
       onPointerLeave={props.onPointerLeave}
+      onPointerMove={(e) => {
+        if (rowData && onPointerMoveRow) {
+          const time = handleTime(e);
+          onPointerMoveRow(e, { row: rowData, time: time });
+        }
+      }}
       onClick={(e) => {
         if (rowData && onClickRow) {
           const time = handleTime(e);
@@ -152,6 +177,23 @@ export const EditRow: FC<EditRowProps> = (props) => {
       {rowData && actions.length === 0 && getEmptyRowRender && (
         <div className={prefix("empty-row")}>
           {getEmptyRowRender({
+            row: rowData,
+            height: rowRenderHeight,
+          })}
+        </div>
+      )}
+      {rowData && previewAction && previewTransform && (
+        <div
+          className={prefix("action-preview")}
+          style={{
+            height: rowRenderHeight,
+            transform: `translateX(${previewTransform.left}px)`,
+            width: previewTransform.width,
+          }}
+          aria-hidden="true"
+        >
+          {getActionPreviewRender?.({
+            action: previewAction,
             row: rowData,
             height: rowRenderHeight,
           })}

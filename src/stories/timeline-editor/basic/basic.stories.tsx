@@ -1,6 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
-import { Basic, BasicCursorDisabled, BasicHideCursor } from ".";
+import {
+  Basic,
+  BasicActionPreview,
+  BasicCursorDisabled,
+  BasicHideCursor,
+} from ".";
 import { action } from "storybook/actions";
 
 const meta = {
@@ -46,5 +51,23 @@ export const BasicHideTimelineCursor: StoryObj<typeof BasicHideCursor> = {
   },
   args: {
     hideCursor: true,
+  },
+};
+
+export const ActionPreview: StoryObj<typeof BasicActionPreview> = {
+  render: (args) => <BasicActionPreview {...args} />,
+  argTypes: {
+    resizeToAvailableSpace: {
+      control: { type: "boolean" },
+      description: "Resize the preview to fit before the next action",
+    },
+    minPreviewDuration: {
+      control: { type: "number", min: 0, step: 0.1 },
+      description: "Minimum duration required to show and commit a preview",
+    },
+  },
+  args: {
+    resizeToAvailableSpace: true,
+    minPreviewDuration: 0.5,
   },
 };

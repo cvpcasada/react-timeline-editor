@@ -88,6 +88,7 @@ describe("EditRow", () => {
       setScaleCount: vi.fn(),
     };
     const onClickRow = vi.fn();
+    const onPointerMoveRow = vi.fn();
     const onDoubleClickRow = vi.fn();
     const onContextMenuRow = vi.fn();
 
@@ -110,6 +111,7 @@ describe("EditRow", () => {
           setEditorData={vi.fn()}
           scrollContainerRef={scrollContainerRef}
           onClickRow={onClickRow}
+          onPointerMoveRow={onPointerMoveRow}
           onDoubleClickRow={onDoubleClickRow}
           onContextMenuRow={onContextMenuRow}
           {...props}
@@ -137,6 +139,7 @@ describe("EditRow", () => {
     return {
       rowElement,
       onClickRow,
+      onPointerMoveRow,
       onDoubleClickRow,
       onContextMenuRow,
     };
@@ -145,6 +148,14 @@ describe("EditRow", () => {
   function dispatchMouse(element: HTMLElement, type: string, clientX: number) {
     act(() => {
       element.dispatchEvent(new MouseEvent(type, { bubbles: true, clientX }));
+    });
+  }
+
+  function dispatchPointer(element: HTMLElement, type: string, clientX: number) {
+    act(() => {
+      element.dispatchEvent(
+        new PointerEvent(type, { bubbles: true, clientX })
+      );
     });
   }
 
@@ -165,6 +176,17 @@ describe("EditRow", () => {
     dispatchMouse(rowElement, "click", 270);
 
     expect(onClickRow).toHaveBeenCalledWith(
+      expect.objectContaining({ clientX: 270 }),
+      expect.objectContaining({ time: 3 })
+    );
+  });
+
+  it("converts row pointer movement into timeline time", () => {
+    const { rowElement, onPointerMoveRow } = renderEditRow();
+
+    dispatchPointer(rowElement, "pointermove", 270);
+
+    expect(onPointerMoveRow).toHaveBeenCalledWith(
       expect.objectContaining({ clientX: 270 }),
       expect.objectContaining({ time: 3 })
     );
@@ -218,5 +240,59 @@ describe("EditRow", () => {
 
     expect(emptyRender).not.toHaveBeenCalled();
     expect(rowElement.querySelector(".timeline-editor-empty-row")).toBeNull();
+  });
+
+  it("renders an action preview above empty row content without adding it to actions", () => {
+    const previewRender = vi.fn(({ action, row, height }) => (
+      <span data-testid="action-preview">
+        {row.id}:{action.id}:{height}
+      </span>
+    ));
+
+    const { rowElement } = renderEditRow({
+      rowData: { id: "empty", actions: [] },
+      rowRenderHeight: 44,
+      getEmptyRowRender: () => <span data-testid="empty-row">empty</span>,
+      actionPreview: {
+        rowId: "empty",
+        action: { id: "preview", start: 2, end: 3.5, effectId: "video" },
+      },
+      getActionPreviewRender: previewRender,
+    });
+
+    const empty = rowElement.querySelector("[data-testid='empty-row']");
+    const preview = rowElement.querySelector<HTMLElement>(
+      ".timeline-editor-action-preview"
+    );
+
+    expect(empty).not.toBeNull();
+    expect(preview).not.toBeNull();
+    expect(preview?.style.transform).toBe("translateX(120px)");
+    expect(preview?.style.width).toBe("75px");
+    expect(preview?.style.height).toBe("44px");
+    expect(rowElement.textContent).toContain("empty");
+    expect(rowElement.textContent).toContain("empty:preview:44");
+    expect(previewRender).toHaveBeenCalledWith({
+      row: { id: "empty", actions: [] },
+      action: { id: "preview", start: 2, end: 3.5, effectId: "video" },
+      height: 44,
+    });
+    expect(editActionMock.props).toEqual([]);
+  });
+
+  it("does not render an action preview for a different row", () => {
+    const previewRender = vi.fn();
+    const { rowElement } = renderEditRow({
+      actionPreview: {
+        rowId: "other",
+        action: { id: "preview", start: 2, end: 3, effectId: "video" },
+      },
+      getActionPreviewRender: previewRender,
+    });
+
+    expect(previewRender).not.toHaveBeenCalled();
+    expect(
+      rowElement.querySelector(".timeline-editor-action-preview")
+    ).toBeNull();
   });
 });

@@ -28,6 +28,10 @@ _Avoid_: Uncollapsible row, static row
 A visual placeholder shown inside a visible timeline row that currently contains no actions, with content and presentation supplied by the timeline client.
 _Avoid_: Empty timeline state, empty track placeholder
 
+**Action Preview**:
+A client-controlled visual representation of a timeline action that may be inserted into a row, shown before the action is added to the timeline data. It previews the future action without making it part of the row's action list.
+_Avoid_: Ghost action, placeholder action, pending action
+
 **Timeline Row**:
 A vertical lane in the editor that contains timeline actions.
 _Avoid_: Effect, track

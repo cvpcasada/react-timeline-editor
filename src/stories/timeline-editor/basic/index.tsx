@@ -1,4 +1,9 @@
-import { Timeline, type TimelineEditor, type TimelineState } from "@/index";
+import {
+  Timeline,
+  type TimelineAction,
+  type TimelineEditor,
+  type TimelineState,
+} from "@/index";
 
 import { useRef, useState } from "react";
 import "./index.less";
@@ -66,4 +71,105 @@ const BasicHideCursor = ({ hideCursor = true }: BasicHideCursorProps) => {
   );
 };
 
-export { Basic, BasicCursorDisabled, BasicHideCursor };
+interface BasicActionPreviewProps {
+  resizeToAvailableSpace?: boolean;
+  minPreviewDuration?: number;
+}
+
+const BasicActionPreview = ({
+  resizeToAvailableSpace = true,
+  minPreviewDuration = 0.5,
+}: BasicActionPreviewProps) => {
+  const [data, setData] = useState(defaultEditorData);
+  const nextActionId = useRef(1);
+  const [actionPreview, setActionPreview] = useState<{
+    rowId: string;
+    action: TimelineAction;
+  } | null>(null);
+
+  return (
+    <div
+      className="timeline-editor-example-basic"
+      onPointerLeave={() => {
+        setActionPreview(null);
+      }}
+    >
+      <Timeline
+        onChange={setData}
+        editorData={data}
+        effects={mockEffect}
+        actionPreview={actionPreview ?? undefined}
+        onPointerMoveRow={(_event, { row, time }) => {
+          const previewStart = Math.max(0, time);
+          const previewDuration = 2;
+          const sortedActions = [...row.actions].sort(
+            (first, second) => first.start - second.start
+          );
+          const overlappingAction = sortedActions.find(
+            (action) => previewStart >= action.start && previewStart < action.end
+          );
+          if (overlappingAction) {
+            setActionPreview(null);
+            return;
+          }
+
+          const nextAction = sortedActions.find(
+            (action) => action.start >= previewStart
+          );
+          const requestedEnd = previewStart + previewDuration;
+          let previewEnd = requestedEnd;
+
+          if (nextAction && requestedEnd > nextAction.start) {
+            if (!resizeToAvailableSpace) {
+              setActionPreview(null);
+              return;
+            }
+            previewEnd = nextAction.start;
+          }
+
+          if (previewEnd - previewStart < minPreviewDuration) {
+            setActionPreview(null);
+            return;
+          }
+
+          setActionPreview({
+            rowId: row.id,
+            action: {
+              id: "action-preview",
+              start: previewStart,
+              end: previewEnd,
+              effectId: "effect0",
+            },
+          });
+        }}
+        onClickRow={(_event, { row }) => {
+          if (!actionPreview || actionPreview.rowId !== row.id) return;
+
+          const insertedAction = {
+            ...actionPreview.action,
+            id: `inserted-action-${nextActionId.current++}`,
+          };
+
+          setData((currentData) =>
+            currentData.map((currentRow) =>
+              currentRow.id === row.id
+                ? {
+                    ...currentRow,
+                    actions: [...currentRow.actions, insertedAction],
+                  }
+                : currentRow
+            )
+          );
+          setActionPreview(null);
+        }}
+        getActionPreviewRender={({ action }) => (
+          <div className="timeline-editor-example-basic-preview">
+            {action.start.toFixed(1)}s - {action.end.toFixed(1)}s
+          </div>
+        )}
+      />
+    </div>
+  );
+};
+
+export { Basic, BasicActionPreview, BasicCursorDisabled, BasicHideCursor };
