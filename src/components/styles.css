@@ -118,7 +118,7 @@
   .timeline-editor-collapsed-row-label {
     position: sticky;
     left: 0;
-    z-index: 1;
+    z-index: 3;
     pointer-events: none;
     align-self: stretch;
     display: flex;

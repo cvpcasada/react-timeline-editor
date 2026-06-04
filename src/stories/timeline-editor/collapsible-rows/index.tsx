@@ -169,6 +169,13 @@ const ToggleableRows = ({
   const isActionGestureActive = useRef(false);
 
   const visibleRowIdSet = new Set(visibleRowIds);
+  const selectedActionRowId =
+    data.find(
+      (row) =>
+        visibleRowIdSet.has(row.id) &&
+        row.id !== '0' &&
+        row.actions.some((action) => action.selected),
+    )?.id ?? null;
 
   /*
    * This story intentionally demonstrates three states with one data model:
@@ -206,13 +213,16 @@ const ToggleableRows = ({
         ...row,
         rowHeight,
         /*
-         * When collapsible behavior is active, row 1 is the idle expanded row.
-         * Hovering or editing another collapsible row still lets the timeline
-         * focus that row according to the component's normal row-layout rules.
+         * When collapsible behavior is active, a selected action keeps its row
+         * expanded. Row 1 is only the idle fallback. Hovering or editing another
+         * collapsible row still lets the timeline focus that row according to
+         * the component's normal row-layout rules.
          */
         collapsed: {
           height: collapsedRowHeight,
-          ...(row.id === '1' ? { expandedByDefault: true } : {}),
+          ...(row.id === (selectedActionRowId ?? '1')
+            ? { expandedByDefault: true }
+            : {}),
         },
       };
     });
@@ -311,6 +321,20 @@ const ToggleableRows = ({
           <div
             className="toggleable-rows-timeline-shell"
             onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setActionPreview(null);
+                setData((currentData) =>
+                  currentData.map((row) => ({
+                    ...row,
+                    actions: row.actions.map((action) => ({
+                      ...action,
+                      selected: false,
+                    })),
+                  })),
+                );
+                return;
+              }
+
               if (event.key !== 'Delete' && event.key !== 'Backspace') return;
 
               setData((currentData) =>
