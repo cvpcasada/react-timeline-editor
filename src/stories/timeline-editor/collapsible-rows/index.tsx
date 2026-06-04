@@ -145,6 +145,8 @@ interface ToggleableRowsProps {
   collapsedRowHeight?: number;
   timelinePadding?: number;
   scrollbarPadding?: number;
+  minActionPreviewDuration?: number;
+  maxActionPreviewDuration?: number;
 }
 
 const ToggleableRows = ({
@@ -152,6 +154,8 @@ const ToggleableRows = ({
   collapsedRowHeight = 18,
   timelinePadding = 40,
   scrollbarPadding = 14,
+  minActionPreviewDuration = 0.35,
+  maxActionPreviewDuration = 1,
 }: ToggleableRowsProps) => {
   const [data, setData] = useState<TimelineRow[]>(timelineStoryRows);
   const [visibleRowIds, setVisibleRowIds] = useState(() =>
@@ -414,32 +418,56 @@ const ToggleableRows = ({
                   return;
                 }
 
-                const previewStart = Math.max(0, time);
-                const previewDuration = 1;
+                const cursorTime = Math.max(0, time);
                 const sortedActions = [...row.actions].sort(
                   (first, second) => first.start - second.start,
                 );
                 const actionAtPreviewStart = sortedActions.find(
                   (action) =>
-                    previewStart >= action.start && previewStart < action.end,
+                    cursorTime >= action.start && cursorTime < action.end,
                 );
                 if (actionAtPreviewStart) {
                   setActionPreview(null);
                   return;
                 }
 
-                const nextAction = sortedActions.find(
-                  (action) => action.start >= previewStart,
+                const previousAction = sortedActions.findLast(
+                  (action) => action.end <= cursorTime,
                 );
-                const previewEnd = Math.min(
-                  previewStart + previewDuration,
-                  nextAction?.start ?? previewStart + previewDuration,
+                const nextAction = sortedActions.find(
+                  (action) => action.start >= cursorTime,
+                );
+                const gapStart = previousAction?.end ?? 0;
+                const gapEnd =
+                  nextAction?.start ?? cursorTime + maxActionPreviewDuration;
+                const gapDuration = gapEnd - gapStart;
+                const previewMinDuration = Math.min(
+                  minActionPreviewDuration,
+                  maxActionPreviewDuration,
                 );
 
-                if (previewEnd - previewStart < 0.35) {
+                if (gapDuration < previewMinDuration) {
                   setActionPreview(null);
                   return;
                 }
+
+                const remainingGapDuration = gapEnd - cursorTime;
+                const previewDuration =
+                  remainingGapDuration >= previewMinDuration
+                    ? Math.min(maxActionPreviewDuration, remainingGapDuration)
+                    : previewMinDuration;
+                let previewStart = cursorTime;
+                let previewEnd = previewStart + previewDuration;
+
+                if (previewEnd > gapEnd) {
+                  previewEnd = gapEnd;
+                  previewStart = previewEnd - previewDuration;
+                }
+                if (previewStart < gapStart) {
+                  previewStart = gapStart;
+                  previewEnd = previewStart + previewDuration;
+                }
+
                 if (
                   hasActionIntersection(row, {
                     start: previewStart,

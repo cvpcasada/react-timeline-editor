@@ -95,11 +95,21 @@ export const ToggleableRowsResize: StoryObj<
       control: { type: 'number', min: 0, max: 32, step: 1 },
       description: 'Extra bottom room so the horizontal scrollbar does not cover rows',
     },
+    minActionPreviewDuration: {
+      control: { type: 'number', min: 0.1, max: 2, step: 0.05 },
+      description: 'Smallest preview size and gap needed to allow insertion',
+    },
+    maxActionPreviewDuration: {
+      control: { type: 'number', min: 0.1, max: 4, step: 0.1 },
+      description: 'Preferred preview size when the gap has enough room',
+    },
   },
   args: {
     rowHeight: 48,
     collapsedRowHeight: 18,
     timelinePadding: 40,
     scrollbarPadding: 14,
+    minActionPreviewDuration: 0.35,
+    maxActionPreviewDuration: 1,
   },
 };
