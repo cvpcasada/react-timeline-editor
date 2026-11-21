@@ -348,6 +348,12 @@ export interface TimelineEditor extends EditData {
    */
   onScroll?: (params: EventTarget & HTMLDivElement) => void;
   /**
+   * @description Called after a commit that moves actions: a change to scale, scaleWidth, startLeft or editorData. Gets
+   * the committed state, so positions read from it match the DOM. A drag or resize in progress doesn't call it; use
+   * onActionMoving / onActionResizing for those.
+   */
+  onLayout?: (state: TimelineState) => void;
+  /**
    * @description Whether to enable auto scroll when dragging
    * @default false
    */

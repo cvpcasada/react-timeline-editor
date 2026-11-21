@@ -1,6 +1,7 @@
 import "./styles.css";
 
 import React, {
+  useEffectEvent,
   useImperativeHandle,
   useLayoutEffect,
   useRef,
@@ -242,65 +243,76 @@ export function Timeline({
   };
 
   // Ref data
-  useImperativeHandle(
-    ref,
-    () =>
-      ({
-        get target() {
-          return domRef.current!;
-        },
-        set time(time: number) {
-          handleSetCursor({ time });
-        },
-        get time() {
-          return cursorTimeRef.current;
-        },
+  const state = {
+    get target() {
+      return domRef.current!;
+    },
+    set time(time: number) {
+      handleSetCursor({ time });
+    },
+    get time() {
+      return cursorTimeRef.current;
+    },
 
-        getTime() {
-          return cursorTimeRef.current;
-        },
+    getTime() {
+      return cursorTimeRef.current;
+    },
 
-        setTime(time: number) {
-          handleSetCursor({ time });
-        },
+    setTime(time: number) {
+      handleSetCursor({ time });
+    },
 
-        getTimePixelPosition(time?: number) {
-          return parserTimeToPixel(time ?? cursorTimeRef.current, {
-            startLeft: timelineProps.startLeft,
-            scale: timelineProps.scale,
-            scaleWidth: timelineProps.scaleWidth,
-          });
-        },
+    getTimePixelPosition(time?: number) {
+      return parserTimeToPixel(time ?? cursorTimeRef.current, {
+        startLeft: timelineProps.startLeft,
+        scale: timelineProps.scale,
+        scaleWidth: timelineProps.scaleWidth,
+      });
+    },
 
-        setScrollLeft: (val) => {
-          if (!domRef.current) return;
-          domRef.current.scrollLeft = val;
-        },
-        setScrollTop: (val) => {
-          if (!domRef.current) return;
-          domRef.current.scrollTop = val;
-        },
+    setScrollLeft: (val) => {
+      if (!domRef.current) return;
+      domRef.current.scrollLeft = val;
+    },
+    setScrollTop: (val) => {
+      if (!domRef.current) return;
+      domRef.current.scrollTop = val;
+    },
 
-        get scrollLeft() {
-          if (!domRef.current) return 0;
-          return domRef.current.scrollLeft;
-        },
+    get scrollLeft() {
+      if (!domRef.current) return 0;
+      return domRef.current.scrollLeft;
+    },
 
-        get scrollTop() {
-          if (!domRef.current) return 0;
-          return domRef.current.scrollTop;
-        },
+    get scrollTop() {
+      if (!domRef.current) return 0;
+      return domRef.current.scrollTop;
+    },
 
-        set scrollLeft(val: number) {
-          if (!domRef.current) return;
-          domRef.current.scrollLeft = val;
-        },
-        set scrollTop(val: number) {
-          if (!domRef.current) return;
-          domRef.current.scrollTop = val;
-        },
-        scrollToTime: handleScrollToTime,
-      }) satisfies TimelineState
+    set scrollLeft(val: number) {
+      if (!domRef.current) return;
+      domRef.current.scrollLeft = val;
+    },
+    set scrollTop(val: number) {
+      if (!domRef.current) return;
+      domRef.current.scrollTop = val;
+    },
+    scrollToTime: handleScrollToTime,
+  } satisfies TimelineState;
+  useImperativeHandle(ref, () => state);
+
+  const notifyLayout = useEffectEvent(() => {
+    timelineProps.onLayout?.(state);
+  });
+  // After children commit, so the actions' DOM already sits where `state` maps time.
+  useLayoutEffect(
+    () => notifyLayout(),
+    [
+      timelineProps.scale,
+      timelineProps.scaleWidth,
+      timelineProps.startLeft,
+      timelineProps.editorData,
+    ]
   );
 
   return (
