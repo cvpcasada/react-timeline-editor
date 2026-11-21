@@ -131,33 +131,39 @@ describe("Timeline", () => {
     root = createRoot(host);
     const ref = React.createRef<TimelineState | null>();
     const onChange = vi.fn();
+    // One array across renders, so only a real data change counts as one.
+    const editorData = [
+      {
+        id: "default",
+        collapsed: { height: 12, expandedByDefault: true },
+        actions: [{ id: "clip", start: 1, end: 2, effectId: "video" }],
+      },
+      {
+        id: "collapsed",
+        collapsed: { height: 10 },
+        actions: [{ id: "peer", start: 3, end: 4, effectId: "video" }],
+      },
+    ];
+    const element = (
+      overrides: Partial<React.ComponentProps<typeof Timeline>> = {}
+    ) => (
+      <Timeline
+        ref={ref}
+        editorData={editorData}
+        effects={{ video: { id: "video" } }}
+        scale={1}
+        scaleWidth={100}
+        startLeft={20}
+        rowHeight={40}
+        collapsedRowHeight={10}
+        onChange={onChange}
+        {...props}
+        {...overrides}
+      />
+    );
 
     act(() => {
-      root?.render(
-        <Timeline
-          ref={ref}
-          editorData={[
-            {
-              id: "default",
-              collapsed: { height: 12, expandedByDefault: true },
-              actions: [{ id: "clip", start: 1, end: 2, effectId: "video" }],
-            },
-            {
-              id: "collapsed",
-              collapsed: { height: 10 },
-              actions: [{ id: "peer", start: 3, end: 4, effectId: "video" }],
-            },
-          ]}
-          effects={{ video: { id: "video" } }}
-          scale={1}
-          scaleWidth={100}
-          startLeft={20}
-          rowHeight={40}
-          collapsedRowHeight={10}
-          onChange={onChange}
-          {...props}
-        />
-      );
+      root?.render(element());
     });
 
     if (
@@ -172,8 +178,29 @@ describe("Timeline", () => {
       ref,
       onChange,
       viewport: ref.current.target,
+      rerender: (overrides: Partial<React.ComponentProps<typeof Timeline>>) =>
+        act(() => {
+          root?.render(element(overrides));
+        }),
     };
   }
+
+  it("calls onLayout with the committed state when actions move, not on other renders", () => {
+    const pixelsAtLayout: number[] = [];
+    const onLayout = vi.fn((state: TimelineState) =>
+      pixelsAtLayout.push(state.getTimePixelPosition(1))
+    );
+    const { rerender } = renderTimeline({ onLayout });
+    rerender({ onLayout, scaleWidth: 200 });
+    rerender({ onLayout, scaleWidth: 200, hideCursor: true });
+    rerender({
+      onLayout,
+      scaleWidth: 200,
+      editorData: [{ id: "next", actions: [] }],
+    });
+
+    expect(pixelsAtLayout).toEqual([120, 220, 220]);
+  });
 
   it("derives scale count, row layouts, and snap positions for child surfaces", () => {
     renderTimeline();
